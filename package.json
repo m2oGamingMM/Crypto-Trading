@@ -1,0 +1,19 @@
+{
+  "name": "crypto-trading-platform",
+  "version": "1.0.0",
+  "description": "Crypto Trading Platform WebApp",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "keywords": ["crypto", "trading", "platform"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^22.13.11",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2"
+  }
+}
