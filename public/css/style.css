@@ -1,0 +1,120 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  background: #0a0a0f; color: #ffffff;
+  padding-bottom: 70px; /* Bottom Nav Space */
+}
+
+.container { max-width: 480px; margin: 0 auto; min-height: 100vh; }
+
+/* --- HEADER & HERO --- */
+.header {
+  display: flex; justify-content: flex-end; padding: 12px 16px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+.personal-center-btn {
+  background: #00b894; color: white; border: none; padding: 6px 14px;
+  border-radius: 15px; font-size: 12px; font-weight: 500;
+}
+.hero-banner {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 20px; text-align: center;
+}
+.hero-title {
+  font-size: 24px; font-weight: bold; margin-bottom: 5px;
+  background: linear-gradient(90deg, #00b894, #00cec9);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-subtitle { font-size: 13px; color: #b2bec3; }
+
+/* --- ICONS --- */
+.feature-icons {
+  display: flex; justify-content: space-around; padding: 20px 10px; background: #12121a;
+}
+.feature-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.feature-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.feature-icon.blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+.feature-icon.green { background: linear-gradient(135deg, #00b894, #00cec9); }
+.feature-icon.teal { background: linear-gradient(135deg, #00cec9, #0984e3); }
+.feature-icon.purple { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+.feature-icon.orange { background: linear-gradient(135deg, #fdcb6e, #f39c12); }
+.feature-text { font-size: 10px; color: #b2bec3; text-align: center; }
+
+/* --- TOP 3 CARDS --- */
+.top-prices { display: flex; gap: 8px; padding: 10px 16px; background: #12121a; }
+.price-card {
+  flex: 1; background: #1e1e2d; border-radius: 8px; padding: 12px 5px; text-align: center;
+}
+.price-pair { font-size: 11px; color: #b2bec3; margin-bottom: 4px; }
+.price-value { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.price-value.up { color: #00b894; } .price-value.down { color: #ff6b6b; }
+.price-change { font-size: 10px; padding: 2px 4px; border-radius: 3px; display: inline-block; font-weight: 500; }
+.price-change.up { background: rgba(0, 184, 148, 0.15); color: #00b894; }
+.price-change.down { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
+
+/* --- RAPID TOPUP & BLUE CARD --- */
+.rapid-topup { padding: 0 16px; margin: 10px 0; }
+.topup-btn {
+  width: 100%; background: linear-gradient(90deg, #00b894, #00cec9);
+  color: white; border: none; padding: 12px; border-radius: 20px;
+  font-size: 14px; font-weight: 600; display: flex; justify-content: center; gap: 8px;
+}
+.section-title { text-align: center; font-size: 16px; font-weight: 700; padding: 10px; color: white; }
+
+.featured-crypto {
+  margin: 0 16px 10px; background: linear-gradient(135deg, #1e3a5f, #2d5a87);
+  border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+.featured-left { display: flex; align-items: center; gap: 10px; }
+.featured-icon {
+  width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;
+}
+.featured-symbol { font-size: 14px; font-weight: 600; color: white; }
+.featured-price { font-size: 15px; font-weight: 600; color: white; }
+/* Blue Card Button Style */
+.featured-change { padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: 600; color: white; }
+.featured-change.up { background: #ff6b6b; } /* Original: Rising is Red/Pink */
+.featured-change.down { background: #00b894; } /* Original: Falling is Green */
+
+/* --- CRYPTO LIST --- */
+.crypto-list-header {
+  display: flex; justify-content: space-between; padding: 10px 16px;
+  font-size: 11px; color: #636e72; background: #0a0a0f;
+}
+.crypto-list { padding-bottom: 20px; }
+.crypto-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid #1e1e2d; background: #0a0a0f;
+}
+.crypto-left { display: flex; align-items: center; gap: 10px; }
+.crypto-icon { width: 28px; height: 28px; }
+.crypto-icon img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.crypto-name { font-size: 14px; font-weight: 600; color: white; }
+.crypto-price { font-size: 14px; color: #ffffff; text-align: right; flex: 1; margin-right: 15px; }
+
+/* The Green/Red Buttons in List */
+.crypto-change {
+  width: 70px; padding: 6px 0; border-radius: 4px; font-size: 12px; font-weight: 600; text-align: center; color: white;
+}
+.crypto-change.up { background: #00b894; }
+.crypto-change.down { background: #ff6b6b; }
+
+/* --- BOTTOM NAV & OTHERS --- */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; background: #12121a;
+  display: flex; justify-content: space-around; padding: 8px 0;
+  border-top: 1px solid #2d3436; z-index: 100;
+}
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #636e72; font-size: 9px; }
+.nav-item.active { color: #00b894; }
+.nav-icon { font-size: 18px; }
+
+.page-view { display: none; padding-bottom: 80px; }
+.page-view.active { display: block; animation: fadeIn 0.2s; }
+@keyframes fadeIn { from {opacity:0} to {opacity:1} }
+.loading { text-align: center; padding: 20px; font-size: 12px; color: #636e72; }
