@@ -55,14 +55,22 @@ body {
 }
 
 .hero-banner {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  padding: 20px;
+  /* 3D Crypto Background ပုံထည့်ခြင်း */
+  background: url('https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop') no-repeat center center;
+  background-size: cover; /* ပုံကို အပြည့်ဆွဲဆန့်မယ် */
+  
+  padding: 40px 20px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  min-height: 160px;
+  min-height: 220px; /* Banner အမြင့် နည်းနည်းတိုးမယ် */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 0 0 20px 20px; /* အောက်နား ၂ ဖက်ကို ဝိုင်းမယ် */
 }
 
+/* ပုံပေါ်မှာ အမဲရောင် ပါးပါးလေး အုပ်မယ် (စာဖတ်ရလွယ်အောင်) */
 .hero-banner::before {
   content: '';
   position: absolute;
@@ -70,9 +78,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="30" r="15" fill="%23f7931a" opacity="0.3"/><circle cx="70" cy="50" r="20" fill="%23627eea" opacity="0.3"/><circle cx="50" cy="80" r="12" fill="%2300d4aa" opacity="0.3"/></svg>');
-  background-size: cover;
-  opacity: 0.5;
+  background: linear-gradient(to bottom, rgba(10, 10, 15, 0.4), rgba(10, 10, 15, 0.8));
+  z-index: 0;
 }
 
 .hero-content {
@@ -336,23 +343,27 @@ background: #00b894;
   text-align: right;
 }
 
-.crypto-change {
+/* LIST BUTTON STYLES (All Tabs) */
+.crypto-change, .quote-change, .coin-card-change {
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 4px; /* ထောင့်မှန်စတုဂံ ပုံစံ */
   font-size: 13px;
-  font-weight: 600;
-  min-width: 70px;
+  font-weight: 500;
+  min-width: 80px;
   text-align: center;
+  color: white !important; /* စာလုံးအဖြူ */
 }
 
-.crypto-change.up {
-  background: #00b894;
-  color: white;
+/* ဈေးတက်ရင် (အစိမ်းရောင် အကွက်) */
+.crypto-change.up, .quote-change.up, .coin-card-change.up {
+  background-color: #00b894;
+  box-shadow: none;
 }
 
-.crypto-change.down {
-  background: #ff6b6b;
-  color: white;
+/* ဈေးကျရင် (အနီရောင် အကွက်) */
+.crypto-change.down, .quote-change.down, .coin-card-change.down {
+  background-color: #ff6b6b;
+  box-shadow: none;
 }
 
 .bottom-nav {
