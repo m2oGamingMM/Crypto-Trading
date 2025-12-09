@@ -1147,3 +1147,83 @@ color: #00b894; }
   color: #dfe6e9;
   font-weight: 500;
 }
+/* --- UNIVERSAL MODAL SYSTEM --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8); /* နောက်ခံ အမဲရောင် မှိန်မှိန် */
+  z-index: 2000; /* Hero Banner (z-index 100) ထက် အများကြီး မြင့်ရမယ် */
+  display: none; /* ပုံမှန်ချိန်မှာ ဖျောက်ထားမယ် */
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px); /* နောက်ခံ ဝါးသွားမယ် */
+}
+
+.modal-overlay.show {
+  display: flex; /* Script က ခေါ်ရင် ပေါ်လာမယ် */
+}
+
+.modal-content {
+  background: #1e1e2d;
+  width: 90%;
+  max-width: 360px;
+  border-radius: 20px;
+  padding: 24px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  color: #636e72;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Modal တွေထဲက Input တွေအတွက် */
+.modal-input {
+  width: 100%;
+  padding: 12px;
+  background: #12121a;
+  border: 1px solid #2d3436;
+  border-radius: 10px;
+  color: white;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.modal-action-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(90deg, #00b894, #00cec9);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
