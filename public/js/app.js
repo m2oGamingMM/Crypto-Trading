@@ -44,7 +44,7 @@ let socket = null;
 let isSocketRunning = false;
 
 function startLivePrices() {
-  if (isSocketRunning) return; // run နေရင် ထပ်မစဘူး
+  if (isSocketRunning) return; 
 
   const statusEl = document.getElementById('connectionStatus');
   const tradeBtn = document.getElementById('tradeSubmitBtn');
@@ -66,8 +66,6 @@ function startLivePrices() {
     const data = JSON.parse(event.data);
     const symbol = data.s.replace('USDT', ''); 
     const price = parseFloat(data.p);
-    
-    // Trading Page ဖွင့်ထားမှ ဈေးလိုက်ပြောင်းမယ်
     updateTradingUI(symbol, price);
   };
 
@@ -77,14 +75,17 @@ function startLivePrices() {
       statusEl.innerHTML = '🔴 Connecting...';
       statusEl.style.color = '#ff6b6b';
     }
-    // 3 စက္ကန့်နေရင် ပြန်ချိတ်မယ်
     setTimeout(startLivePrices, 3000);
+  };
+  
+  socket.onerror = (err) => {
+    console.log("WS Error", err);
+    socket.close();
   };
 }
 
 function updateTradingUI(symbol, price) {
   const select = document.getElementById('tradingPair');
-  // Trading Page မရောက်သေးရင် ဘာမှမလုပ်ဘူး
   if (!select) return; 
 
   if (select.value === symbol) {
@@ -92,23 +93,32 @@ function updateTradingUI(symbol, price) {
     if (display) {
       const oldPrice = parseFloat(display.textContent.replace('$', '').replace(',', ''));
       const color = price > oldPrice ? '#00b894' : (price < oldPrice ? '#ff6b6b' : 'white');
-      
       display.style.color = color;
       display.textContent = `$${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
     }
   }
 }
 
-// --- 2. REST API for Home/List Page (General List) ---
-// ဒီ function နာမည်ကို မဖျက်ရပါ (loadAllData က သုံးနေလို့ပါ)
+// --- 2. Robust API Fetcher (Never Returns Null) ---
 async function fetchAllPrices() {
   
-  // WebSocket ကို ဒီနေရာကနေ တစ်ခါတည်း စဖွင့်ပေးလိုက်မယ်
+  // WebSocket ကို ဒီနေရာကနေ စဖွင့်မယ်
   startLivePrices();
 
+  // အရန် Data (Backup) - API ပျက်ရင် ဒါကို သုံးမယ်
+  const backupData = [
+      { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', price: 107605.50, change24h: 0.32, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png' },
+      { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', price: 3927.05, change24h: 0.39, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' },
+      { id: 'ripple', symbol: 'XRP', name: 'XRP', price: 2.37, change24h: -0.15, image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png' },
+      { id: 'solana', symbol: 'SOL', name: 'Solana', price: 188.94, change24h: 1.02, image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png' },
+      { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin', price: 0.19, change24h: 1.65, image: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png' },
+      { id: 'cardano', symbol: 'ADA', name: 'Cardano', price: 0.45, change24h: 0.85, image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png' },
+      { id: 'tron', symbol: 'TRX', name: 'TRON', price: 0.085, change24h: 0.65, image: 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png' }
+  ];
+
   try {
-    // List အတွက် CoinGecko ကို ခေါ်မယ်
-    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple,solana,dogecoin,tether,binancecoin,cardano,tron,chainlink,litecoin,polkadot,matic-network,shiba-inu,avalanche-2,uniswap,stellar,bitcoin-cash,near,verus-coin&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h');
+    // Spck Editor/Localhost မှာ CoinGecko က Block တတ်လို့ Error တက်လွယ်ပါတယ်
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple,solana,dogecoin,cardano,tron&order=market_cap_desc&sparkline=false');
     
     if (!response.ok) throw new Error('API Error');
     const rawData = await response.json();
@@ -123,8 +133,9 @@ async function fetchAllPrices() {
     }));
 
   } catch (error) {
-    console.log('API Limit/Error, using cache if available');
-    return null; 
+    console.log('API Failed, Loading Backup Data...');
+    // အရေးကြီးဆုံးအချက်: Error တက်ရင် null ပြန်မပို့ဘဲ backupData ကို ပို့မယ်
+    return backupData; 
   }
 }
 
