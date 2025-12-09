@@ -142,7 +142,12 @@ async function fetchAllPrices() {
       name: coin.name,
       price: coin.current_price,
       change24h: coin.price_change_percentage_24h,
-      image: coin.image
+      image: coin.image,
+      // Data အသစ်များ (Detail အတွက်)
+      high24h: coin.high_24h,
+      low24h: coin.low_24h,
+      volume: coin.total_volume,
+      mcap: coin.market_cap
     }));
 
   } catch (error) {
@@ -221,7 +226,7 @@ function renderCryptoList(prices) {
 
   container.innerHTML = prices.map(coin => `
     <div class="crypto-item"
-    onclick="showCoinDetail('${coin.symbol}')">
+    onclick="openCoinInfo('${coin.symbol}')">
       <div class="crypto-left">
         <div class="crypto-icon ${getIconClass(coin.symbol)}">
           ${coin.image ? `<img src="${coin.image}" alt="${coin.symbol}" style="width: 100%; height: 100%; border-radius: 50%;">` : coin.icon || coin.symbol.charAt(0)}
@@ -244,7 +249,7 @@ function renderQuotesList() {
     return;
   }
   container.innerHTML = allPrices.map(coin => `
-    <div class="quote-item" onclick="showCoinDetail('${coin.symbol}')">
+    <div class="quote-item" onclick="openCoinInfo('${coin.symbol}')">
       <div class="quote-pair">
         <div class="quote-icon">
           ${coin.image ? `<img src="${coin.image}" alt="${coin.symbol}">` : coin.symbol.charAt(0)}
@@ -272,7 +277,7 @@ function renderCoinsGrid() {
     return;
   }
   container.innerHTML = allPrices.map(coin => `
-    <div class="coin-card" onclick="showCoinDetail('${coin.symbol}')">
+    <div class="coin-card" onclick="openCoinInfo('${coin.symbol}')">
       <div class="coin-card-icon">
         ${coin.image ? `<img src="${coin.image}" alt="${coin.symbol}">` : coin.symbol.charAt(0)}
       </div>
@@ -379,7 +384,7 @@ function filterQuotes() {
   const container = document.getElementById('quotesListContainer');
   if (container && filtered.length > 0) {
     container.innerHTML = filtered.map(coin => `
-      <div class="quote-item" onclick="showCoinDetail('${coin.symbol}')">
+      <div class="quote-item" onclick="openCoinInfo('${coin.symbol}')">
         <div class="quote-pair">
           <div class="quote-icon">
             ${coin.image ? `<img src="${coin.image}" alt="${coin.symbol}">` : coin.symbol.charAt(0)}
@@ -407,7 +412,7 @@ function filterCoins() {
   const container = document.getElementById('coinsGridContainer');
   if (container && filtered.length > 0) {
     container.innerHTML = filtered.map(coin => `
-      <div class="coin-card" onclick="showCoinDetail('${coin.symbol}')">
+      <div class="coin-card" onclick="openCoinInfo('${coin.symbol}')">
         <div class="coin-card-icon">
         ${coin.image ? `<img src="${coin.image}" alt="${coin.symbol}">` : coin.symbol.charAt(0)}
         </div>
@@ -441,7 +446,7 @@ function filterByCategory(category) {
   const container = document.getElementById('quotesListContainer');
   if (container && filtered.length > 0) {
     container.innerHTML = filtered.map(coin => `
-      <div class="quote-item" onclick="showCoinDetail('${coin.symbol}')">
+      <div class="quote-item" onclick="openCoinInfo('${coin.symbol}')">
       <div class="quote-pair">
           <div class="quote-icon">
             ${coin.image ? `<img src="${coin.image}" alt="${coin.symbol}">` : coin.symbol.charAt(0)}
@@ -875,4 +880,104 @@ function updateAssetsUI() {
     // လောလောဆယ် Console မှာ Log ထုတ်ပြထားပါမယ်
     console.log("Current Wallet Balance:", userWallet.usdt);
   }
+}
+
+// --- STEP 3: COIN DETAIL MODAL ---
+
+function openCoinInfo(symbol) {
+  const coin = allPrices.find(c => c.symbol === symbol);
+  if (!coin) return;
+
+  const modal = document.getElementById('universalModal');
+  const title = document.getElementById('modalTitle');
+  const body = document.getElementById('modalBody');
+
+  // Modal ဖွင့်မယ်
+  modal.classList.add('show');
+  title.textContent = `${coin.name} (${coin.symbol})`;
+
+  // အသေးစိတ် အချက်အလက်တွေ ပြမယ်
+  body.innerHTML = `
+    <div style="text-align:center; margin-bottom:20px;">
+      <img src="${coin.image}" style="width:60px; height:60px; border-radius:50%; margin-bottom:10px;">
+      <div style="font-size:32px; font-weight:bold;">$${coin.price.toLocaleString()}</div>
+      <div style="color:${coin.change24h >= 0 ? '#00b894' : '#ff6b6b'}; font-weight:bold;">
+        ${coin.change24h >= 0 ? '▲' : '▼'} ${coin.change24h.toFixed(2)}%
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+      <div style="background:#12121a; padding:12px; border-radius:10px;">
+        <div style="font-size:12px; color:#b2bec3;">24h High</div>
+        <div style="font-weight:600;">$${coin.high24h ? coin.high24h.toLocaleString() : '-'}</div>
+      </div>
+      <div style="background:#12121a; padding:12px; border-radius:10px;">
+        <div style="font-size:12px; color:#b2bec3;">24h Low</div>
+        <div style="font-weight:600;">$${coin.low24h ? coin.low24h.toLocaleString() : '-'}</div>
+      </div>
+      <div style="background:#12121a; padding:12px; border-radius:10px;">
+        <div style="font-size:12px; color:#b2bec3;">Volume</div>
+        <div style="font-weight:600;">$${coin.volume ? (coin.volume/1000000).toFixed(2) + 'M' : '-'}</div>
+      </div>
+      <div style="background:#12121a; padding:12px; border-radius:10px;">
+        <div style="font-size:12px; color:#b2bec3;">Market Cap</div>
+        <div style="font-weight:600;">$${coin.mcap ? (coin.mcap/1000000000).toFixed(2) + 'B' : '-'}</div>
+      </div>
+    </div>
+
+    <button onclick="showCoinDetail('${coin.symbol}'); closeModal();" class="modal-action-btn">
+      Go to Trade
+    </button>
+  `;
+}
+
+// --- STEP 4: LOGIN SYSTEM ---
+
+// App စဖွင့်ရင် Login ဝင်ထားလား စစ်မယ်
+document.addEventListener('DOMContentLoaded', function() {
+  const user = localStorage.getItem('cryptoUser');
+  if (!user) {
+    // Login မဝင်ရသေးရင် Login Page ကို အရင်ပြမယ်
+    // (မှတ်ချက်: ဒီလိုင်းကို ဖွင့်လိုက်ရင် App စဖွင့်တာနဲ့ Login Page တက်လာပါမယ်)
+    // showPage('login'); 
+  } else {
+    updateProfileUI(user);
+  }
+});
+
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+
+  if (email && pass) {
+    // Fake Login Success
+    const username = email.split('@')[0];
+    localStorage.setItem('cryptoUser', username);
+    
+    alert(`Welcome back, ${username}!`);
+    updateProfileUI(username);
+    showPage('home'); // Home ကို ပို့မယ်
+  } else {
+    alert('Please enter email and password');
+  }
+}
+
+function updateProfileUI(username) {
+  // Mine Page က နာမည်ကို ပြင်မယ်
+  const nameEl = document.querySelector('.profile-name');
+  const emailEl = document.querySelector('.profile-email');
+  
+  if (nameEl) nameEl.textContent = username;
+  if (emailEl) emailEl.textContent = `${username}@gmail.com`;
+  
+  // Home Page က "Personal Center" ခလုတ်မှာ နာမည်ပြမယ်
+  const pcBtn = document.querySelector('.personal-center-btn');
+  if (pcBtn) pcBtn.textContent = username;
+}
+
+// Logout လုပ်ရင်
+function handleLogout() {
+  localStorage.removeItem('cryptoUser');
+  alert('Logged out successfully');
+  showPage('login');
 }
