@@ -185,9 +185,10 @@
         <button class="deriv-tab">Perpetual</button>
       </div>
       <div class="derivatives-info">
+        
         <div class="info-card">
           <h3>BTC/USDT Perpetual</h3>
-          <div class="deriv-price">$91,128.00</div>
+          <div class="deriv-price" id="deriv-price-BTC">$91,128.00</div>
           <div class="deriv-stats">
             <div class="stat">
               <span class="stat-label">24h Volume</span>
@@ -202,11 +203,12 @@
               <span class="stat-value up">0.01%</span>
             </div>
           </div>
-          <button class="trade-now-btn" onclick="showPage('trading')">Trade Now</button>
+          <button class="trade-now-btn" onclick="showCoinDetail('BTC')">Trade Now</button>
         </div>
+
         <div class="info-card">
           <h3>ETH/USDT Perpetual</h3>
-          <div class="deriv-price">$3,112.00</div>
+          <div class="deriv-price" id="deriv-price-ETH">$3,112.00</div>
           <div class="deriv-stats">
             <div class="stat">
               <span class="stat-label">24h Volume</span>
@@ -221,8 +223,9 @@
               <span class="stat-value up">0.008%</span>
             </div>
           </div>
-          <button class="trade-now-btn" onclick="showPage('trading')">Trade Now</button>
+          <button class="trade-now-btn" onclick="showCoinDetail('ETH')">Trade Now</button>
         </div>
+
       </div>
       <div class="leverage-info">
         <h3>Leverage Options</h3>
@@ -250,10 +253,11 @@
         <p style="color:#00b894; margin-top:5px;">≈ $112,450.00</p>
         
         <div style="display:flex; gap:12px; margin-top:24px;">
-          <button class="asset-action-btn" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold;">
+          <button class="asset-action-btn" onclick="openModal('fiat')" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold; cursor: pointer;">
             <span>📤</span> Withdraw
           </button>
-          <button class="asset-action-btn" style="flex:1; padding:10px; background:#16213e; border:1px solid #00b894; border-radius:8px; color:#00b894; font-weight:bold;">
+          
+          <button class="asset-action-btn" onclick="openModal('service')" style="flex:1; padding:10px; background:#16213e; border:1px solid #00b894; border-radius:8px; color:#00b894; font-weight:bold; cursor: pointer;">
             <span>🔄</span> Transfer
           </button>
         </div>
