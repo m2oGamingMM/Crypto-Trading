@@ -41,11 +41,26 @@ function showPage(pageName) {
 
 async function fetchAllPrices() {
   try {
-    const response = await fetch(`${API_BASE}/api/prices/list`);
-    if (!response.ok) throw new Error('Failed to fetch prices');
-    return await response.json();
+    // Backend ကို မဖြတ်တော့ဘဲ CoinGecko API ကို တိုက်ရိုက်ယူပါမယ်
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple,solana,dogecoin,tether,binancecoin,cardano,tron,chainlink,litecoin,polkadot,matic-network,shiba-inu,avalanche-2,uniswap,stellar,bitcoin-cash,near,verus-coin&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h');
+    
+    if (!response.ok) throw new Error('CoinGecko API Error');
+    const rawData = await response.json();
+
+    // App က လက်ခံမယ့်ပုံစံပြောင်းပေးခြင်း (Mapping)
+    return rawData.map(coin => ({
+      id: coin.id,
+      symbol: coin.symbol.toUpperCase(),
+      name: coin.name,
+      // CoinGecko က current_price လို့ပေးပေမယ့် App က price လို့သုံးထားလို့ ပြောင်းပေးရပါတယ်
+      price: coin.current_price,
+      change24h: coin.price_change_percentage_24h,
+      image: coin.image
+    }));
+
   } catch (error) {
-    console.error('Error fetching prices:', error);
+    console.error('Connection Error:', error);
+    // Data ဆွဲမရရင် ဘာမှ မပြတော့ဘဲ Error ပဲပြပါမယ် (Offline data မသုံးတော့ပါ)
     return null;
   }
 }
@@ -438,4 +453,74 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.addEventListener('beforeunload', function() {
   stopAutoRefresh();
+});
+
+// --- Hero Carousel Logic ---
+
+const carouselData = [
+  { 
+    title: "Crypto Trading", 
+    sub: "Trade with confidence & Maximize profits" 
+  },
+  { 
+    title: "Secure Platform", 
+    sub: "Bank-grade Security & 24/7 Protection" 
+  },
+  { 
+    title: "Instant Transactions", 
+    sub: "Lightning fast Deposits & Withdrawals" 
+  }
+];
+
+let carouselIndex = 0;
+let carouselInterval;
+
+function startCarousel() {
+  // ၃ စက္ကန့်တစ်ခါ run ပါမယ်
+  carouselInterval = setInterval(() => {
+    carouselIndex = (carouselIndex + 1) % carouselData.length;
+    updateHeroDisplay();
+  }, 3000);
+}
+
+function updateHeroDisplay() {
+  const content = document.getElementById('heroContent');
+  const title = document.getElementById('heroTitle');
+  const sub = document.getElementById('heroSubtitle');
+  const dots = document.querySelectorAll('.dot');
+
+  // 1. Fade Out (စာသားဖျောက်မယ်)
+  content.classList.add('fade-out');
+
+  // 2. 0.5 စက္ကန့်စောင့်ပြီးမှ စာသားပြောင်းမယ် (CSS transition နဲ့ကိုက်အောင်)
+  setTimeout(() => {
+    title.textContent = carouselData[carouselIndex].title;
+    sub.textContent = carouselData[carouselIndex].sub;
+    
+    // Dots အရောင်ပြောင်းမယ်
+    dots.forEach((dot, index) => {
+      if (index === carouselIndex) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    });
+
+    // 3. Fade In (စာသားပြန်ပေါ်မယ်)
+    content.classList.remove('fade-out');
+  }, 500);
+}
+
+// Dot ကို နှိပ်လိုက်ရင် အဲ့စာသားကို ချက်ချင်းပြောင်းပေးမယ့် Function
+function setCarousel(index) {
+  clearInterval(carouselInterval); // Auto run တာ ခဏရပ်
+  carouselIndex = index;
+  updateHeroDisplay();
+  startCarousel(); // ပြန် run
+}
+
+// App စဖွင့်တာနဲ့ Carousel စမယ်
+document.addEventListener('DOMContentLoaded', function() {
+  // ရှိပြီးသား loadAllData() အောက်မှာ ဒါလေးထည့်ပါ
+  startCarousel();
 });
