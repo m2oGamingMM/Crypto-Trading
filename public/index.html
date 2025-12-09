@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Crypto Trading Platform</title>
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
   <div class="container">
-    
-    <div id="view-home" class="page-view active">
+  <!-- HOME PAGE -->
+    <div id="page-home" class="page active">
       <header class="header">
-        <button class="personal-center-btn">Personal Center</button>
+        <button class="personal-center-btn" onclick="showPage('mine')">Personal Center</button>
       </header>
-
       <section class="hero-banner">
         <div class="hero-content">
           <h1 class="hero-title">Crypto Trading</h1>
@@ -26,10 +27,9 @@
           <span class="dot"></span>
         </div>
       </section>
-
       <section class="feature-icons">
         <div class="feature-item">
-          <div class="feature-icon blue">📋</div>
+        <div class="feature-icon blue">📋</div>
           <span class="feature-text">IEO<br>Subscription</span>
         </div>
         <div class="feature-item">
@@ -47,83 +47,280 @@
         <div class="feature-item">
           <div class="feature-icon orange">💳</div>
           <span class="feature-text">Fiat<br>currency</span>
-        </div>
+          </div>
       </section>
-
       <section class="top-prices" id="topPricesContainer">
-        <div class="loading">Loading...</div>
+        <div class="loading"><div class="loading-spinner"></div></div>
       </section>
-
       <section class="rapid-topup">
-        <button class="topup-btn">
-          <span>💳</span> Rapid top-up <span>›</span>
+        <button class="topup-btn" onclick="showPage('assets')">
+          <span>💳</span>
+          Rapid top-up
+          <span>›</span>
         </button>
       </section>
-
       <h2 class="section-title">USDT</h2>
-
       <section class="featured-crypto" id="featuredCrypto">
         <div class="loading">Loading...</div>
       </section>
-
       <div class="crypto-list-header">
         <span>Name</span>
-        <span>Latest price</span>
+        <span>Latest 
+       price</span>
         <span>Rise and fall</span>
       </div>
-
       <section class="crypto-list" id="cryptoListContainer">
-        <div class="loading">Loading prices...</div>
+        <div class="loading"><div class="loading-spinner"></div>Loading prices...</div>
       </section>
     </div>
-
-    <div id="view-quotes" class="page-view"><header class="header"><h2>Quotes</h2></header><div class="content-pad">Market Quotes</div></div>
-    <div id="view-coins" class="page-view"><header class="header"><h2>Coins</h2></header><div class="content-pad">Coin List</div></div>
-    
-    <div id="view-trading" class="page-view">
-      <header class="header" style="justify-content:center;"><h3>BTC/USDT</h3></header>
-      <div id="tradingview_chart" style="height: 400px; background:#131722;"></div>
-      <div class="trading-controls">
-        <button class="trade-btn buy">Buy</button>
-        <button class="trade-btn sell">Sell</button>
+    <!-- QUOTES PAGE -->
+    <div id="page-quotes" class="page">
+      <header class="page-header">
+        <h1>Market Quotes</h1>
+      </header>
+      
+      <div class="search-bar">
+        <input type="text" id="searchQuotes" placeholder="Search coins..." oninput="filterQuotes()">
+      </div>
+      <div class="market-tabs">
+        <button class="market-tab active" onclick="filterByCategory('all')">All</button> 
+        <button class="market-tab" onclick="filterByCategory('favorites')">Favorites</button>
+        <button class="market-tab" onclick="filterByCategory('gainers')">Gainers</button>
+        <button class="market-tab" onclick="filterByCategory('losers')">Losers</button>
+      </div>
+      <div class="quotes-list-header">
+        <span>Pair</span>
+        <span>Price</span>
+        <span>24h Change</span>
+        <span>Chart</span>
+      </div>
+      <section class="quotes-list" id="quotesListContainer">
+        <div class="loading"><div class="loading-spinner"></div>Loading quotes...</div>
+      </section>
+    </div>
+    <!-- COINS PAGE -->
+    <div id="page-coins" class="page">
+      <header class="page-header">
+      <h1>Coins</h1>
+      </header>
+      <div class="search-bar">
+        <input type="text" id="searchCoins" placeholder="Search coins..." oninput="filterCoins()">
+      </div>
+      <div class="coins-grid" id="coinsGridContainer">
+        <div class="loading"><div class="loading-spinner"></div>Loading coins...</div>
       </div>
     </div>
-
-    <div id="view-derivatives" class="page-view"><header class="header"><h2>Derivatives</h2></header><div class="content-pad">Futures</div></div>
-    
-    <div id="view-assets" class="page-view">
-      <header class="header"><h2>My Assets</h2></header>
-      <div class="asset-box"><h1>$0.00</h1><p>Total Balance</p></div>
+    <!-- TRADING PAGE -->
+    <div id="page-trading" class="page">
+      <header class="page-header">
+        <h1>Trading</h1>
+      </header>
+      <div class="trading-pair-selector">
+        <select id="tradingPair" onchange="updateTradingPair()">
+          <option value="BTC">BTC/USDT</option>
+          <option value="ETH">ETH/USDT</option>
+          <option value="XRP">XRP/USDT</option>
+          <option value="SOL">SOL/USDT</option>
+          <option value="DOGE">DOGE/USDT</option>
+        </select>
+      </div>
+      <div class="trading-price-display" id="tradingPriceDisplay">
+        <div class="current-price">$91,128.00</div>
+        <div class="price-change up">+1.59%</div>
+      </div>
+      <div class="trading-tabs">
+        <button class="trade-tab active" onclick="switchTradeType('buy')">Buy</button>
+        <button class="trade-tab" onclick="switchTradeType('sell')">Sell</button>
+      </div>
+      <div class="trading-form" id="tradingForm">
+        <div class="form-group">
+          <label>Order Type</label>
+          <select id="orderType">
+            <option value="market">Market Order</option>
+            <option value="limit">Limit Order</option>
+          </select>
+        </div>
+        <div class="form-group" id="limitPriceGroup" style="display:none;">
+          <label>Price (USDT)</label>
+          <input type="number" id="limitPrice" placeholder="Enter price">
+        </div>
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="tradeAmount" placeholder="Enter amount">
+          <div class="amount-buttons">
+            <button onclick="setAmountPercent(25)">25%</button>
+            <button onclick="setAmountPercent(50)">50%</button>
+            <button onclick="setAmountPercent(75)">75%</button>
+            <button onclick="setAmountPercent(100)">100%</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Total (USDT)</label>
+          <input type="number" id="tradeTotal" placeholder="0.00" readonly>
+        </div>
+        <button class="trade-submit-btn buy" id="tradeSubmitBtn" onclick="submitTrade()">
+          Buy BTC
+        </button>
+      </div>
+      <div class="order-book-preview">
+        <h3>Recent Orders</h3>
+        <div class="order-list" id="orderList">
+          <div class="no-orders">No orders yet</div>
+        </div>
+        </div>
+    </div>
+    <!-- DERIVATIVES PAGE -->
+    <div id="page-derivatives" class="page">
+      <header class="page-header">
+        <h1>Derivatives</h1>
+      </header>
+      <div class="derivatives-tabs">
+        <button class="deriv-tab active">Futures</button>
+        <button class="deriv-tab">Options</button>
+        <button class="deriv-tab">Perpetual</button>
+      </div>
+      <div class="derivatives-info">
+        <div class="info-card">
+          <h3>BTC/USDT Perpetual</h3>
+          <div class="deriv-price">$91,128.00</div>
+          <div class="deriv-stats">
+            <div class="stat">
+              <span class="stat-label">24h Volume</span>
+              <span class="stat-value">$2.5B</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Open Interest</span>
+              <span class="stat-value">$1.2B</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Funding Rate</span>
+              <span class="stat-value up">0.01%</span>
+            </div>
+          </div>
+          <button class="trade-now-btn" onclick="showPage('trading')">Trade Now</button>
+        </div>
+        <div class="info-card">
+          <h3>ETH/USDT Perpetual</h3>
+          <div class="deriv-price">$3,112.00</div>
+          <div class="deriv-stats">
+            <div class="stat">
+              <span class="stat-label">24h Volume</span>
+              <span class="stat-value">$1.8B</span>
+              </div>
+            <div class="stat">
+              <span class="stat-label">Open Interest</span>
+              <span class="stat-value">$890M</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Funding Rate</span>
+              <span class="stat-value up">0.008%</span>
+            </div>
+          </div>
+          <button class="trade-now-btn" onclick="showPage('trading')">Trade Now</button>
+        </div>
+      </div>
+      <div class="leverage-info">
+        <h3>Leverage Options</h3>
+        <div class="leverage-buttons">
+          <button class="leverage-btn">1x</button>
+          <button class="leverage-btn">5x</button>
+          <button class="leverage-btn active">10x</button>
+          <button class="leverage-btn">25x</button>
+          <button class="leverage-btn">50x</button>
+          <button class="leverage-btn">100x</button>
+        </div>
+        <p class="leverage-warning">Higher leverage increases both potential profits and risks.</p>
+      </div>
     </div>
     
-    <div id="view-mine" class="page-view">
-      <header class="header"><h2>Personal Center</h2></header>
-      <div class="content-pad">Please Login</div>
+    <!-- ASSETS PAGE -->
+    <div id="view-assets" class="page-view">
+      <header class="header">
+        <h2 style="color:white; font-size:18px;">My Assets</h2>
+      </header>
+
+      <div class="asset-box" style="text-align:center; padding: 30px 20px; background:linear-gradient(135deg, #1e1e2d, #2d3436); margin:16px; border-radius:12px;">
+        <p style="color:#b2bec3; font-size:14px; margin-bottom:8px;">Total Balance (BTC)</p>
+        <h1 style="font-size:32px; font-weight:bold; color:white;">1.240567</h1>
+        <p style="color:#00b894; margin-top:5px;">≈ $112,450.00</p>
+        
+        <div style="display:flex; gap:12px; margin-top:24px;">
+          <button class="asset-action-btn" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold;">
+            <span>📤</span> Withdraw
+          </button>
+          <button class="asset-action-btn" style="flex:1; padding:10px; background:#16213e; border:1px solid #00b894; border-radius:8px; color:#00b894; font-weight:bold;">
+            <span>🔄</span> Transfer
+          </button>
+        </div>
+      </div>
+
+      <div class="assets-tabs" style="display:flex; padding:0 16px; border-bottom:1px solid #2d3436; margin-bottom:10px;">
+        <button class="asset-tab active" style="padding:10px 20px; background:none; border:none; color:#00b894; border-bottom:2px solid #00b894; font-weight:bold;">Spot</button>
+        <button class="asset-tab" style="padding:10px 20px; background:none; border:none; color:#636e72;">Futures</button>
+        <button class="asset-tab" style="padding:10px 20px; background:none; border:none; color:#636e72;">Earn</button>
+      </div>
+
+      <div class="assets-list" id="assetsListContainer" style="padding:0 16px;">
+        <div class="asset-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1e1e2d;">
+          <div class="asset-left" style="display:flex; align-items:center; gap:12px;">
+            <div class="asset-icon" style="width:36px; height:36px; background:#f7931a; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white;">₿</div>
+            <div>
+              <div style="font-weight:bold; color:white;">BTC</div>
+              <div style="font-size:12px; color:#636e72;">Bitcoin</div>
+            </div>
+          </div>
+          <div class="asset-right" style="text-align:right;">
+            <div style="font-weight:bold; color:white;">0.4500</div>
+            <div style="font-size:12px; color:#b2bec3;">$41,200.50</div>
+          </div>
+        </div>
+
+        <div class="asset-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1e1e2d;">
+          <div class="asset-left" style="display:flex; align-items:center; gap:12px;">
+            <div class="asset-icon" style="width:36px; height:36px; background:#627eea; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white;">Ξ</div>
+            <div>
+              <div style="font-weight:bold; color:white;">ETH</div>
+              <div style="font-size:12px; color:#636e72;">Ethereum</div>
+            </div>
+          </div>
+          <div class="asset-right" style="text-align:right;">
+            <div style="font-weight:bold; color:white;">12.5000</div>
+            <div style="font-size:12px; color:#b2bec3;">$38,900.00</div>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
 
   <nav class="bottom-nav">
-    <div class="nav-item active" data-target="view-home">
-      <span class="nav-icon">🏠</span><span>Home</span>
+    <div class="nav-item active">
+      <span class="nav-icon">🏠</span>
+      <span>Home</span>
     </div>
-    <div class="nav-item" data-target="view-quotes">
-      <span class="nav-icon">📊</span><span>Quotes</span>
+    <div class="nav-item">
+      <span class="nav-icon">📊</span>
+      <span>Quotes</span>
     </div>
-    <div class="nav-item" data-target="view-coins">
-      <span class="nav-icon">🪙</span><span>Coins</span>
+    <div class="nav-item">
+      <span class="nav-icon">🪙</span>
+      <span>Coins</span>
     </div>
-    <div class="nav-item" data-target="view-trading">
-      <span class="nav-icon">📈</span><span>Trading</span>
+    <div class="nav-item">
+      <span class="nav-icon">📈</span>
+      <span>Trading</span>
     </div>
-    <div class="nav-item" data-target="view-derivatives">
-      <span class="nav-icon">📑</span><span>Derivatives</span>
+    <div class="nav-item">
+      <span class="nav-icon">📑</span>
+      <span>Derivatives</span>
     </div>
-    <div class="nav-item" data-target="view-assets">
-      <span class="nav-icon">💼</span><span>Assets</span>
+    <div class="nav-item">
+      <span class="nav-icon">💼</span>
+      <span>Assets</span>
     </div>
-    <div class="nav-item" data-target="view-mine">
-      <span class="nav-icon">👤</span><span>Mine</span>
+    <div class="nav-item">
+      <span class="nav-icon">👤</span>
+      <span>Mine</span>
     </div>
   </nav>
 
