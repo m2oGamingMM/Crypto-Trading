@@ -154,6 +154,7 @@ async function fetchAllPrices() {
     return backupData; 
   }
 }
+
 function formatPrice(price) {
   if (price >= 1000) {
     return price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -610,9 +611,18 @@ function setCarousel(index) {
 
 // App စဖွင့်တာနဲ့ Carousel စမယ်
 document.addEventListener('DOMContentLoaded', function() {
-  // ရှိပြီးသား loadAllData() အောက်မှာ ဒါလေးထည့်ပါ
-  startCarousel();
+  // 1. Data တွေ စဆွဲမယ်
+  startLivePrices(); // WebSocket
+  if (typeof fetchAllPrices === 'function') fetchAllPrices(); // API List
+  
+  // 2. UI တွေ ပြင်ဆင်မယ်
+  setupNavigation();
+  if (typeof startCarousel === 'function') startCarousel(); // Hero Banner
+  
+  // 3. User Wallet (ပိုက်ဆံအိတ်) ကို Update လုပ်မယ် (အသစ်ထပ်ဖြည့်ထားတာပါ)
+  updateAssetsUI();
 });
+
 // --- UNIVERSAL MODAL LOGIC ---
 
 function openModal(type) {
@@ -702,4 +712,167 @@ function openModal(type) {
 
 function closeModal() {
   document.getElementById('universalModal').classList.remove('show');
+}
+
+// --- STEP 1: TRADINGVIEW CHART ---
+let tvWidget = null;
+
+function loadTradingViewChart(symbol) {
+  // သင်္ကေတ ပြောင်းပေးခြင်း (ဥပမာ - BTC -> BINANCE:BTCUSDT)
+  const tvSymbol = `BINANCE:${symbol}USDT`;
+
+  if (tvWidget) {
+    // Chart ရှိပြီးသားဆိုရင် အသစ်မဆောက်ဘဲ ကုမ္ပဏီပဲ ပြောင်းမယ် (Reload မဖြစ်အောင်)
+    // Note: Free version widget doesn't support dynamic symbol change easily without reload, 
+    // so we will re-render for stability.
+  }
+
+  new TradingView.widget({
+    "width": "100%",
+    "height": 350,
+    "symbol": tvSymbol,
+    "interval": "D",
+    "timezone": "Etc/UTC",
+    "theme": "dark",
+    "style": "1", // 1 = Candlestick
+    "locale": "en",
+    "toolbar_bg": "#f1f3f6",
+    "enable_publishing": false,
+    "hide_top_toolbar": true,   // ရှင်းအောင် Toolbar ဖျောက်ထားမယ်
+    "hide_side_toolbar": true,
+    "allow_symbol_change": false,
+    "container_id": "tv_chart_container",
+    "backgroundColor": "#12121a" // App အရောင်နဲ့ တစ်သားတည်းဖြစ်အောင်
+  });
+}
+
+// showCoinDetail function ကို ပြင်မယ် (Chart ပါ ပေါ်အောင်လို့)
+// အရင် showCoinDetail အဟောင်းကို ရှာပြီး ဒီအသစ်နဲ့ အစားထိုးပါ
+function showCoinDetail(symbol) {
+  showPage('trading');
+  const select = document.getElementById('tradingPair');
+  if (select) {
+    select.value = symbol;
+    // Select box မှာ မရှိတဲ့ Coin ဆိုရင် ထည့်ပေးမယ်
+    if (select.value !== symbol) {
+       let opt = document.createElement('option');
+       opt.value = symbol;
+       opt.innerHTML = `${symbol}/USDT`;
+       select.appendChild(opt);
+       select.value = symbol;
+    }
+  }
+  updateTradingDisplay();
+  
+  // Chart ကို လှမ်းခေါ်မယ်
+  loadTradingViewChart(symbol);
+}
+
+// Trading Pair ပြောင်းရင် Chart ပါ လိုက်ပြောင်းမယ်
+// updateTradingPair function အဟောင်းကို ရှာပြီး အစားထိုးပါ
+function updateTradingPair() {
+  updateTradingDisplay();
+  const symbol = document.getElementById('tradingPair').value;
+  loadTradingViewChart(symbol);
+}
+
+// --- STEP 2: PAPER TRADING SYSTEM ---
+
+// User ရဲ့ ပိုက်ဆံအိတ် (Local Storage မှာ သိမ်းမယ်)
+let userWallet = JSON.parse(localStorage.getItem('cryptoUserWallet')) || {
+  usdt: 10000.00, // လက်ဆောင် $10,000 နဲ့ စမယ်
+  holdings: {}    // ဝယ်ထားတဲ့ Coin များ
+};
+
+// ပိုက်ဆံသိမ်းတဲ့ Function
+function saveWallet() {
+  localStorage.setItem('cryptoUserWallet', JSON.stringify(userWallet));
+  updateAssetsUI(); // Assets စာမျက်နှာကိုပါ Update လုပ်မယ်
+}
+
+// Trading Form မှာ "Available Balance" ပြမယ်
+function updateWalletDisplay() {
+  const balanceLabel = document.querySelector('label[for="tradeAmount"]'); 
+  // Label မရှိရင် ရှာပြီး ပြင်မယ် (သို့) အသစ်ထည့်မယ်
+  // (ဒီအပိုင်းကို Trading Form HTML မှာ ပြင်ရင် ပိုကောင်းပါတယ် - အောက်မှာကြည့်ပါ)
+}
+
+// အရင် submitTrade အဟောင်းကို ရှာပြီး ဒီအသစ်နဲ့ အစားထိုးပါ (အရေးကြီး!)
+function submitTrade() {
+  const type = currentTradeType; // 'buy' or 'sell'
+  const symbol = document.getElementById('tradingPair').value;
+  const amount = parseFloat(document.getElementById('tradeAmount').value);
+  const priceText = document.querySelector('#tradingPriceDisplay .current-price').textContent;
+  const currentPrice = parseFloat(priceText.replace('$','').replace(',',''));
+  
+  if (!amount || amount <= 0) {
+    alert('Please enter a valid amount');
+    return;
+  }
+
+  const totalCost = amount * currentPrice;
+
+  // Buying Logic
+  if (type === 'buy') {
+    if (userWallet.usdt >= totalCost) {
+      // ပိုက်ဆံဖြတ်မယ်
+      userWallet.usdt -= totalCost;
+      // Coin တိုးမယ်
+      if (!userWallet.holdings[symbol]) userWallet.holdings[symbol] = 0;
+      userWallet.holdings[symbol] += amount;
+      
+      saveWallet();
+      alert(`✅ SUCCESS!\nBought ${amount} ${symbol} for $${totalCost.toFixed(2)}`);
+      document.getElementById('tradeAmount').value = '';
+    } else {
+      alert('❌ Insufficient USDT Balance!');
+    }
+  } 
+  // Selling Logic
+  else {
+    if (userWallet.holdings[symbol] >= amount) {
+      // Coin ဖြတ်မယ်
+      userWallet.holdings[symbol] -= amount;
+      // ပိုက်ဆံတိုးမယ်
+      userWallet.usdt += totalCost;
+      
+      saveWallet();
+      alert(`✅ SUCCESS!\nSold ${amount} ${symbol} for $${totalCost.toFixed(2)}`);
+      document.getElementById('tradeAmount').value = '';
+    } else {
+      alert(`❌ Insufficient ${symbol} Balance!`);
+    }
+  }
+}
+
+// Assets Tab မှာ ပိုက်ဆံအစစ်တွေ ပြပေးမယ်
+// Assets Tab ကိုနှိပ်ရင် ဒီ function အလုပ်လုပ်အောင် showPage မှာ ချိတ်မယ်
+function updateAssetsUI() {
+  // 1. Assets Page ခေါင်းစဉ်ကြီးက Total Balance ကို ပြင်မယ်
+  const balanceEl = document.querySelector('.asset-box h1');
+  const approxEl = document.querySelector('.asset-box p:nth-of-type(2)'); // "≈ $..." စာကြောင်း
+
+  if (balanceEl) {
+    // လက်ရှိ USDT ပမာဏကို ပြမယ်
+    balanceEl.textContent = userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 });
+  }
+  
+  if (approxEl) {
+    // USDT ဖြစ်လို့ Dollar နဲ့ တန်ဖိုးတူတူပါပဲ
+    approxEl.textContent = `≈ $${userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  }
+
+  // 2. Assets List ထဲက "USDT" စာရင်းကို ပြင်မယ်
+  const usdtBalanceEl = document.getElementById('assetUsdtBalance');
+  if (usdtBalanceEl) {
+    usdtBalanceEl.textContent = userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 });
+  }
+
+  // 3. Trading Form ထဲက Available Balance ကိုလည်း ပြင်ပေးမယ်
+  const tradeAmountInput = document.getElementById('tradeAmount');
+  if (tradeAmountInput) {
+    // Input ရဲ့ အပေါ်က Label (သို့) အနီးနားမှာ Available ပြချင်ရင် ဒီမှာ ရေးလို့ရပါတယ်
+    // လောလောဆယ် Console မှာ Log ထုတ်ပြထားပါမယ်
+    console.log("Current Wallet Balance:", userWallet.usdt);
+  }
 }
