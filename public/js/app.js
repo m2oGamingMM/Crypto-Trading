@@ -880,17 +880,25 @@ function updateAssetsUI() {
   if (approxEl) approxEl.textContent = `≈ $${userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   if (usdtBalanceEl) usdtBalanceEl.textContent = userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 });
 
-  // 2. Asset List Rendering (ဝယ်ထားတဲ့ Coin တွေကို List ထုတ်မယ်)
+  // 2. Asset List Rendering (ဒီနေရာက Assets Tab အတွက် သီးသန့်ပါ)
   const container = document.getElementById('assetsListContainer');
   
-  // USDT တစ်ခုတည်းကိုပဲ အသေထားခဲ့ပြီး ကျန်တာ ဖျက်မယ်
-  // (မှတ်ချက်: USDT div ကို HTML မှာ ID='assetItemUSDT' လို့ ပေးထားရင် ပိုကောင်းပါတယ်၊ 
-  // ဒါပေမဲ့ JS နဲ့ပဲ အကုန်ပြန်ဆွဲလိုက်တာ ပိုရှင်းပါတယ်)
-  
+  // Assets Tab အတွက်ပဲ သုံးမယ့် ပုံသေ Logo များ
+  const stableIcons = {
+    'BTC': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/128px-Bitcoin.svg.png',
+    'ETH': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Ethereum_logo_2014.svg/128px-Ethereum_logo_2014.svg.png',
+    'USDT': 'https://seeklogo.com/images/T/tether-usdt-logo-FA55C7F397-seeklogo.com.png',
+    'BNB': 'https://upload.wikimedia.org/wikipedia/commons/f/fc/Binance-coin-bnb-logo.png',
+    'SOL': 'https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png',
+    'XRP': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Ripple_logo.svg/128px-Ripple_logo.svg.png',
+    'DOGE': 'https://upload.wikimedia.org/wikipedia/en/d/d0/Dogecoin_Logo.png'
+  };
+
+  // USDT (Main Item)
   let listHTML = `
     <div class="asset-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1e1e2d;">
       <div class="asset-left" style="display:flex; align-items:center; gap:12px;">
-        <div class="asset-icon" style="width:36px; height:36px; background:#26a17b; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white;">$</div>
+        <img src="${stableIcons['USDT']}" style="width:36px; height:36px; border-radius:50%;">
         <div>
           <div style="font-weight:bold; color:white;">USDT</div>
           <div style="font-size:12px; color:#636e72;">Tether</div>
@@ -903,17 +911,19 @@ function updateAssetsUI() {
     </div>
   `;
 
-  // ဝယ်ထားတဲ့ Coin တွေကို Loop ပတ်ပြီး ထည့်မယ်
-  // userWallet.holdings = { "BTC": 0.5, "ETH": 2.0 }
+  // ဝယ်ထားတဲ့ Coin တွေကို List ထုတ်မယ်
   for (const [symbol, amount] of Object.entries(userWallet.holdings)) {
-    if (amount > 0) { // ၀ယ်ထားတာ ရှိမှ ပြမယ်
+    if (amount > 0) {
        const coinInfo = allPrices.find(c => c.symbol === symbol) || { name: symbol, price: 0, image: '' };
        const valueUSD = amount * coinInfo.price;
+       
+       // Assets Tab အတွက်ပဲ Stable Link သုံးမယ်
+       const iconUrl = stableIcons[symbol] || coinInfo.image || 'https://via.placeholder.com/36';
 
        listHTML += `
         <div class="asset-item" onclick="showCoinDetail('${symbol}')" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1e1e2d;">
           <div class="asset-left" style="display:flex; align-items:center; gap:12px;">
-            <img src="${coinInfo.image}" style="width:36px; height:36px; border-radius:50%;" onerror="this.src='https://via.placeholder.com/36'">
+            <img src="${iconUrl}" style="width:36px; height:36px; border-radius:50%; object-fit:contain; background:white; padding:2px;">
             <div>
               <div style="font-weight:bold; color:white;">${symbol}</div>
               <div style="font-size:12px; color:#636e72;">${coinInfo.name}</div>
@@ -1030,3 +1040,5 @@ function handleLogout() {
   alert('Logged out successfully');
   showPage('login');
 }
+
+// Mine Page က Logout ခလုတ်မှာ onclick="handleLogout()" ထည့်ဖို့ မမေ့ပါနဲ့
