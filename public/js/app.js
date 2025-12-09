@@ -102,27 +102,40 @@ function updateTradingUI(symbol, price) {
 // --- 2. Robust API Fetcher (Never Returns Null) ---
 async function fetchAllPrices() {
   
-  // WebSocket ကို ဒီနေရာကနေ စဖွင့်မယ်
+  // WebSocket ကို စဖွင့်မယ် (Trading Page အတွက်)
   startLivePrices();
 
-  // အရန် Data (Backup) - API ပျက်ရင် ဒါကို သုံးမယ်
+  // Status ပြမယ့်နေရာ
+  const sourceIndicator = document.getElementById('dataSourceIndicator');
+
+  // Backup Data (အရန် Data - အများကြီးထည့်ထားလိုက်မယ်)
   const backupData = [
       { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', price: 107605.50, change24h: 0.32, image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png' },
       { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', price: 3927.05, change24h: 0.39, image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' },
-      { id: 'ripple', symbol: 'XRP', name: 'XRP', price: 2.37, change24h: -0.15, image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png' },
+      { id: 'binancecoin', symbol: 'BNB', name: 'BNB', price: 650.20, change24h: 1.2, image: 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png' },
       { id: 'solana', symbol: 'SOL', name: 'Solana', price: 188.94, change24h: 1.02, image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png' },
+      { id: 'ripple', symbol: 'XRP', name: 'XRP', price: 2.37, change24h: -0.15, image: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png' },
       { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin', price: 0.19, change24h: 1.65, image: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png' },
       { id: 'cardano', symbol: 'ADA', name: 'Cardano', price: 0.45, change24h: 0.85, image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png' },
-      { id: 'tron', symbol: 'TRX', name: 'TRON', price: 0.085, change24h: 0.65, image: 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png' }
+      { id: 'avalanche-2', symbol: 'AVAX', name: 'Avalanche', price: 35.4, change24h: 2.1, image: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png' },
+      { id: 'tron', symbol: 'TRX', name: 'TRON', price: 0.085, change24h: 0.65, image: 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png' },
+      { id: 'polkadot', symbol: 'DOT', name: 'Polkadot', price: 7.20, change24h: -1.5, image: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png' }
   ];
 
   try {
-    // Spck Editor/Localhost မှာ CoinGecko က Block တတ်လို့ Error တက်လွယ်ပါတယ်
-    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple,solana,dogecoin,cardano,tron&order=market_cap_desc&sparkline=false');
+    // API URL ပြောင်းလိုက်ပါပြီ (per_page=50 ဆိုပြီး Coin ၅၀ တောင်းလိုက်တာပါ)
+    // ids=... ဆိုပြီး တစ်ခုချင်း ရွေးမနေတော့ပါဘူး
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false');
     
     if (!response.ok) throw new Error('API Error');
     const rawData = await response.json();
 
+    if(sourceIndicator) {
+        sourceIndicator.innerHTML = "🟢 Online API (50 Coins)";
+        sourceIndicator.style.color = "#00b894";
+    }
+
+    // App ထဲက variable တွေထဲ ထည့်မယ်
     return rawData.map(coin => ({
       id: coin.id,
       symbol: coin.symbol.toUpperCase(),
@@ -133,12 +146,14 @@ async function fetchAllPrices() {
     }));
 
   } catch (error) {
-    console.log('API Failed, Loading Backup Data...');
-    // အရေးကြီးဆုံးအချက်: Error တက်ရင် null ပြန်မပို့ဘဲ backupData ကို ပို့မယ်
+    console.log('API Failed, using Backup Data...');
+    if(sourceIndicator) {
+        sourceIndicator.innerHTML = "⚠️ Backup Data";
+        sourceIndicator.style.color = "#fdcb6e";
+    }
     return backupData; 
   }
 }
-
 function formatPrice(price) {
   if (price >= 1000) {
     return price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
