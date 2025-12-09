@@ -55,22 +55,23 @@ body {
 }
 
 .hero-banner {
-  /* 3D Crypto Background ပုံထည့်ခြင်း */
-  background: url('https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2832&auto=format&fit=crop') no-repeat center center;
-  background-size: cover; /* ပုံကို အပြည့်ဆွဲဆန့်မယ် */
+  /* ပုံအသစ် (Cyberpunk City Bright) */
+  background: url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
+  background-size: cover;
   
+  /* ကျန်တဲ့ settings တွေ ဒီအတိုင်းထားပါ */
   padding: 40px 20px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  min-height: 220px; /* Banner အမြင့် နည်းနည်းတိုးမယ် */
+  min-height: 220px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-radius: 0 0 20px 20px; /* အောက်နား ၂ ဖက်ကို ဝိုင်းမယ် */
+  border-radius: 0 0 20px 20px;
 }
 
-/* ပုံပေါ်မှာ အမဲရောင် ပါးပါးလေး အုပ်မယ် (စာဖတ်ရလွယ်အောင်) */
+/* ပုံပေါ်က အရိပ်ကို ပါးလိုက်မယ် (ဒါမှ ပုံက လင်းလာမယ်) */
 .hero-banner::before {
   content: '';
   position: absolute;
@@ -78,7 +79,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to bottom, rgba(10, 10, 15, 0.4), rgba(10, 10, 15, 0.8));
+  /* 0.8 ကနေ 0.2 ကို လျှော့လိုက်ပါတယ် */
+  background: rgba(0, 0, 0, 0.2); 
   z-index: 0;
 }
 
@@ -484,7 +486,9 @@ background: #00b894;
 
 .quote-item {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 60px;
+  /* တတိယ ကော်လံ (Change %) ကို နေရာပိုပေးလိုက်မယ် (1fr -> 1.2fr) */
+  grid-template-columns: 1.8fr 1fr 1.2fr 60px; 
+  gap: 10px; /* တစ်ခုနဲ့တစ်ခု ၁၀ pixels ခွာမယ် */
   padding: 14px 0;
   border-bottom: 1px solid #1e1e2d;
   align-items: center;
