@@ -55,11 +55,17 @@ body {
 }
 
 .hero-banner {
-  /* Bitcoin နဲ့ ဒင်္ဂါးပြားတွေပါတဲ့ ပုံအသစ် */
-  background: url('https://images.unsplash.com/photo-1518546305927-5a455e993776?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
+  /* ပုံမလာခင် ပြမယ့် အရန်အရောင် (Dark Blue) */
+  background-color: #1e3a5f;
+  
+  /* ပုံအသစ် (Bitcoin ဒင်္ဂါးပြားများ - Size လျှော့ထားလို့ လိုင်းမကောင်းလည်း ပေါ်ပါမယ်) */
+  background-image: url('https://images.unsplash.com/photo-1518546305927-5a455e993776?q=60&w=600&auto=format&fit=crop');
+  
+  background-repeat: no-repeat;
+  background-position: center center;
   background-size: cover;
   
-  /* ကျန်တဲ့ settings တွေ ဒီအတိုင်းထားပါ */
+  /* Layout Settings */
   padding: 40px 20px;
   text-align: center;
   position: relative;
@@ -71,7 +77,7 @@ body {
   border-radius: 0 0 20px 20px;
 }
 
-/* ပုံပေါ်က အရိပ်ကို ပါးလိုက်မယ် (ဒါမှ ပုံက လင်းလာမယ်) */
+/* ပုံပေါ်က အရိပ် (အရမ်းမမဲအောင် 0.3 ပဲ ထားထားပါတယ်) */
 .hero-banner::before {
   content: '';
   position: absolute;
@@ -79,8 +85,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  /* 0.8 ကနေ 0.2 ကို လျှော့လိုက်ပါတယ် */
-  background: rgba(0, 0, 0, 0.2); 
+  background: rgba(0, 0, 0, 0.3); /* အမဲရောင် ပါးပါးလေးပဲ အုပ်မယ် */
   z-index: 0;
 }
 
