@@ -1109,3 +1109,25 @@ color: #00b894; }
     font-size: 9px;
   }
 }
+
+/* Hero Title Color Fix */
+#heroTitle {
+  /* လင်းလက်နေတဲ့ Theme အရောင် (Green/Cyan Gradient) */
+  background: linear-gradient(90deg, #00b894, #00cec9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  
+  /* တကယ်လို့ ဖုန်းတချို့မှာ Gradient မပေါ်ရင် ဒီအရောင်ပြမယ် */
+  color: #00b894; 
+  
+  font-weight: 800; /* စာလုံးပိုထူမယ် */
+  letter-spacing: 1px; /* စာလုံး နည်းနည်းခွာမယ် */
+  text-shadow: 0px 2px 10px rgba(0, 184, 148, 0.3); /* အရိပ်ထည့်မယ် */
+}
+
+/* Subtitle ကို အဖြူရောင် သန့်သန့်လေး ထားမယ် */
+#heroSubtitle {
+  color: #dfe6e9;
+  font-weight: 500;
+}
