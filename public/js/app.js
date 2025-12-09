@@ -727,6 +727,90 @@ function openModal(type) {
       `;
       break;
       
+      case 'security':
+      title.textContent = 'Security Settings';
+      body.innerHTML = `
+        <div class="menu-item" style="border-bottom:1px solid #2d3436;">
+          <span>🔑 Change Password</span>
+          <span style="font-size:12px; color:#00b894;">Active</span>
+        </div>
+        <div class="menu-item" style="border-bottom:1px solid #2d3436;">
+          <span>📱 2FA Authentication</span>
+          <span style="font-size:12px; color:#ff6b6b;">Disabled</span>
+        </div>
+        <div class="menu-item">
+          <span>🖐 Biometric Login</span>
+          <input type="checkbox" checked>
+        </div>
+      `;
+      break;
+
+    case 'payment':
+      title.textContent = 'Payment Methods';
+      body.innerHTML = `
+        <div style="padding:10px; background:#12121a; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+          <span>💳 Visa **** 4242</span>
+          <span style="color:#ff6b6b; cursor:pointer;">Remove</span>
+        </div>
+        <button class="modal-action-btn">＋ Add New Card</button>
+      `;
+      break;
+
+    case 'notifications':
+      title.textContent = 'Notifications';
+      body.innerHTML = `
+        <div class="menu-item">
+          <span>Price Alerts</span>
+          <input type="checkbox" checked>
+        </div>
+        <div class="menu-item">
+          <span>News & Updates</span>
+          <input type="checkbox">
+        </div>
+        <div class="menu-item">
+          <span>Order Status</span>
+          <input type="checkbox" checked>
+        </div>
+      `;
+      break;
+
+    case 'language':
+      title.textContent = 'Select Language';
+      body.innerHTML = `
+        <div class="menu-item" onclick="setLanguage('English')" style="cursor:pointer;">
+          <span>🇺🇸 English</span>
+          <span style="color:#00b894;">✓</span>
+        </div>
+        <div class="menu-item" onclick="setLanguage('Myanmar')" style="cursor:pointer;">
+          <span>🇲🇲 Myanmar</span>
+        </div>
+        <div class="menu-item" onclick="setLanguage('Chinese')" style="cursor:pointer;">
+          <span>🇨🇳 Chinese</span>
+        </div>
+      `;
+      break;
+      
+    case 'terms':
+      title.textContent = 'Terms & Conditions';
+      body.innerHTML = `<div style="height:200px; overflow-y:scroll; font-size:13px; color:#b2bec3;">
+        <p>1. User Agreement...</p>
+        <p>By using this platform, you agree to the following terms...</p>
+        <p>2. Risk Warning...</p>
+        <p>Crypto trading involves significant risk...</p>
+      </div>`;
+      break;
+      
+    case 'about':
+      title.textContent = 'About Us';
+      body.innerHTML = `
+        <div style="text-align:center;">
+          <h2 style="color:#00b894;">Sai Trading</h2>
+          <p>Version 2.0.1</p>
+          <p style="font-size:12px; color:#636e72; margin-top:10px;">The most secure crypto trading platform.</p>
+        </div>
+      `;
+      break;
+      
     default:
        title.textContent = 'Notice';
        body.innerHTML = '<p>Feature coming soon.</p>';
@@ -1041,4 +1125,37 @@ function handleLogout() {
   showPage('login');
 }
 
-// Mine Page က Logout ခလုတ်မှာ onclick="handleLogout()" ထည့်ဖို့ မမေ့ပါနဲ့
+// --- THEME & LANGUAGE LOGIC ---
+
+function toggleTheme() {
+  const body = document.body;
+  const label = document.getElementById('theme-label');
+  
+  body.classList.toggle('light-mode');
+  
+  if (body.classList.contains('light-mode')) {
+    label.textContent = 'Light';
+    localStorage.setItem('theme', 'light');
+  } else {
+    label.textContent = 'Dark';
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+function setLanguage(lang) {
+  document.getElementById('current-lang').textContent = lang + ' ›';
+  // ဤနေရာတွင် ဘာသာစကားပြောင်းမည့် Logic အပြည့်အစုံထည့်နိုင်သည်
+  // လောလောဆယ် Modal ပိတ်ပြီး Alert ပြပါမည်
+  closeModal();
+  alert('Language changed to ' + lang);
+}
+
+// App စဖွင့်ရင် Theme အဟောင်းကို ပြန်ယူမယ်
+document.addEventListener('DOMContentLoaded', function() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-mode');
+    const label = document.getElementById('theme-label');
+    if(label) label.textContent = 'Light';
+  }
+});
