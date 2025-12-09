@@ -17,14 +17,14 @@
         <button class="personal-center-btn" onclick="showPage('mine')">Personal Center</button>
       </header>
       <section class="hero-banner">
-        <div class="hero-content">
-          <h1 class="hero-title">Crypto Trading</h1>
-          <p class="hero-subtitle">Trade with confidence</p>
+        <div class="hero-content" id="heroContent">
+          <h1 class="hero-title" id="heroTitle">Crypto Trading</h1>
+          <p class="hero-subtitle" id="heroSubtitle">Trade with confidence</p>
         </div>
-        <div class="carousel-dots">
-          <span class="dot active"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
+        <div class="carousel-dots" id="heroDots">
+          <span class="dot active" onclick="setCarousel(0)"></span>
+          <span class="dot" onclick="setCarousel(1)"></span>
+          <span class="dot" onclick="setCarousel(2)"></span>
         </div>
       </section>
       <section class="feature-icons">
