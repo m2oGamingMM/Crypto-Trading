@@ -118,25 +118,39 @@ body {
 .page-view.active { display: block; animation: fadeIn 0.2s; }
 @keyframes fadeIn { from {opacity:0} to {opacity:1} }
 .loading { text-align: center; padding: 20px; font-size: 12px; color: #636e72; }
+
+
+/* Hero Banner Fix (အစက်မပေါ်တာ ဖြေရှင်းရန်) */
+.hero-banner {
+  position: relative !important;
+  padding-bottom: 40px !important; /* အောက်ခြေမှာ နေရာပိုပေးမယ် */
+  overflow: visible !important; /* ကွယ်နေတာတွေကို ဖော်မယ် */
+}
+
+/* Dots Styling */
 .carousel-dots {
+  position: absolute !important; /* နေရာအတည်တကျ သတ်မှတ်မယ် */
+  bottom: 15px !important; /* အောက်ခြေကနေ ၁၅ ပွိုင့် အကွာ */
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: center;
-  gap: 6px;
-  margin-top: 16px;
+  gap: 8px;
+  z-index: 100;
+  margin-top: 0 !important; /* အဟောင်းက margin ကို ဖယ်ရှားမယ် */
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #636e72;
-  transition: all 0.3s;
+  background: rgba(255, 255, 255, 0.4); /* အရောင်ဖျော့ */
+  transition: all 0.3s ease;
 }
 
 .dot.active {
-  background: #00b894;
-  width: 20px;
+  background: #00b894; /* အစိမ်းရောင် */
+  width: 24px;
   border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 184, 148, 0.6);
 }
-
-
