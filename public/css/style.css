@@ -78,39 +78,37 @@ body {
 .hero-content {
   position: relative;
   z-index: 1;
+  opacity: 1;
+  transition: opacity 0.5s ease-in-out; /* Fade ချိန် 0.5 စက္ကန့် */
 }
 
-.hero-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  background: linear-gradient(90deg, #00b894, #00cec9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.hero-subtitle {
-  font-size: 14px;
-  color: #b2bec3;
+.hero-content.fade-out {
+  opacity: 0; /* ပျောက်သွားမယ့် အနေအထား */
 }
 
 .carousel-dots {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 8px; /* အကွာအဝေး ပိုကျဲလိုက်ပါတယ် */
   margin-top: 16px;
+  position: relative;
+  z-index: 2;
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #636e72;
+  background: rgba(255, 255, 255, 0.3); /* အရောင်မှိန်ထားခြင်း */
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .dot.active {
   background: #00b894;
+  width: 24px; /* Active ဖြစ်ရင် ရှည်ထွက်လာမယ် */
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0, 184, 148, 0.6); /* အရောင်တောက်တဲ့ effect */
 }
 
 .feature-icons {
