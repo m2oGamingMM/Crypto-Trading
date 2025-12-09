@@ -55,16 +55,16 @@ body {
 }
 
 .hero-banner {
-  /* ၁။ အရန်အရောင် (ပုံမလာခင် အပြာရင့်ရောင် ပြထားမယ်) */
+  /* ၁။ အရန်အရောင် (ပုံမလာခင် ရွှေရောင်ဖျော့ဖျော့ ပြမယ်) */
   background-color: #1a1a2e;
 
-  /* ၂။ ပုံအသစ် (Wikipedia Server ဖြစ်လို့ လိုင်းမကောင်းလည်း တက်ပါတယ်) */
-  background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
-    url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Bitcoin_logo.svg/800px-Bitcoin_logo.svg.png');
+  /* ၂။ ပုံအသစ် (ရွှေဒင်္ဂါးပြားတွေ အများကြီး ပုံနေတဲ့ 3D ပုံ - Pixabay CDN) */
+  background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), 
+    url('https://cdn.pixabay.com/photo/2018/01/18/07/31/bitcoin-3089728_1280.jpg');
   
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: cover;
+  background-size: cover; /* ပုံကို ဘောင်အပြည့် ဆွဲဆန့်မယ် */
   
   /* Layout Settings */
   padding: 40px 20px;
@@ -79,7 +79,7 @@ body {
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
-/* ::before ကို ဖျက်လိုက်ပါ (မလိုတော့ပါ) */
+/* ::before ကို ဖျက်ထားလိုက်ပါ (မလိုတော့ပါ) */
 .hero-banner::before {
   display: none;
 }
