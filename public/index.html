@@ -28,10 +28,27 @@
         </div>
       </section>
       <section class="feature-icons">
-        <div class="feature-item">
-        <div class="feature-icon blue">📋</div>
+        <div class="feature-item" onclick="openModal('ieo')">
+          <div class="feature-icon blue">📋</div>
           <span class="feature-text">IEO<br>Subscription</span>
         </div>
+        <div class="feature-item" onclick="openModal('service')">
+          <div class="feature-icon green">🔄</div>
+          <span class="feature-text">Service</span>
+        </div>
+        <div class="feature-item" onclick="openModal('verify')">
+          <div class="feature-icon teal">✓</div>
+          <span class="feature-text">Verify</span>
+        </div>
+        <div class="feature-item" onclick="openModal('ai')">
+          <div class="feature-icon purple">🤖</div>
+          <span class="feature-text">AI<br>quantification</span>
+        </div>
+        <div class="feature-item" onclick="openModal('fiat')">
+          <div class="feature-icon orange">💳</div>
+          <span class="feature-text">Fiat<br>currency</span>
+          </div>
+      </section>
         <div class="feature-item">
           <div class="feature-icon green">🔄</div>
           <span class="feature-text">Service</span>
@@ -381,6 +398,17 @@
       <span>Mine</span>
     </div>
   </nav>
+
+  <div id="universalModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Title</h3>
+        <button class="close-modal-btn" onclick="closeModal()">×</button>
+      </div>
+      <div id="modalBody">
+        </div>
+    </div>
+  </div>
 
   <script src="js/app.js"></script>
 </body>
