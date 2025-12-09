@@ -284,52 +284,78 @@
         </div>
       </div>
 
-    </div> <div id="page-mine" class="page">
-      <header class="page-header">
-        <h1>Mine</h1>
-      </header>
-      <div class="profile-card">
+    </div> <div id="page-mine" class="page" style="padding-bottom: 80px;">
+      
+      <div class="profile-card" style="margin-top: 40px;">
         <div class="profile-avatar">👤</div>
         <div class="profile-info">
-          <div class="profile-name">User123</div>
-          <div class="profile-email">user@example.com</div>
-          <div class="profile-level">VIP Level 1</div>
+          <div class="profile-name">User</div>
+          <div class="profile-email">Not logged in</div>
+          <div class="profile-level">VIP 0</div>
         </div>
-        <button class="edit-profile-btn">Edit</button>
+        <button class="edit-profile-btn" onclick="openModal('profile_edit')">Edit</button>
       </div>
       
-      <div class="verification-status">
-        <div class="verify-item">
+      <div style="margin: 0 16px 16px; background: #1e1e2d; border-radius: 12px; overflow: hidden;">
+        <div class="verify-item" onclick="openModal('verify_email')">
           <span>Email Verification</span>
-          <span class="verified">Verified</span>
+          <span class="verified" id="status-email">✓ Verified</span>
         </div>
-        <div class="verify-item">
+        <div class="verify-item" onclick="openModal('verify_phone')">
           <span>Phone Verification</span>
-          <span class="not-verified">Unverified</span>
+          <span class="not-verified" id="status-phone">Not Verified</span>
         </div>
-        <div class="verify-item">
-          <span>Identity Verification</span>
-          <span class="not-verified">Unverified</span>
+        <div class="verify-item" onclick="openModal('verify_id')">
+          <span>ID Verification</span>
+          <span class="not-verified" id="status-id">Not Verified</span>
         </div>
       </div>
 
       <div class="menu-list">
-        <div class="menu-item">
-          <span>🛡️</span>
-          <span>Security Center</span>
+        
+        <div class="menu-item" onclick="toggleTheme()">
+          <span>🌓</span>
+          <span>Dark / Light Theme</span>
+          <span class="menu-arrow" id="theme-label">Dark</span>
+        </div>
+
+        <div class="menu-item" onclick="openModal('security')">
+          <span>🔐</span>
+          <span>Security Settings</span>
           <span class="menu-arrow">›</span>
         </div>
-        <div class="menu-item">
-          <span>⚙️</span>
-          <span>Settings</span>
+
+        <div class="menu-item" onclick="openModal('payment')">
+          <span>💳</span>
+          <span>Payment Methods</span>
           <span class="menu-arrow">›</span>
         </div>
-        <div class="menu-item">
-          <span>🎧</span>
-          <span>Help & Support</span>
+
+        <div class="menu-item" onclick="openModal('notifications')">
+          <span>🔔</span>
+          <span>Notifications</span>
           <span class="menu-arrow">›</span>
         </div>
-        <div class="menu-item">
+
+        <div class="menu-item" onclick="openModal('language')">
+          <span>🌐</span>
+          <span>Language</span>
+          <span class="menu-arrow" id="current-lang">English ›</span>
+        </div>
+
+        <div class="menu-item" onclick="openModal('service')">
+          <span>📞</span>
+          <span>Customer Support</span>
+          <span class="menu-arrow">›</span>
+        </div>
+
+        <div class="menu-item" onclick="openModal('terms')">
+          <span>📄</span>
+          <span>Terms & Conditions</span>
+          <span class="menu-arrow">›</span>
+        </div>
+
+        <div class="menu-item" onclick="openModal('about')">
           <span>ℹ️</span>
           <span>About Us</span>
           <span class="menu-arrow">›</span>
