@@ -39,29 +39,92 @@ function showPage(pageName) {
 
 }
 
-async function fetchAllPrices() {
-  try {
-    // Backend ကို မဖြတ်တော့ဘဲ CoinGecko API ကို တိုက်ရိုက်ယူပါမယ်
-    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple,solana,dogecoin,tether,binancecoin,cardano,tron,chainlink,litecoin,polkadot,matic-network,shiba-inu,avalanche-2,uniswap,stellar,bitcoin-cash,near,verus-coin&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h');
+// --- 1. WebSocket for Trading Page (Real-time) ---
+let socket = null;
+let isSocketRunning = false;
+
+function startLivePrices() {
+  if (isSocketRunning) return; // run နေရင် ထပ်မစဘူး
+
+  const statusEl = document.getElementById('connectionStatus');
+  const tradeBtn = document.getElementById('tradeSubmitBtn');
+  
+  // Binance Stream (BTC, ETH, XRP, SOL, DOGE)
+  socket = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade/xrpusdt@trade/solusdt@trade/dogeusdt@trade');
+
+  socket.onopen = () => {
+    isSocketRunning = true;
+    if (statusEl) {
+      statusEl.innerHTML = '🟢 Live Market';
+      statusEl.style.color = '#00b894';
+    }
+    if (tradeBtn) tradeBtn.disabled = false;
+    console.log('Trading System: Online');
+  };
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    const symbol = data.s.replace('USDT', ''); 
+    const price = parseFloat(data.p);
     
-    if (!response.ok) throw new Error('CoinGecko API Error');
+    // Trading Page ဖွင့်ထားမှ ဈေးလိုက်ပြောင်းမယ်
+    updateTradingUI(symbol, price);
+  };
+
+  socket.onclose = () => {
+    isSocketRunning = false;
+    if (statusEl) {
+      statusEl.innerHTML = '🔴 Connecting...';
+      statusEl.style.color = '#ff6b6b';
+    }
+    // 3 စက္ကန့်နေရင် ပြန်ချိတ်မယ်
+    setTimeout(startLivePrices, 3000);
+  };
+}
+
+function updateTradingUI(symbol, price) {
+  const select = document.getElementById('tradingPair');
+  // Trading Page မရောက်သေးရင် ဘာမှမလုပ်ဘူး
+  if (!select) return; 
+
+  if (select.value === symbol) {
+    const display = document.querySelector('#tradingPriceDisplay .current-price');
+    if (display) {
+      const oldPrice = parseFloat(display.textContent.replace('$', '').replace(',', ''));
+      const color = price > oldPrice ? '#00b894' : (price < oldPrice ? '#ff6b6b' : 'white');
+      
+      display.style.color = color;
+      display.textContent = `$${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    }
+  }
+}
+
+// --- 2. REST API for Home/List Page (General List) ---
+// ဒီ function နာမည်ကို မဖျက်ရပါ (loadAllData က သုံးနေလို့ပါ)
+async function fetchAllPrices() {
+  
+  // WebSocket ကို ဒီနေရာကနေ တစ်ခါတည်း စဖွင့်ပေးလိုက်မယ်
+  startLivePrices();
+
+  try {
+    // List အတွက် CoinGecko ကို ခေါ်မယ်
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,ripple,solana,dogecoin,tether,binancecoin,cardano,tron,chainlink,litecoin,polkadot,matic-network,shiba-inu,avalanche-2,uniswap,stellar,bitcoin-cash,near,verus-coin&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h');
+    
+    if (!response.ok) throw new Error('API Error');
     const rawData = await response.json();
 
-    // App က လက်ခံမယ့်ပုံစံပြောင်းပေးခြင်း (Mapping)
     return rawData.map(coin => ({
       id: coin.id,
       symbol: coin.symbol.toUpperCase(),
       name: coin.name,
-      // CoinGecko က current_price လို့ပေးပေမယ့် App က price လို့သုံးထားလို့ ပြောင်းပေးရပါတယ်
       price: coin.current_price,
       change24h: coin.price_change_percentage_24h,
       image: coin.image
     }));
 
   } catch (error) {
-    console.error('Connection Error:', error);
-    // Data ဆွဲမရရင် ဘာမှ မပြတော့ဘဲ Error ပဲပြပါမယ် (Offline data မသုံးတော့ပါ)
-    return null;
+    console.log('API Limit/Error, using cache if available');
+    return null; 
   }
 }
 
