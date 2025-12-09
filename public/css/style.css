@@ -55,29 +55,29 @@ body {
 }
 
 .hero-banner {
-  /* ၁။ အရန်အရောင် (ပုံမလာခင် အမဲရောင် ပြထားမယ်) */
-  background-color: #000000;
-
-  /* ၂။ ပုံအသစ် (ရွှေဒင်္ဂါးတွေ အများကြီး ပုံနေတဲ့ 3D ပုံ - High Quality) */
-  background-image: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.8)),
-    url('https://images.unsplash.com/photo-1621504450168-387d4745330d?q=80&w=1000&auto=format&fit=crop');
+  /* ၁။ ပုံမလာခင် ပြမယ့်အရောင် (အမဲ မဟုတ်တော့ပါ၊ Theme အရောင်ပါ) */
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   
-  /* ပုံကို အလယ်တည့်တည့်ကနေ ဖြတ်မယ် */
-  background-position: center center;
+  /* ၂။ ပုံအသစ် (Pexels Server - ရွှေဒင်္ဂါးပြားများပုံ) */
+  background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), 
+    url('https://images.pexels.com/photos/844124/pexels-photo-844124.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+  
+  /* ၃။ ပုံအနေအထား ချိန်ညှိခြင်း */
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  background-size: cover; 
   
   /* Layout Settings */
-  padding: 50px 20px;
+  padding: 40px 20px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  min-height: 240px; /* ပုံအပြည့်ပေါ်အောင် အမြင့်နည်းနည်း ထပ်တိုးလိုက်တယ် */
+  min-height: 240px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   border-radius: 0 0 25px 25px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 /* ::before ကို ဖျက်ထားလိုက်ပါ (မလိုတော့ပါ) */
