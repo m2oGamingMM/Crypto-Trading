@@ -291,34 +291,89 @@
       </div>
     </div>
 
+    <div id="page-mine" class="page">
+      <header class="page-header">
+        <h1>Mine</h1>
+      </header>
+      <div class="profile-card">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-info">
+          <div class="profile-name">User123</div>
+          <div class="profile-email">user@example.com</div>
+          <div class="profile-level">VIP Level 1</div>
+        </div>
+        <button class="edit-profile-btn">Edit</button>
+      </div>
+      
+      <div class="verification-status">
+        <div class="verify-item">
+          <span>Email Verification</span>
+          <span class="verified">Verified</span>
+        </div>
+        <div class="verify-item">
+          <span>Phone Verification</span>
+          <span class="not-verified">Unverified</span>
+        </div>
+        <div class="verify-item">
+          <span>Identity Verification</span>
+          <span class="not-verified">Unverified</span>
+        </div>
+      </div>
+
+      <div class="menu-list">
+        <div class="menu-item">
+          <span>🛡️</span>
+          <span>Security Center</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <span>⚙️</span>
+          <span>Settings</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <span>🎧</span>
+          <span>Help & Support</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <span>ℹ️</span>
+          <span>About Us</span>
+          <span class="menu-arrow">›</span>
+        </div>
+      </div>
+      
+      <button class="logout-btn">Log Out</button>
+    </div>
+
   </div>
 
   <nav class="bottom-nav">
-    <div class="nav-item active">
+    <div class="nav-item active" onclick="showPage('home')">
       <span class="nav-icon">🏠</span>
       <span>Home</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('quotes')">
       <span class="nav-icon">📊</span>
       <span>Quotes</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('coins')">
       <span class="nav-icon">🪙</span>
       <span>Coins</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('trading')">
       <span class="nav-icon">📈</span>
       <span>Trading</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('derivatives')">
       <span class="nav-icon">📑</span>
       <span>Derivatives</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('assets')">
       <span class="nav-icon">💼</span>
       <span>Assets</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="showPage('mine')">
       <span class="nav-icon">👤</span>
       <span>Mine</span>
     </div>
