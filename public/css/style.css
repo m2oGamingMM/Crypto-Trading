@@ -55,8 +55,8 @@ body {
 }
 
 .hero-banner {
-  /* ပုံအသစ် (Cyberpunk City Bright) */
-  background: url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
+  /* Bitcoin နဲ့ ဒင်္ဂါးပြားတွေပါတဲ့ ပုံအသစ် */
+  background: url('https://images.unsplash.com/photo-1518546305927-5a455e993776?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
   background-size: cover;
   
   /* ကျန်တဲ့ settings တွေ ဒီအတိုင်းထားပါ */
