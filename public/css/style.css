@@ -55,11 +55,12 @@ body {
 }
 
 .hero-banner {
-  /* ပုံမလာခင် ပြမယ့် အရန်အရောင် (Dark Blue) */
-  background-color: #1e3a5f;
-  
-  /* ပုံအသစ် (Bitcoin ဒင်္ဂါးပြားများ - Size လျှော့ထားလို့ လိုင်းမကောင်းလည်း ပေါ်ပါမယ်) */
-  background-image: url('https://images.unsplash.com/photo-1518546305927-5a455e993776?q=60&w=600&auto=format&fit=crop');
+  /* ၁။ အရန်အရောင် (ပုံမလာခင် အပြာရင့်ရောင် ပြထားမယ်) */
+  background-color: #1a1a2e;
+
+  /* ၂။ ပုံအသစ် (Wikipedia Server ဖြစ်လို့ လိုင်းမကောင်းလည်း တက်ပါတယ်) */
+  background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+    url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Bitcoin_logo.svg/800px-Bitcoin_logo.svg.png');
   
   background-repeat: no-repeat;
   background-position: center center;
@@ -75,18 +76,12 @@ body {
   flex-direction: column;
   justify-content: center;
   border-radius: 0 0 20px 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
-/* ပုံပေါ်က အရိပ် (အရမ်းမမဲအောင် 0.3 ပဲ ထားထားပါတယ်) */
+/* ::before ကို ဖျက်လိုက်ပါ (မလိုတော့ပါ) */
 .hero-banner::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3); /* အမဲရောင် ပါးပါးလေးပဲ အုပ်မယ် */
-  z-index: 0;
+  display: none;
 }
 
 .hero-content {
