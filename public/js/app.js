@@ -613,3 +613,93 @@ document.addEventListener('DOMContentLoaded', function() {
   // ရှိပြီးသား loadAllData() အောက်မှာ ဒါလေးထည့်ပါ
   startCarousel();
 });
+// --- UNIVERSAL MODAL LOGIC ---
+
+function openModal(type) {
+  const modal = document.getElementById('universalModal');
+  const title = document.getElementById('modalTitle');
+  const body = document.getElementById('modalBody');
+  
+  // Modal ဖွင့်မယ်
+  modal.classList.add('show');
+  
+  // Type အလိုက် စာသားတွေ ပြောင်းမယ်
+  switch(type) {
+    case 'ieo':
+      title.textContent = 'IEO Subscription';
+      body.innerHTML = `
+        <div style="text-align:center;">
+          <div style="font-size:40px; margin-bottom:10px;">🚀</div>
+          <p style="color:#b2bec3; margin-bottom:15px;">Upcoming Launch: <strong>SPACE-X Token</strong></p>
+          <div style="background:#12121a; padding:10px; border-radius:8px; margin-bottom:15px; color:#00b894;">
+            Starts in: 02d : 14h : 30m
+          </div>
+          <button class="modal-action-btn">Subscribe Reminder</button>
+        </div>
+      `;
+      break;
+
+    case 'service':
+      title.textContent = 'Customer Service';
+      body.innerHTML = `
+        <div style="height:200px; background:#12121a; border-radius:10px; padding:10px; overflow-y:auto; margin-bottom:10px;">
+          <div style="background:#2d3436; padding:8px; border-radius:8px; display:inline-block; font-size:12px; margin-bottom:5px;">Hello! How can we help you?</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <input type="text" class="modal-input" style="margin:0;" placeholder="Type message...">
+          <button style="background:#00b894; border:none; width:40px; border-radius:8px; cursor:pointer;">➤</button>
+        </div>
+      `;
+      break;
+
+    case 'verify':
+      title.textContent = 'Identity Verification';
+      body.innerHTML = `
+        <p style="color:#b2bec3; font-size:13px; margin-bottom:10px;">Please upload your ID/Passport.</p>
+        <div style="border:2px dashed #2d3436; padding:30px; text-align:center; border-radius:10px; margin-bottom:15px; cursor:pointer;">
+          <span style="font-size:24px; color:#636e72;">📷</span>
+          <div style="font-size:12px; color:#636e72;">Tap to upload photo</div>
+        </div>
+        <button class="modal-action-btn">Submit for Review</button>
+      `;
+      break;
+
+    case 'ai':
+      title.textContent = 'AI Quant Bot';
+      body.innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+          <span>Bot Status:</span>
+          <span style="color:#ff6b6b;">● Stopped</span>
+        </div>
+        <div style="background:#12121a; padding:15px; border-radius:10px; margin-bottom:15px;">
+          <div style="font-size:12px; color:#b2bec3;">Est. Daily Yield</div>
+          <div style="font-size:20px; color:#00b894; font-weight:bold;">1.5% - 3.0%</div>
+        </div>
+        <input type="number" class="modal-input" placeholder="Investment Amount (USDT)">
+        <button class="modal-action-btn">Start AI Bot</button>
+      `;
+      break;
+
+    case 'fiat':
+      title.textContent = 'Fiat Deposit';
+      body.innerHTML = `
+        <select class="modal-input">
+          <option>KBZ Pay</option>
+          <option>Wave Pay</option>
+          <option>Bank Transfer</option>
+        </select>
+        <input type="number" class="modal-input" placeholder="Amount (MMK)">
+        <div style="font-size:12px; color:#b2bec3; margin-bottom:15px;">Rate: 1 USD = 4,500 MMK</div>
+        <button class="modal-action-btn">Request Deposit</button>
+      `;
+      break;
+      
+    default:
+       title.textContent = 'Notice';
+       body.innerHTML = '<p>Feature coming soon.</p>';
+  }
+}
+
+function closeModal() {
+  document.getElementById('universalModal').classList.remove('show');
+}
