@@ -55,28 +55,29 @@ body {
 }
 
 .hero-banner {
-  /* ၁။ အရန်အရောင် (ပုံမလာခင် ရွှေရောင်ဖျော့ဖျော့ ပြမယ်) */
-  background-color: #1a1a2e;
+  /* ၁။ အရန်အရောင် (ပုံမလာခင် အမဲရောင် ပြထားမယ်) */
+  background-color: #000000;
 
-  /* ၂။ ပုံအသစ် (ရွှေဒင်္ဂါးပြားတွေ အများကြီး ပုံနေတဲ့ 3D ပုံ - Pixabay CDN) */
-  background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), 
-    url('https://cdn.pixabay.com/photo/2018/01/18/07/31/bitcoin-3089728_1280.jpg');
+  /* ၂။ ပုံအသစ် (ရွှေဒင်္ဂါးတွေ အများကြီး ပုံနေတဲ့ 3D ပုံ - High Quality) */
+  background-image: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.8)),
+    url('https://images.unsplash.com/photo-1621504450168-387d4745330d?q=80&w=1000&auto=format&fit=crop');
   
-  background-repeat: no-repeat;
+  /* ပုံကို အလယ်တည့်တည့်ကနေ ဖြတ်မယ် */
   background-position: center center;
-  background-size: cover; /* ပုံကို ဘောင်အပြည့် ဆွဲဆန့်မယ် */
+  background-repeat: no-repeat;
+  background-size: cover; 
   
   /* Layout Settings */
-  padding: 40px 20px;
+  padding: 50px 20px;
   text-align: center;
   position: relative;
   overflow: hidden;
-  min-height: 220px;
+  min-height: 240px; /* ပုံအပြည့်ပေါ်အောင် အမြင့်နည်းနည်း ထပ်တိုးလိုက်တယ် */
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-radius: 0 0 20px 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  border-radius: 0 0 25px 25px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4);
 }
 
 /* ::before ကို ဖျက်ထားလိုက်ပါ (မလိုတော့ပါ) */
