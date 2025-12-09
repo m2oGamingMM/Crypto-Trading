@@ -163,8 +163,7 @@ function renderCoinsGrid() {
   const container = document.getElementById('coinsGridContainer');
   if (!container) return;
   if (!allPrices || allPrices.length === 0) {
-    container.innerHTML = '<div class="loading"><div 
-    class="loading-spinner"></div>Loading coins...</div>';
+    container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Loading coins...</div>';
     return;
   }
   container.innerHTML = allPrices.map(coin => `
