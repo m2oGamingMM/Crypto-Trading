@@ -66,8 +66,26 @@ function startLivePrices() {
     const data = JSON.parse(event.data);
     const symbol = data.s.replace('USDT', ''); 
     const price = parseFloat(data.p);
+    
+    // 1. Trading Page Update
     updateTradingUI(symbol, price);
+
+    // 2. Derivatives Page Update (အသစ်ထည့်ထားသော အပိုင်း)
+    updateDerivativesUI(symbol, price);
   };
+
+// အောက်ဆုံးမှာ ဒီ Function အသစ်ကို ထည့်ပေးပါ
+function updateDerivativesUI(symbol, price) {
+  // Derivatives Tab မှာ ID တွေ မရှိသေးရင် HTML မှာ လိုက်ထည့်ရပါမယ်
+  // ဥပမာ - id="deriv-price-BTC"
+  const priceEl = document.getElementById(`deriv-price-${symbol}`);
+  if (priceEl) {
+    priceEl.textContent = `$${price.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    // အရောင်ပြောင်း Effect (Optional)
+    priceEl.style.color = '#white';
+    setTimeout(() => { priceEl.style.color = '#00b894'; }, 100);
+  }
+}
 
   socket.onclose = () => {
     isSocketRunning = false;
@@ -853,33 +871,64 @@ function submitTrade() {
 // Assets Tab မှာ ပိုက်ဆံအစစ်တွေ ပြပေးမယ်
 // Assets Tab ကိုနှိပ်ရင် ဒီ function အလုပ်လုပ်အောင် showPage မှာ ချိတ်မယ်
 function updateAssetsUI() {
-  // 1. Assets Page ခေါင်းစဉ်ကြီးက Total Balance ကို ပြင်မယ်
+  // 1. Balance Update (USDT)
   const balanceEl = document.querySelector('.asset-box h1');
-  const approxEl = document.querySelector('.asset-box p:nth-of-type(2)'); // "≈ $..." စာကြောင်း
-
-  if (balanceEl) {
-    // လက်ရှိ USDT ပမာဏကို ပြမယ်
-    balanceEl.textContent = userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 });
-  }
-  
-  if (approxEl) {
-    // USDT ဖြစ်လို့ Dollar နဲ့ တန်ဖိုးတူတူပါပဲ
-    approxEl.textContent = `≈ $${userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-  }
-
-  // 2. Assets List ထဲက "USDT" စာရင်းကို ပြင်မယ်
+  const approxEl = document.querySelector('.asset-box p:nth-of-type(2)');
   const usdtBalanceEl = document.getElementById('assetUsdtBalance');
-  if (usdtBalanceEl) {
-    usdtBalanceEl.textContent = userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+  if (balanceEl) balanceEl.textContent = userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 });
+  if (approxEl) approxEl.textContent = `≈ $${userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  if (usdtBalanceEl) usdtBalanceEl.textContent = userWallet.usdt.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+  // 2. Asset List Rendering (ဝယ်ထားတဲ့ Coin တွေကို List ထုတ်မယ်)
+  const container = document.getElementById('assetsListContainer');
+  
+  // USDT တစ်ခုတည်းကိုပဲ အသေထားခဲ့ပြီး ကျန်တာ ဖျက်မယ်
+  // (မှတ်ချက်: USDT div ကို HTML မှာ ID='assetItemUSDT' လို့ ပေးထားရင် ပိုကောင်းပါတယ်၊ 
+  // ဒါပေမဲ့ JS နဲ့ပဲ အကုန်ပြန်ဆွဲလိုက်တာ ပိုရှင်းပါတယ်)
+  
+  let listHTML = `
+    <div class="asset-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1e1e2d;">
+      <div class="asset-left" style="display:flex; align-items:center; gap:12px;">
+        <div class="asset-icon" style="width:36px; height:36px; background:#26a17b; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white;">$</div>
+        <div>
+          <div style="font-weight:bold; color:white;">USDT</div>
+          <div style="font-size:12px; color:#636e72;">Tether</div>
+        </div>
+      </div>
+      <div class="asset-right" style="text-align:right;">
+        <div style="font-weight:bold; color:white;">${userWallet.usdt.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+        <div style="font-size:12px; color:#b2bec3;">$1.00</div>
+      </div>
+    </div>
+  `;
+
+  // ဝယ်ထားတဲ့ Coin တွေကို Loop ပတ်ပြီး ထည့်မယ်
+  // userWallet.holdings = { "BTC": 0.5, "ETH": 2.0 }
+  for (const [symbol, amount] of Object.entries(userWallet.holdings)) {
+    if (amount > 0) { // ၀ယ်ထားတာ ရှိမှ ပြမယ်
+       const coinInfo = allPrices.find(c => c.symbol === symbol) || { name: symbol, price: 0, image: '' };
+       const valueUSD = amount * coinInfo.price;
+
+       listHTML += `
+        <div class="asset-item" onclick="showCoinDetail('${symbol}')" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1e1e2d;">
+          <div class="asset-left" style="display:flex; align-items:center; gap:12px;">
+            <img src="${coinInfo.image}" style="width:36px; height:36px; border-radius:50%;" onerror="this.src='https://via.placeholder.com/36'">
+            <div>
+              <div style="font-weight:bold; color:white;">${symbol}</div>
+              <div style="font-size:12px; color:#636e72;">${coinInfo.name}</div>
+            </div>
+          </div>
+          <div class="asset-right" style="text-align:right;">
+            <div style="font-weight:bold; color:white;">${amount.toFixed(4)}</div>
+            <div style="font-size:12px; color:#b2bec3;">$${valueUSD.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+          </div>
+        </div>
+       `;
+    }
   }
 
-  // 3. Trading Form ထဲက Available Balance ကိုလည်း ပြင်ပေးမယ်
-  const tradeAmountInput = document.getElementById('tradeAmount');
-  if (tradeAmountInput) {
-    // Input ရဲ့ အပေါ်က Label (သို့) အနီးနားမှာ Available ပြချင်ရင် ဒီမှာ ရေးလို့ရပါတယ်
-    // လောလောဆယ် Console မှာ Log ထုတ်ပြထားပါမယ်
-    console.log("Current Wallet Balance:", userWallet.usdt);
-  }
+  if (container) container.innerHTML = listHTML;
 }
 
 // --- STEP 3: COIN DETAIL MODAL ---
