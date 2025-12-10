@@ -2098,3 +2098,32 @@ body.light-mode .modal-input {
 .grid-val.up { color: #00b894; }
 .grid-val.down { color: #ff6b6b; }
 .grid-val.sm { font-size: 11px; color: #b2bec3; font-weight: 400; }
+/* --- TRADING PAGE LAYOUT FIX --- */
+/* Trading Page ကို မျက်နှာပြင်ပြည့် ဖြစ်စေရန် */
+#page-trading.active {
+  display: flex !important;
+  flex-direction: column;
+  position: fixed; /* တခြား Tab တွေနဲ့ မရောအောင် Fixed လုပ်ထားမည် */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; /* မျက်နှာပြင် အပြည့် */
+  background-color: #0a0a0f; /* နောက်ခံအမဲရောင် အပြည့် */
+  z-index: 100; /* အပေါ်ဆုံးမှာ ထားမည် */
+  overflow: hidden; /* Page တစ်ခုလုံး Scroll မဖြစ်စေရန် */
+}
+
+/* အပေါ်ပိုင်း (Header + Chart) ကို အသေထားမည် */
+.trading-fixed-top {
+  flex-shrink: 0;
+  background-color: #0a0a0f;
+  z-index: 101;
+}
+
+/* အောက်ပိုင်း (Inputs + History) ကိုပဲ Scroll ဆွဲလို့ရအောင် လုပ်မည် */
+.trading-scrollable-area {
+  flex: 1; /* ကျန်တဲ့ နေရာအလွတ်အကုန်ယူမည် */
+  overflow-y: auto; /* Scroll ဆွဲလို့ရမည် */
+  padding-bottom: 120px; /* အောက်ဆုံးက အမဲကွက်မဖုံးအောင် နေရာချန်မည် */
+  -webkit-overflow-scrolling: touch; /* ဖုန်းမှာ Scroll ချောမွေ့စေရန် */
+}
