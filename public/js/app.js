@@ -1320,16 +1320,22 @@ function openModal(type, subType = null) {
       
       // --- TRANSACTION HISTORY (NEW DESIGN) ---
     case 'history':
-      // Header ကို ဖျောက်မယ်
+      // Header ကို ဖျောက်မယ် (Custom Header သုံးမှာမို့လို့)
       if(document.querySelector('.modal-header')) {
          document.querySelector('.modal-header').style.display = 'none';
       }
 
-      // တွက်ချက်မှုများ
-      const totalDep = userTransactions.filter(t => t.type === 'Deposit').reduce((sum, t) => sum + parseFloat(t.amount), 0);
-      const totalWit = userTransactions.filter(t => t.type === 'Withdraw').reduce((sum, t) => sum + parseFloat(t.amount), 0);
-      const totalPen = userTransactions.filter(t => t.status === 'Pending').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      // 1. တွက်ချက်မှုများ
+      const allCount = typeof userTransactions !== 'undefined' ? userTransactions.length : 0;
+      const depCount = typeof userTransactions !== 'undefined' ? userTransactions.filter(t => t.type === 'Deposit').length : 0;
+      const witCount = typeof userTransactions !== 'undefined' ? userTransactions.filter(t => t.type === 'Withdraw').length : 0;
+      const penCount = typeof userTransactions !== 'undefined' ? userTransactions.filter(t => t.status === 'Pending').length : 0;
 
+      const totalDep = typeof userTransactions !== 'undefined' ? userTransactions.filter(t => t.type === 'Deposit').reduce((sum, t) => sum + parseFloat(t.amount), 0) : 0;
+      const totalWit = typeof userTransactions !== 'undefined' ? userTransactions.filter(t => t.type === 'Withdraw').reduce((sum, t) => sum + parseFloat(t.amount), 0) : 0;
+      const totalPen = typeof userTransactions !== 'undefined' ? userTransactions.filter(t => t.status === 'Pending').reduce((sum, t) => sum + parseFloat(t.amount), 0) : 0;
+
+      // 2. UI ပိုင်း (Screenshot အတိုင်း)
       body.innerHTML = `
         <div class="history-nav">
           <div style="display:flex; align-items:center; gap:10px;">
@@ -1337,16 +1343,16 @@ function openModal(type, subType = null) {
             <span class="history-title">Transaction History</span>
           </div>
           <div class="history-actions">
-            <button onclick="openModal('filter')">▼</button>
-            <button onclick="openModal('history')">↻</button>
+            <button onclick="openModal('filter')" style="font-size:20px;">🌪️</button>
+            <button onclick="openModal('history')" style="font-size:20px;">↻</button>
           </div>
         </div>
 
         <div class="history-tabs">
-          <div class="h-tab active">All</div>
-          <div class="h-tab">Deposit</div>
-          <div class="h-tab">Withdraw</div>
-          <div class="h-tab">Pending</div>
+          <div class="h-tab active" onclick="filterHistory('All', this)">All <span style="font-size:10px; opacity:0.7;">(${allCount})</span></div>
+          <div class="h-tab" onclick="filterHistory('Deposit', this)">Deposit <span style="font-size:10px; opacity:0.7;">(${depCount})</span></div>
+          <div class="h-tab" onclick="filterHistory('Withdraw', this)">Withdraw <span style="font-size:10px; opacity:0.7;">(${witCount})</span></div>
+          <div class="h-tab" onclick="filterHistory('Pending', this)">Pending <span style="font-size:10px; opacity:0.7;">(${penCount})</span></div>
         </div>
 
         <div class="wallet-card">
@@ -1355,19 +1361,19 @@ function openModal(type, subType = null) {
             Wallet Balance
           </div>
           <div class="wallet-amount">$${userWallet.usdt.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-          <div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:right;">● updated</div>
+          <div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:right;">● updated just now</div>
         </div>
 
         <div class="stats-grid">
           <div class="stat-box">
-            <div class="stat-icon icon-blue">$</div>
+            <div class="stat-icon icon-blue">📥</div>
             <div class="stat-info">
               <span class="stat-title">Total Deposits</span>
               <span class="stat-val">$${totalDep.toLocaleString()}</span>
             </div>
           </div>
           <div class="stat-box">
-            <div class="stat-icon icon-indigo">💳</div>
+            <div class="stat-icon icon-indigo">📤</div>
             <div class="stat-info">
               <span class="stat-title">Total Withdrawals</span>
               <span class="stat-val">$${totalWit.toLocaleString()}</span>
@@ -1382,10 +1388,39 @@ function openModal(type, subType = null) {
           </div>
         </div>
 
-        <div style="margin-bottom:10px; font-weight:600; font-size:16px;">Recent Transactions</div>
-        <div class="history-list" id="historyListContainer">
-          ${renderHistoryList()} 
+        <div style="margin-bottom:10px; font-weight:600; font-size:16px; display:flex; justify-content:space-between;">
+          <span>Recent Transactions</span>
+          <span style="font-size:12px; color:#636e72;">${allCount} records</span>
         </div>
+        
+        <div class="history-list" id="historyListContainer">
+          ${renderHistoryList('All')} 
+        </div>
+      `;
+      break;
+
+    // --- FILTER MODAL ---
+    case 'filter':
+      if(document.querySelector('.modal-header')) document.querySelector('.modal-header').style.display = 'flex';
+      title.textContent = 'Filter Transactions';
+      body.innerHTML = `
+        <div class="filter-group">
+          <label class="filter-label">Date Range</label>
+          <div style="display:flex; gap:10px;">
+            <input type="date" class="modal-input" style="flex:1;">
+            <span style="align-self:center;">to</span>
+            <input type="date" class="modal-input" style="flex:1;">
+          </div>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <div class="filter-tags">
+            <div class="filter-tag active" onclick="this.classList.toggle('active')">Completed</div>
+            <div class="filter-tag" onclick="this.classList.toggle('active')">Pending</div>
+            <div class="filter-tag" onclick="this.classList.toggle('active')">Failed</div>
+          </div>
+        </div>
+        <button class="modal-action-btn" onclick="openModal('history')">Apply Filters</button>
       `;
       break;
 
@@ -2466,43 +2501,42 @@ function switchToService() {
   }, 200);
 }
 
-// --- TRANSFER & HISTORY LOGIC (FINAL CLEAN VERSION) ---
+// --- FINAL HELPER FUNCTIONS FOR HISTORY & TRANSFER ---
 
-function performTransfer() {
-  const amount = parseFloat(document.getElementById('transferAmount').value);
-  
-  if (!amount || amount <= 0) {
-    alert('❌ Invalid amount');
-    return;
+// 1. Tab Switching Logic
+function filterHistory(filterType, btnElement) {
+  if (btnElement) {
+    document.querySelectorAll('.h-tab').forEach(t => t.classList.remove('active'));
+    btnElement.classList.add('active');
   }
-  if (amount > userWallet.usdt) {
-    alert('❌ Insufficient Spot Balance');
-    return;
+  const container = document.getElementById('historyListContainer');
+  if (container) {
+    container.innerHTML = renderHistoryList(filterType);
   }
-
-  // Calculate
-  userWallet.usdt -= amount;
-  // Futures wallet မရှိသေးရင် 0 နဲ့ စမယ်
-  if(!userWallet.futuresUsdt) userWallet.futuresUsdt = 0;
-  userWallet.futuresUsdt += amount;
-  
-  // Record Transaction (မှတ်တမ်းတင်မယ်)
-  addTransaction('Transfer', amount, 'USDT', 'Completed');
-  
-  alert(`✅ Successfully transferred ${amount} USDT to Futures Wallet!`);
-  closeModal();
 }
 
-function renderHistoryList() {
-  // Transaction မရှိသေးရင် မရှိကြောင်းပြမယ်
-  if (!userTransactions || userTransactions.length === 0) {
+// 2. Render List with Filter Support
+function renderHistoryList(filterType = 'All') {
+  if (typeof userTransactions === 'undefined' || userTransactions.length === 0) {
     return `<div style="text-align:center; padding:40px; color:#636e72;">
       <div style="font-size:30px; margin-bottom:10px;">📝</div>
       No transactions yet
     </div>`;
   }
 
-  return userTransactions.map(tx => {
+  const filtered = userTransactions.filter(tx => {
+    if (filterType === 'All') return true;
+    if (filterType === 'Deposit') return tx.type === 'Deposit';
+    if (filterType === 'Withdraw') return tx.type === 'Withdraw';
+    if (filterType === 'Pending') return tx.status === 'Pending';
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    return `<div style="text-align:center; padding:40px; color:#636e72;">No ${filterType} records found</div>`;
+  }
+
+  return filtered.map(tx => {
     let icon = '🔄';
     let color = '#ffffff';
     let sign = '';
@@ -2529,12 +2563,24 @@ function renderHistoryList() {
   }).join('');
 }
 
-// Transaction သိမ်းတဲ့ Helper Function (ဒါလေးမရှိရင် Error တက်တတ်ပါတယ်)
+// 3. Perform Transfer
+function performTransfer() {
+  const amount = parseFloat(document.getElementById('transferAmount').value);
+  if (!amount || amount <= 0) { alert('❌ Invalid amount'); return; }
+  if (amount > userWallet.usdt) { alert('❌ Insufficient Spot Balance'); return; }
+
+  userWallet.usdt -= amount;
+  if(!userWallet.futuresUsdt) userWallet.futuresUsdt = 0;
+  userWallet.futuresUsdt += amount;
+  
+  addTransaction('Transfer', amount, 'USDT', 'Completed');
+  alert(`✅ Successfully transferred ${amount} USDT to Futures Wallet!`);
+  closeModal();
+}
+
+// 4. Add Transaction Helper
 function addTransaction(type, amount, coin, status = 'Completed') {
-  // Array မရှိသေးရင် အသစ်ဆောက်
-  if (typeof userTransactions === 'undefined') {
-     window.userTransactions = []; 
-  }
+  if (typeof userTransactions === 'undefined') { window.userTransactions = []; }
   
   const newTx = {
     id: 'TX' + Date.now().toString().slice(-6),
@@ -2545,13 +2591,8 @@ function addTransaction(type, amount, coin, status = 'Completed') {
     date: new Date().toLocaleDateString()
   };
   
-  // ရှေ့ဆုံးမှာ ထည့်မယ်
   userTransactions.unshift(newTx);
-  
-  // LocalStorage မှာ သိမ်းမယ်
   localStorage.setItem('userTransactions', JSON.stringify(userTransactions));
   localStorage.setItem('cryptoUserWallet', JSON.stringify(userWallet));
-  
-  // UI Update
   updateAssetsUI();
 }
