@@ -1363,3 +1363,142 @@ body.light-mode .modal-input {
   color: #ff6b6b;
   font-size: 12px;
 }
+/* --- FIAT MODAL REDESIGN (Deposit/Withdraw) --- */
+
+/* Menu List Item Design */
+.fiat-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2d3436; /* Dark Grey Background */
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.fiat-menu-item:hover {
+  border-color: #00b894;
+  background: #1e1e2d;
+}
+
+.fiat-icon-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  margin-right: 12px;
+  font-size: 14px;
+}
+
+/* Wallet Address Box */
+.address-container {
+  background: #12121a;
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  border: 1px solid #2d3436;
+}
+
+.address-text {
+  flex: 1;
+  padding: 10px;
+  font-family: monospace;
+  color: #b2bec3;
+  font-size: 13px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.copy-btn {
+  background: #0984e3; /* Bright Blue */
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin: 4px;
+}
+
+/* QR Code Container */
+.qr-wrapper {
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 24px; /* Center and margin bottom */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-wrapper img {
+  width: 100%;
+  height: 100%;
+}
+
+/* Upload Screenshot Box */
+.upload-box {
+  border: 2px dashed #636e72;
+  background: #1e1e2d;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.upload-box:hover {
+  border-color: #00b894;
+}
+
+/* Warning Text Section */
+.warning-box {
+  background: #1e1e2d;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.warning-list {
+  font-size: 11px;
+  color: #636e72;
+  line-height: 1.6;
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.warning-list li {
+  margin-bottom: 4px;
+}
+
+/* Back Button Header */
+.modal-sub-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2d3436;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #b2bec3;
+  font-size: 20px;
+  margin-right: 10px;
+  cursor: pointer;
+  padding: 0;
+}
