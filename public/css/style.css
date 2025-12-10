@@ -1731,3 +1731,20 @@ body.light-mode .modal-input {
   color: white;
   font-weight: 600;
 }
+/* Derivatives List Buttons */
+.trade-action-group {
+  display: flex;
+  gap: 8px;
+  margin-left: 10px;
+}
+.btn-long, .btn-short {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn-long { background: #00b894; } /* Green */
+.btn-short { background: #ff6b6b; } /* Red */
