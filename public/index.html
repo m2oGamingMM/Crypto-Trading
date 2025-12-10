@@ -111,68 +111,108 @@
       </div>
     </div>
     <!-- TRADING PAGE -->
-    <div id="page-trading" class="page">
-      <header class="page-header">
-        <h1>Trading</h1>
-        <div id="connectionStatus" style="font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #2d3436; color: #b2bec3;">
-          🔴 Disconnected
-        </div>
-      </header>
-      <div class="trading-pair-selector">
-        <select id="tradingPair" onchange="updateTradingPair()">
-          <option value="BTC">BTC/USDT</option>
-          <option value="ETH">ETH/USDT</option>
-          <option value="XRP">XRP/USDT</option>
-          <option value="SOL">SOL/USDT</option>
-          <option value="DOGE">DOGE/USDT</option>
-        </select>
+    <div id="page-trading" class="page" style="padding-bottom: 90px;">
+      
+      <div class="contract-header">
+        <div class="c-tab active">Delivery Contract</div>
+        <div class="c-tab">Perpetual Contract</div>
       </div>
-      <div class="trading-price-display" id="tradingPriceDisplay">
-        <div class="current-price">$91,128.00</div>
-        <div class="price-change up">+1.59%</div>
-      </div>
-      <div id="tv_chart_container" style="height: 350px; margin: 10px 16px; border-radius: 12px; overflow: hidden; border: 1px solid #2d3436;"></div>
-      <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-      <div class="trading-tabs">
-        <button class="trade-tab active" onclick="switchTradeType('buy')">Buy</button>
-        <button class="trade-tab" onclick="switchTradeType('sell')">Sell</button>
-      </div>
-      <div class="trading-form" id="tradingForm">
-        <div class="form-group">
-          <label>Order Type</label>
-          <select id="orderType">
-            <option value="market">Market Order</option>
-            <option value="limit">Limit Order</option>
-          </select>
-        </div>
-        <div class="form-group" id="limitPriceGroup" style="display:none;">
-          <label>Price (USDT)</label>
-          <input type="number" id="limitPrice" placeholder="Enter price">
-        </div>
-        <div class="form-group">
-          <label>Amount</label>
-          <input type="number" id="tradeAmount" placeholder="Enter amount">
-          <div class="amount-buttons">
-            <button onclick="setAmountPercent(25)">25%</button>
-            <button onclick="setAmountPercent(50)">50%</button>
-            <button onclick="setAmountPercent(75)">75%</button>
-            <button onclick="setAmountPercent(100)">100%</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Total (USDT)</label>
-          <input type="number" id="tradeTotal" placeholder="0.00" readonly>
-        </div>
-        <button class="trade-submit-btn buy" id="tradeSubmitBtn" onclick="submitTrade()">
-          Buy BTC
+
+      <div class="trade-info-header">
+        <button class="menu-trigger" onclick="toggleSideMenu()">
+          <span style="font-size:24px;">☰</span>
         </button>
+        <div class="symbol-info">
+          <span id="currentSymbolName" style="font-weight:bold; font-size:16px;">BTC/USDT</span>
+          <span id="currentSymbolChange" style="font-size:12px; color:#ff6b6b; margin-left:8px;">-0.21%</span>
+        </div>
       </div>
-      <div class="order-book-preview">
-        <h3>Recent Orders</h3>
-        <div class="order-list" id="orderList">
-          <div class="no-orders">No orders yet</div>
+
+      <div class="main-price-display">
+        <span id="mainPrice" class="big-price down">92,066.23</span>
+        <div class="price-details">
+          <div>high <span style="color:white;">93,100</span></div>
+          <div>low <span style="color:white;">91,200</span></div>
+          <div>24H <span style="color:white;">45.2K</span></div>
         </div>
+      </div>
+
+      <div class="chart-controls">
+        <span>Time</span>
+        <span class="active">1min</span>
+        <span>5min</span>
+        <span>30min</span>
+        <span>1hour</span>
+        <span>1day</span>
+      </div>
+      <div id="tv_chart_container" style="height: 300px; background:#12121a; margin-bottom:10px;"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
+      <div class="time-grid-container">
+        <div class="time-box active" onclick="selectTime(30, 15, this)">
+          <div class="t-sec">30 second</div>
+          <div class="t-rate">profit rate 15%</div>
         </div>
+        <div class="time-box" onclick="selectTime(60, 20, this)">
+          <div class="t-sec">60 second</div>
+          <div class="t-rate">profit rate 20%</div>
+        </div>
+        <div class="time-box" onclick="selectTime(120, 30, this)">
+          <div class="t-sec">120 second</div>
+          <div class="t-rate">profit rate 30%</div>
+        </div>
+        <div class="time-box" onclick="selectTime(180, 50, this)">
+          <div class="t-sec">180 second</div>
+          <div class="t-rate">profit rate 50%</div>
+        </div>
+        <div class="time-box" onclick="selectTime(300, 70, this)">
+          <div class="t-sec">300 second</div>
+          <div class="t-rate">profit rate 70%</div>
+        </div>
+        <div class="time-box" onclick="selectTime(600, 90, this)">
+          <div class="t-sec">600 second</div>
+          <div class="t-rate">profit rate 90%</div>
+        </div>
+      </div>
+
+      <div class="trade-input-area">
+        <div class="trans-mode">Transaction mode</div>
+        <div class="mode-toggles">
+          <button class="mode-btn active">USDT</button>
+          <button class="mode-btn">USDC</button>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#b2bec3;">
+          <span>Opening quantity</span>
+          <span>Minimum order: 1</span>
+        </div>
+        
+        <div class="qty-input-box">
+          <input type="number" id="deliveryAmount" placeholder="0" />
+          <span>></span>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px;">
+          <span style="color:#f39c12;">💰 Second contract account</span>
+          <span style="color:white;" id="contractBalance">0.0000 USDT</span>
+        </div>
+      </div>
+
+      <div class="big-action-buttons">
+        <button class="action-btn buy" onclick="submitDeliveryOrder('buy')">Buy</button>
+        <button class="action-btn sell" onclick="submitDeliveryOrder('sell')">Sell</button>
+      </div>
+      
+      <div class="side-menu-backdrop" id="sideMenuBackdrop" onclick="toggleSideMenu()"></div>
+      <div class="side-menu-drawer" id="sideMenuDrawer">
+        <div class="side-menu-header">
+          <h3 style="color:#f39c12; border-bottom:2px solid #f39c12; display:inline-block; padding-bottom:5px;">USDT</h3>
+        </div>
+        <div class="side-coin-list" id="sideMenuCoinList">
+          <div class="loading">Loading coins...</div>
+        </div>
+      </div>
+
     </div>
     
   
