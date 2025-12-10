@@ -111,10 +111,11 @@
       </div>
     </div>
     
-    <div id="page-trading" class="page" style="padding-bottom: 90px; display: flex; flex-direction: column; height: 100vh;">
+        <!-- Trading PAGE -->
+    
+    <div id="page-trading" class="page">
       
-      <div style="flex-shrink: 0; background: #0a0a0f; z-index: 10;">
-          
+      <div class="trading-fixed-top">
           <div class="contract-header">
             <div class="c-tab active" onclick="switchContractTab('delivery')" id="tab-delivery">Delivery Contract</div>
             <div class="c-tab" onclick="switchContractTab('perpetual')" id="tab-perpetual">Perpetual Contract</div>
@@ -144,23 +145,14 @@
             </div>
           </div>
 
-          <div class="chart-controls">
-            <span>Time</span>
-            <span class="active">1min</span>
-            <span>5min</span>
-            <span>30min</span>
-            <span>1hour</span>
-            <span>1day</span>
-          </div>
-
-          <div id="tv_chart_container" style="height: 280px; background:#12121a; margin-bottom:10px;"></div>
+          <div id="tv_chart_container" style="height: 300px; width: 100%; background:#12121a;"></div>
       </div>
       
-      <div style="flex: 1; overflow-y: auto; padding-bottom: 20px;">
+      <div class="trading-scrollable-area">
 
           <div id="view-delivery" style="display:block;">
             
-            <div class="time-grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px 16px;">
+            <div class="time-grid-container">
               <div class="time-box active" onclick="selectTime(30, 15, this)">
                 <div class="t-sec">30 second</div>
                 <div class="t-rate">profit 15%</div>
@@ -204,7 +196,7 @@
                
                <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#b2bec3;">
                  <span>Opening quantity</span>
-                 <span>Min: 1</span>
+                 <span>Min order: 1</span>
                </div>
                
                <div class="qty-input-box">
@@ -212,7 +204,7 @@
                </div>
 
                <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px;">
-                 <span style="color:#f39c12;">💰 Account Balance</span>
+                 <span style="color:#f39c12;">💰 Contract Balance</span>
                  <span style="color:white;" id="contractBalance">0.0000 USDT</span>
                </div>
             </div>
@@ -268,7 +260,7 @@
       </div> <div class="side-menu-backdrop" id="sideMenuBackdrop" onclick="toggleSideMenu()"></div>
       <div class="side-menu-drawer" id="sideMenuDrawer">
         <div class="side-menu-header">
-          <h3 style="color:#f39c12; border-bottom:2px solid #f39c12; display:inline-block; padding-bottom:5px;">USDT</h3>
+          <h3 style="color:#f39c12; border-bottom:2px solid #f39c12; display:inline-block; padding-bottom:5px;">Market List</h3>
         </div>
         <div class="side-coin-list" id="sideMenuCoinList">
           <div class="loading">Loading coins...</div>
