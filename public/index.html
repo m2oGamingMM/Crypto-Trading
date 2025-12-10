@@ -174,7 +174,20 @@
         </div>
         </div>
     </div>
-    <div class="derivatives-info" style="padding-top: 10px;">
+    
+  
+          <!-- DERIVATIVES PAGE -->
+      <div id="page-derivatives" class="page">
+      <header class="page-header">
+        <h1>Derivatives</h1>
+      </header>
+      <div class="derivatives-tabs">
+        <button class="deriv-tab active" onclick="switchDerivTab('futures')">Futures</button>
+        <button class="deriv-tab" onclick="switchDerivTab('options')">Options</button>
+        <button class="deriv-tab" onclick="switchDerivTab('perpetual')">Perpetual</button>
+      </div>
+      
+      <div class="derivatives-info" style="padding-top: 10px;">
         
         <div id="deriv-content-futures" style="display:block;">
            <div class="crypto-list-header">
@@ -325,7 +338,7 @@
         </div>
       </div>
 
-    <div class="leverage-info">
+      <div class="leverage-info">
         <h3>Leverage Options</h3>
         <div class="leverage-buttons">
           <button class="leverage-btn" onclick="setLeverage(this, 1)">1x</button>
@@ -338,7 +351,7 @@
         <p class="leverage-warning">Higher leverage increases both potential profits and risks.</p>
       </div>
     </div>
-    
+         
     <!-- ASSETS PAGE -->
     <div id="page-assets" class="page">
       <header class="header" style="justify-content:space-between; align-items:center;">
