@@ -184,64 +184,115 @@
         <button class="deriv-tab" onclick="switchDerivTab('options')">Options</button>
         <button class="deriv-tab" onclick="switchDerivTab('perpetual')">Perpetual</button>
       </div>
-      <div class="derivatives-info">
+      <div class="derivatives-info" style="padding-top: 10px;">
         
         <div id="deriv-content-futures" style="display:block;">
-           <div class="info-card" style="text-align:center; padding:40px;">
-              <div style="font-size:40px; margin-bottom:10px;">📉</div>
-              <h3>Quarterly Futures</h3>
-              <p style="color:#636e72; font-size:13px;">Trade delivery contracts with expiration dates.</p>
-              <button class="trade-now-btn" style="margin-top:15px; background:#2d3436;">Market Closed</button>
+           <div class="crypto-list-header">
+             <span>Contract</span>
+             <span style="text-align:right; flex:1; margin-right:80px;">Price</span>
+             <span>Action</span>
+           </div>
+           
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon btc">₿</div>
+               <div><div class="crypto-name">BTC Quarter</div><div style="font-size:10px; color:#636e72;">0929 Delivery</div></div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;">$93,100.00</div>
+               <div style="color:#00b894; font-size:11px;">+1.2%</div>
+             </div>
+             <div class="trade-action-group">
+               <button class="btn-long">Long</button>
+               <button class="btn-short">Short</button>
+             </div>
+           </div>
+
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon eth">Ξ</div>
+               <div><div class="crypto-name">ETH Quarter</div><div style="font-size:10px; color:#636e72;">0929 Delivery</div></div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;">$3,450.00</div>
+               <div style="color:#ff6b6b; font-size:11px;">-0.5%</div>
+             </div>
+             <div class="trade-action-group">
+               <button class="btn-long">Long</button>
+               <button class="btn-short">Short</button>
+             </div>
            </div>
         </div>
 
         <div id="deriv-content-options" style="display:none;">
-           <div class="info-card" style="text-align:center; padding:40px;">
-              <div style="font-size:40px; margin-bottom:10px;">📊</div>
-              <h3>Crypto Options</h3>
-              <p style="color:#636e72; font-size:13px;">Call & Put options for hedging risks.</p>
-              <button class="trade-now-btn" style="margin-top:15px; background:#2d3436;">Coming Soon</button>
+           <div class="crypto-list-header">
+             <span>Option</span>
+             <span style="text-align:right; flex:1; margin-right:80px;">Premium</span>
+             <span>Action</span>
+           </div>
+
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon" style="background:#2d3436; font-size:10px;">CALL</div>
+               <div><div class="crypto-name">BTC-29DEC</div><div style="font-size:10px; color:#00b894;">Strike: $95,000</div></div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;">$1,200</div>
+             </div>
+             <button class="btn-long" style="height:30px;">Buy Call</button>
+           </div>
+
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon" style="background:#2d3436; font-size:10px;">PUT</div>
+               <div><div class="crypto-name">BTC-29DEC</div><div style="font-size:10px; color:#ff6b6b;">Strike: $90,000</div></div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;">$850</div>
+             </div>
+             <button class="btn-short" style="height:30px;">Buy Put</button>
            </div>
         </div>
 
         <div id="deriv-content-perpetual" style="display:none;">
-          <div class="info-card">
-            <h3>BTC/USDT Perpetual</h3>
-            <div class="deriv-price" id="deriv-price-BTC">$91,128.00</div>
-            <div class="deriv-stats">
-              <div class="stat"><span class="stat-label">24h Vol</span><span class="stat-value">$2.5B</span></div>
-              <div class="stat"><span class="stat-label">Open Int</span><span class="stat-value">$1.2B</span></div>
-              <div class="stat"><span class="stat-label">Funding</span><span class="stat-value up">0.01%</span></div>
-            </div>
-            <button class="trade-now-btn" onclick="showCoinDetail('BTC')">Trade Now</button>
-          </div>
+           <div class="crypto-list-header">
+             <span>Pair</span>
+             <span style="text-align:right; flex:1; margin-right:80px;">Mark Price</span>
+             <span>Action</span>
+           </div>
 
-          <div class="info-card">
-            <h3>ETH/USDT Perpetual</h3>
-            <div class="deriv-price" id="deriv-price-ETH">$3,112.00</div>
-            <div class="deriv-stats">
-              <div class="stat"><span class="stat-label">24h Vol</span><span class="stat-value">$1.8B</span></div>
-              <div class="stat"><span class="stat-label">Open Int</span><span class="stat-value">$890M</span></div>
-              <div class="stat"><span class="stat-label">Funding</span><span class="stat-value up">0.008%</span></div>
-            </div>
-            <button class="trade-now-btn" onclick="showCoinDetail('ETH')">Trade Now</button>
-          </div>
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon btc">₿</div>
+               <div class="crypto-name">BTC/USDT</div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;" id="deriv-price-BTC">$92,539.99</div>
+               <div style="color:#00b894; font-size:11px;">Funding: 0.01%</div>
+             </div>
+             <div class="trade-action-group">
+               <button class="btn-long" onclick="showCoinDetail('BTC')">Long</button>
+               <button class="btn-short" onclick="showCoinDetail('BTC')">Short</button>
+             </div>
+           </div>
+
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon eth">Ξ</div>
+               <div class="crypto-name">ETH/USDT</div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;" id="deriv-price-ETH">$3,319.73</div>
+               <div style="color:#00b894; font-size:11px;">Funding: 0.01%</div>
+             </div>
+             <div class="trade-action-group">
+               <button class="btn-long" onclick="showCoinDetail('ETH')">Long</button>
+               <button class="btn-short" onclick="showCoinDetail('ETH')">Short</button>
+             </div>
+           </div>
         </div>
 
       </div>
-      <div class="leverage-info">
-        <h3>Leverage Options</h3>
-        <div class="leverage-buttons">
-          <button class="leverage-btn" onclick="setLeverage(this, 1)">1x</button>
-          <button class="leverage-btn" onclick="setLeverage(this, 5)">5x</button>
-          <button class="leverage-btn active" onclick="setLeverage(this, 10)">10x</button>
-          <button class="leverage-btn" onclick="setLeverage(this, 25)">25x</button>
-          <button class="leverage-btn" onclick="setLeverage(this, 50)">50x</button>
-          <button class="leverage-btn" onclick="setLeverage(this, 100)">100x</button>
-        </div>
-        <p class="leverage-warning">Higher leverage increases both potential profits and risks.</p>
-      </div>
-    </div>
     
     <!-- ASSETS PAGE -->
     <div id="page-assets" class="page">
