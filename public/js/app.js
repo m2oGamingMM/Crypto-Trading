@@ -491,10 +491,46 @@ function showTransferModal() {
   alert('Transfer feature - Coming soon!');
 }
 
-// --- DELIVERY CONTRACT LOGIC ---
+// --- DELIVERY & PERPETUAL LOGIC ---
 let isSideMenuOpen = false;
 let currentDuration = 30;
 let currentProfitRate = 15;
+let currentContractMode = 'delivery'; // 'delivery' or 'perpetual'
+
+function switchContractTab(mode) {
+  currentContractMode = mode;
+  
+  // Tab Styling
+  document.getElementById('tab-delivery').className = mode === 'delivery' ? 'c-tab active' : 'c-tab';
+  document.getElementById('tab-perpetual').className = mode === 'perpetual' ? 'c-tab active' : 'c-tab';
+  
+  // Content Switching
+  document.getElementById('view-delivery').style.display = mode === 'delivery' ? 'block' : 'none';
+  document.getElementById('view-perpetual').style.display = mode === 'perpetual' ? 'block' : 'none';
+}
+
+function switchHistoryTab(tab) {
+  const btns = document.querySelectorAll('.h-tab-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  
+  // Simple check for text content or index (Here simpler to just toggle class on click event target if passed, but strictly separate IDs is safer. For now:)
+  // Let's assume the button passed 'this' in a real scenario, but here we hardcode visibility
+  
+  if(tab === 'transaction') {
+     btns[0].classList.add('active');
+     document.getElementById('hist-content-transaction').style.display = 'block';
+     document.getElementById('hist-content-closed').style.display = 'none';
+  } else {
+     btns[1].classList.add('active');
+     document.getElementById('hist-content-transaction').style.display = 'none';
+     document.getElementById('hist-content-closed').style.display = 'block';
+  }
+}
+
+function submitPerpetualOrder(type) {
+  const amount = document.getElementById('perpAmount').value;
+  alert(`PERPETUAL ${type.toUpperCase()} Order\nAmount: ${amount}`);
+}
 
 function toggleSideMenu() {
   const backdrop = document.getElementById('sideMenuBackdrop');
