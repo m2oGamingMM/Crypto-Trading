@@ -993,20 +993,19 @@ function openModal(type, subType = null) {
       `;
       break;
 
-    // CASE: Fiat / Crypto Transfer System (Redesigned)
+    // CASE: Fiat / Crypto Transfer System
     case 'fiat':
-      // subType = 'deposit' (default) or 'withdraw'
       const mode = subType || 'deposit';
       
-      // Default Header Buttons
+      // Header မှာ ID="fiatTabHeader" ထည့်လိုက်ပါတယ် (ဖျောက်ဖို့/ပြန်ဖော်ဖို့)
       const headerHTML = `
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
-          <button class="fiat-tab ${mode === 'deposit' ? 'active' : ''}" 
+        <div id="fiatTabHeader" style="display:flex; gap:8px; margin-bottom:16px;">
+          <button id="btn-fiat-deposit" class="fiat-tab ${mode === 'deposit' ? 'active' : ''}" 
             onclick="renderDepositMenu()" 
             style="flex:1; padding:10px; background:${mode === 'deposit' ? '#00b894' : '#1e1e2d'}; border:${mode === 'deposit' ? 'none' : '1px solid #2d3436'}; border-radius:8px; color:${mode === 'deposit' ? 'white' : '#b2bec3'}; font-weight:bold; cursor:pointer;">
             Deposit
           </button>
-          <button class="fiat-tab ${mode === 'withdraw' ? 'active' : ''}" 
+          <button id="btn-fiat-withdraw" class="fiat-tab ${mode === 'withdraw' ? 'active' : ''}" 
             onclick="renderWithdrawMenu()" 
             style="flex:1; padding:10px; background:${mode === 'withdraw' ? '#00b894' : '#1e1e2d'}; border:${mode === 'withdraw' ? 'none' : '1px solid #2d3436'}; border-radius:8px; color:${mode === 'withdraw' ? 'white' : '#b2bec3'}; font-weight:bold; cursor:pointer;">
             Withdraw
@@ -1018,7 +1017,6 @@ function openModal(type, subType = null) {
       title.textContent = mode === 'deposit' ? 'Deposit Coins' : 'Withdraw Funds';
       body.innerHTML = headerHTML;
       
-      // Initial Render
       if (mode === 'deposit') {
         setTimeout(renderDepositMenu, 0);
       } else {
@@ -2124,9 +2122,13 @@ function updateFiatTabs(activeMode) {
 function renderDepositMenu() {
   const container = document.getElementById('fiatContentArea');
   const title = document.getElementById('modalTitle');
-  if(title) title.textContent = 'Deposit Coins';
+  const header = document.getElementById('fiatTabHeader');
   
-  updateFiatTabs('deposit'); // Tab ကို Deposit ဘက်ရွှေ့မယ်
+  if(title) title.textContent = 'Deposit Coins';
+  // Header ကို ပြန်ဖော်မယ်
+  if(header) header.style.display = 'flex';
+  
+  updateFiatTabs('deposit');
 
   if (!container) return;
 
@@ -2186,9 +2188,12 @@ function renderDepositMenu() {
 // 4. Show Deposit Detail View (Important စာသား အမှန်ပြင်ထားသည်)
 function showDepositDetail(coinType) {
   const container = document.getElementById('fiatContentArea');
-  const data = coinData[coinType] || coinData['USDT-TRC20'];
+  const header = document.getElementById('fiatTabHeader');
   
-  // QR Code URL
+  // Header ကို ဖျောက်မယ် (အရေးကြီးဆုံးအချက်)
+  if(header) header.style.display = 'none';
+
+  const data = coinData[coinType] || coinData['USDT-TRC20'];
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${data.address}`;
 
   container.innerHTML = `
@@ -2244,14 +2249,18 @@ function showDepositDetail(coinType) {
 function renderWithdrawMenu() {
   const container = document.getElementById('fiatContentArea');
   const title = document.getElementById('modalTitle');
-  if(title) title.textContent = 'Withdraw Funds';
+  const header = document.getElementById('fiatTabHeader');
   
-  updateFiatTabs('withdraw'); // Tab ကို Withdraw ဘက်ရွှေ့မယ်
+  if(title) title.textContent = 'Withdraw Funds';
+  // Header ကို ပြန်ဖော်မယ် (Withdraw Detail က ပြန်ထွက်လာရင်)
+  if(header) header.style.display = 'flex';
+  
+  updateFiatTabs('withdraw');
 
   if (!container) return;
 
   container.innerHTML = `
-    <div class="fiat-menu-item" onclick="alert('Please verify KYC first')">
+    <div class="fiat-menu-item" onclick="showWithdrawDetail('USDT')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#26a17b;">₮</div>
         <span style="font-weight:600;">USDT Withdrawal</span>
@@ -2259,7 +2268,7 @@ function renderWithdrawMenu() {
       <span style="color:#636e72;">›</span>
     </div>
 
-    <div class="fiat-menu-item" onclick="alert('Please verify KYC first')">
+    <div class="fiat-menu-item" onclick="showWithdrawDetail('BTC')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#f7931a;">₿</div>
         <span style="font-weight:600;">BTC Withdrawal</span>
@@ -2267,7 +2276,7 @@ function renderWithdrawMenu() {
       <span style="color:#636e72;">›</span>
     </div>
 
-    <div class="fiat-menu-item" onclick="alert('Please verify KYC first')">
+    <div class="fiat-menu-item" onclick="showWithdrawDetail('ETH')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#627eea;">Ξ</div>
         <span style="font-weight:600;">ETH Withdrawal</span>
@@ -2275,7 +2284,7 @@ function renderWithdrawMenu() {
       <span style="color:#636e72;">›</span>
     </div>
     
-    <div class="fiat-menu-item" onclick="alert('Please verify KYC first')">
+    <div class="fiat-menu-item" onclick="showWithdrawDetail('USDC')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#2980b9;">$</div>
         <span style="font-weight:600;">USDC Withdrawal</span>
@@ -2283,7 +2292,7 @@ function renderWithdrawMenu() {
       <span style="color:#636e72;">›</span>
     </div>
 
-    <div class="fiat-menu-item" onclick="showWithdrawDetail()">
+    <div class="fiat-menu-item" onclick="showWithdrawDetail('Other')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#6c5ce7;">+</div>
         <span style="font-weight:600;">Other</span>
@@ -2294,8 +2303,12 @@ function renderWithdrawMenu() {
 }
 
 // 6. Other Withdraw Detail View
-function showWithdrawDetail() {
+function showWithdrawDetail(coinType = 'Other') {
   const container = document.getElementById('fiatContentArea');
+  const header = document.getElementById('fiatTabHeader');
+  
+  // Header ကို ဖျောက်မယ်
+  if(header) header.style.display = 'none';
   
   container.innerHTML = `
     <div class="modal-sub-header">
@@ -2355,4 +2368,4 @@ function switchToService() {
   setTimeout(() => {
     openModal('service');
   }, 200);
-}        
+}
