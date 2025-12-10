@@ -496,12 +496,29 @@ let currentDerivTab = 'futures';
 
 function switchDerivTab(tab) {
   currentDerivTab = tab;
+  
+  // 1. Button Styling
   document.querySelectorAll('.deriv-tab').forEach(btn => {
     btn.classList.remove('active');
     if (btn.textContent.toLowerCase() === tab) {
       btn.classList.add('active');
     }
   });
+
+  // 2. Content Switching (အသစ်ထည့်တဲ့အပိုင်း)
+  // အကုန်ဖျောက်မယ်
+  document.getElementById('deriv-content-futures').style.display = 'none';
+  document.getElementById('deriv-content-options').style.display = 'none';
+  document.getElementById('deriv-content-perpetual').style.display = 'none';
+
+  // ရွေးထားတာ ပြမယ်
+  if (tab === 'futures') {
+    document.getElementById('deriv-content-futures').style.display = 'block';
+  } else if (tab === 'options') {
+    document.getElementById('deriv-content-options').style.display = 'block';
+  } else if (tab === 'perpetual') {
+    document.getElementById('deriv-content-perpetual').style.display = 'block';
+  }
 }
 
 // --- LEVERAGE BUTTON SWITCHING ---
@@ -758,7 +775,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // --- UNIVERSAL MODAL LOGIC ---
 
-function openModal(type) {
+// Function ခေါင်းစဉ် ပြောင်းပါ
+function openModal(type, subType = null) {
   const modal = document.getElementById('universalModal');
   const title = document.getElementById('modalTitle');
   const body = document.getElementById('modalBody');
@@ -975,35 +993,30 @@ function openModal(type) {
       `;
       break;
 
+    // CASE ပြင်ဆင်ခြင်း: Fiat Modal (Deposit/Withdraw Auto Switch)
     case 'fiat':
-      title.textContent = 'Deposit Funds';
+      title.textContent = 'Deposit Funds'; // Default title
       body.innerHTML = `
         <div style="display:flex; gap:8px; margin-bottom:16px;">
-          <button class="fiat-tab active" onclick="switchFiatTab('deposit', this)" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">Deposit</button>
-          <button class="fiat-tab" onclick="switchFiatTab('withdraw', this)" style="flex:1; padding:10px; background:#1e1e2d; border:1px solid #2d3436; border-radius:8px; color:#b2bec3; font-weight:bold; cursor:pointer;">Withdraw</button>
+          <button id="btn-fiat-deposit" class="fiat-tab active" onclick="switchFiatTab('deposit', this)" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">Deposit</button>
+          <button id="btn-fiat-withdraw" class="fiat-tab" onclick="switchFiatTab('withdraw', this)" style="flex:1; padding:10px; background:#1e1e2d; border:1px solid #2d3436; border-radius:8px; color:#b2bec3; font-weight:bold; cursor:pointer;">Withdraw</button>
         </div>
         
         <div id="fiatFormContainer">
-          <div style="margin-bottom:12px;">
+           <div style="margin-bottom:12px;">
             <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Select Currency</label>
             <select id="fiatCurrency" class="modal-input" style="margin:0;" onchange="updateFiatRate()">
               <option value="MMK">🇲🇲 Myanmar Kyat (MMK)</option>
               <option value="USD">🇺🇸 US Dollar (USD)</option>
-              <option value="THB">🇹🇭 Thai Baht (THB)</option>
-              <option value="CNY">🇨🇳 Chinese Yuan (CNY)</option>
             </select>
           </div>
-          
           <div style="margin-bottom:12px;">
             <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Payment Method</label>
             <select id="paymentMethod" class="modal-input" style="margin:0;">
               <option>💳 KBZ Pay</option>
               <option>📱 Wave Pay</option>
-              <option>🏦 Bank Transfer</option>
-              <option>💰 CB Pay</option>
             </select>
-          </div>
-          
+            </div>
           <div style="margin-bottom:12px;">
             <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Amount</label>
             <div style="position:relative;">
@@ -1011,35 +1024,52 @@ function openModal(type) {
               <span id="fiatCurrencyLabel" style="position:absolute; right:16px; top:50%; transform:translateY(-50%); color:#636e72;">MMK</span>
             </div>
           </div>
-          
-          <div style="background:#12121a; padding:14px; border-radius:10px; margin-bottom:16px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-              <span style="color:#636e72; font-size:13px;">Exchange Rate</span>
-              <span id="fiatRate" style="color:#00b894; font-weight:bold;">1 USDT = 4,500 MMK</span>
+          <button class="modal-action-btn" onclick="processFiatDeposit()">Continue</button>
+        </div>
+      `;
+      
+      // Withdraw ကို နှိပ်လာခဲ့ရင် Auto ပြောင်းပေးမယ်
+      if (subType === 'withdraw') {
+        setTimeout(() => {
+          const wBtn = document.getElementById('btn-fiat-withdraw');
+          if(wBtn) switchFiatTab('withdraw', wBtn);
+        }, 50);
+      }
+      break;
+      
+      // CASE အသစ်: Transfer Modal
+    case 'transfer':
+      title.textContent = 'Transfer Assets';
+      body.innerHTML = `
+        <div style="background:#1e1e2d; border-radius:12px; padding:16px; margin-bottom:16px; position:relative;">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:#636e72; font-size:12px;">From</span>
+              <div style="background:#12121a; padding:8px 12px; border-radius:8px; font-weight:bold;">Spot Wallet</div>
             </div>
-            <div style="display:flex; justify-content:space-between;">
-              <span style="color:#636e72; font-size:13px;">You will receive</span>
-              <span id="fiatReceive" style="color:#ffffff; font-weight:bold; font-size:16px;">0.00 USDT</span>
+            <div style="align-self:center; background:#2d3436; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">↓</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:#636e72; font-size:12px;">To</span>
+              <div style="background:#12121a; padding:8px 12px; border-radius:8px; font-weight:bold;">Futures Wallet</div>
             </div>
           </div>
-          
-          <button class="modal-action-btn" onclick="processFiatDeposit()">💳 Continue to Payment</button>
         </div>
         
-        <div style="display:flex; justify-content:center; gap:16px; margin-top:12px; padding-top:12px; border-top:1px solid #2d3436;">
-          <div style="text-align:center;">
-            <div style="font-size:20px;">🔒</div>
-            <div style="font-size:10px; color:#636e72;">Secure</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:20px;">⚡</div>
-            <div style="font-size:10px; color:#636e72;">Instant</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:20px;">💯</div>
-            <div style="font-size:10px; color:#636e72;">0% Fee</div>
-          </div>
+        <div style="margin-bottom:12px;">
+           <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Coin</label>
+           <select class="modal-input" style="margin:0;"><option>USDT</option><option>BTC</option></select>
         </div>
+        
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Amount</label>
+          <div style="position:relative;">
+             <input type="number" class="modal-input" placeholder="Min 10" style="margin:0;">
+             <span style="position:absolute; right:12px; top:12px; color:#00b894; font-size:12px; cursor:pointer;">MAX</span>
+          </div>
+          <div style="font-size:11px; color:#636e72; margin-top:4px;">Available: ${userWallet.usdt.toFixed(2)} USDT</div>
+        </div>
+        
+        <button class="modal-action-btn" onclick="alert('Transfer successful!'); closeModal();">Confirm Transfer</button>
       `;
       break;
       
