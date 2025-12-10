@@ -2931,3 +2931,100 @@ function tradeDerivative(symbol, type) {
     switchTradeType(type); // type = 'buy' or 'sell'
   }, 100);
 }
+// --- LIVE HISTORY & CHART FIX ---
+
+// 1. Force Chart Load Immediately
+function initChart() {
+    if (typeof TradingView !== 'undefined' && document.getElementById('tv_chart_container')) {
+        new TradingView.widget({
+          "width": "100%",
+          "height": "100%",
+          "symbol": "BINANCE:BTCUSDT",
+          "interval": "1",
+          "timezone": "Etc/UTC",
+          "theme": "dark",
+          "style": "1",
+          "locale": "en",
+          "toolbar_bg": "#f1f3f6",
+          "enable_publishing": false,
+          "hide_top_toolbar": true,
+          "hide_side_toolbar": true,
+          "container_id": "tv_chart_container",
+          "backgroundColor": "#12121a"
+        });
+    }
+}
+
+// 2. Real-time Order Logic
+let liveHistory = []; // Empty initially
+
+function renderClosedPositions() {
+  const container = document.getElementById('hist-content-closed');
+  if(!container) return;
+  
+  if (liveHistory.length === 0) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;color:#636e72;font-size:12px;">No positions yet</div>';
+      return;
+  }
+
+  container.innerHTML = liveHistory.map(pos => `
+    <div class="closed-item" style="padding:10px; border-bottom:1px solid #2d3436;">
+       <div class="closed-header" style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+          <span style="color:#b2bec3;">Position closed</span>
+          <span style="color:white; font-weight:bold;">${pos.symbol} ${pos.time}s</span>
+       </div>
+       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; font-size:11px;">
+          <div><div style="color:#636e72;">Qty</div><div style="color:white;">${pos.qty}</div></div>
+          <div><div style="color:#636e72;">Price</div><div style="color:white;">${pos.buy}</div></div>
+          <div style="text-align:right;"><div style="color:#636e72;">PnL</div><div style="color:${pos.win?'#00b894':'#ff6b6b'};">${pos.win?'+':''}${pos.pnl}</div></div>
+       </div>
+    </div>
+  `).join('');
+}
+
+// Override Submit Logic
+submitDeliveryOrder = function(type) {
+  const amt = document.getElementById('deliveryAmount').value;
+  if(!amt) { alert('Enter amount'); return; }
+  
+  // Show in "In Transaction"
+  switchHistoryTab('transaction');
+  const transContainer = document.getElementById('hist-content-transaction');
+  transContainer.innerHTML = `
+      <div style="padding:10px; background:#1e1e2d; border-radius:8px; margin:10px; font-size:12px;">
+         <div style="color:#f39c12; font-weight:bold;">⏳ Counting Down...</div>
+         <div style="margin-top:5px; color:white;">${type.toUpperCase()} | ${currentDuration}s | ${amt} USDT</div>
+      </div>
+  `;
+
+  // Wait for Duration
+  setTimeout(() => {
+      // Fake Result
+      const isWin = Math.random() > 0.5;
+      const profit = parseFloat(amt) * (currentProfitRate/100);
+      const pnl = isWin ? profit : -parseFloat(amt);
+      
+      // Add to Live History
+      liveHistory.unshift({
+          symbol: 'BTC/USDT',
+          time: currentDuration,
+          qty: amt,
+          buy: document.getElementById('mainPrice').innerText,
+          pnl: pnl.toFixed(2),
+          win: isWin
+      });
+      
+      // Update UI
+      alert(`Result: ${isWin?'WIN 🟢':'LOSS 🔴'}\nPnL: ${pnl.toFixed(2)}`);
+      transContainer.innerHTML = '<div style="font-size:20px;">📄</div><div style="color:#636e72; font-size:10px;">No record</div>';
+      renderClosedPositions();
+      switchHistoryTab('closed');
+      
+  }, currentDuration * 1000); // Wait actual seconds (e.g. 30s)
+};
+
+// Run on Load
+document.addEventListener('DOMContentLoaded', () => {
+    initChart(); // Chart loads instantly
+    renderClosedPositions();
+});
