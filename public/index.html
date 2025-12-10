@@ -113,7 +113,7 @@
     
         <!-- Trading PAGE -->
     
-    <div id="page-trading" class="page" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0a0a0f; z-index:100; display:none; flex-direction:column;">
+    <div id="page-trading" class="page" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0a0a0f; z-index:2000; display:none; flex-direction:column;">
       
       <div style="flex:0 0 auto;">
           <div class="contract-header" style="padding: 5px 10px;">
@@ -144,7 +144,7 @@
           <div id="tv_chart_container" style="height: 30vh; background:#12121a; margin: 5px 0;"></div>
       </div>
 
-      <div style="flex:1; overflow-y:auto; padding:0 10px; padding-bottom: 10px;">
+      <div style="flex:1; overflow-y:auto; padding:0 10px; padding-bottom: 80px;">
           
           <div id="view-delivery" style="display:block;">
             <div class="time-grid-container" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 5px;">
@@ -171,9 +171,24 @@
                Bal: <span id="contractBalance" style="color: white;">0.0000</span>
             </div>
 
-            <div class="big-action-buttons" style="gap: 8px; padding: 0;">
+            <div class="big-action-buttons" style="gap: 8px; padding: 0; margin-bottom: 15px;">
               <button class="action-btn buy" onclick="submitDeliveryOrder('buy')" style="padding: 8px; font-size: 14px;">Buy</button>
               <button class="action-btn sell" onclick="submitDeliveryOrder('sell')" style="padding: 8px; font-size: 14px;">Sell</button>
+            </div>
+
+            <div class="bottom-history-section" style="border-top: 2px solid #2d3436; background: #12121a; min-height: 200px;">
+              <div class="history-tabs-header" style="padding: 0 10px; border-bottom: 1px solid #2d3436;">
+                 <button class="h-tab-btn active" onclick="switchHistoryTab('transaction')" style="padding: 8px; font-size: 11px;">In transaction</button>
+                 <button class="h-tab-btn" onclick="switchHistoryTab('closed')" style="padding: 8px; font-size: 11px;">Position closed</button>
+              </div>
+              
+              <div id="hist-content-transaction" style="display:block; padding:10px; text-align:center;">
+                 <div style="font-size:20px;">📄</div>
+                 <div style="color:#636e72; font-size:10px;">No record</div>
+              </div>
+
+              <div id="hist-content-closed" style="display:none; padding:10px;">
+                 </div>
             </div>
           </div>
 
@@ -194,21 +209,6 @@
                <button class="action-btn sell" onclick="submitPerpetualOrder('sell')">Short</button>
              </div>
           </div>
-      </div>
-
-      <div class="bottom-history-section" style="flex:0 0 25vh; border-top:2px solid #2d3436; background:#12121a; overflow-y:auto;">
-        <div class="history-tabs-header" style="padding: 0 10px; position:sticky; top:0; background:#12121a; z-index:5;">
-           <button class="h-tab-btn active" onclick="switchHistoryTab('transaction')" style="padding: 8px; font-size: 11px;">In transaction</button>
-           <button class="h-tab-btn" onclick="switchHistoryTab('closed')" style="padding: 8px; font-size: 11px;">Position closed</button>
-        </div>
-        
-        <div id="hist-content-transaction" style="display:block; padding:10px; text-align:center;">
-           <div style="font-size:20px;">📄</div>
-           <div style="color:#636e72; font-size:10px;">No record</div>
-        </div>
-
-        <div id="hist-content-closed" style="display:none;">
-           </div>
       </div>
 
       <div class="side-menu-backdrop" id="sideMenuBackdrop" onclick="toggleSideMenu()"></div>
