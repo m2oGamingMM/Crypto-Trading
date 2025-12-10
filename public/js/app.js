@@ -781,6 +781,8 @@ function openModal(type, subType = null) {
   const title = document.getElementById('modalTitle');
   const body = document.getElementById('modalBody');
   
+  body.innerHTML = '';
+  
   // Modal ဖွင့်မယ်
   modal.classList.add('show');
   
@@ -1023,91 +1025,7 @@ function openModal(type, subType = null) {
         setTimeout(renderWithdrawMenu, 0);
       }
       break;
-      
-      // CASE: Transfer (Spot <-> Futures Logic)
-    case 'transfer':
-      title.textContent = 'Transfer Assets';
-      body.innerHTML = `
-        <div style="background:#1e1e2d; border-radius:12px; padding:16px; margin-bottom:16px;">
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="color:#636e72; font-size:12px;">From</span>
-              <div style="background:#12121a; padding:8px 12px; border-radius:8px; font-weight:bold;">Spot Wallet</div>
-            </div>
-            <div style="align-self:center; color:#00b894; font-size:20px;">↓</div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="color:#636e72; font-size:12px;">To</span>
-              <div style="background:#12121a; padding:8px 12px; border-radius:8px; font-weight:bold;">Futures Wallet</div>
-            </div>
-          </div>
-        </div>
-        
-        <div style="margin-bottom:16px;">
-          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Amount (USDT)</label>
-          <div style="position:relative;">
-             <input type="number" id="transferAmount" class="modal-input" placeholder="Min 10" style="margin:0;">
-             <span onclick="document.getElementById('transferAmount').value = ${userWallet.usdt}" style="position:absolute; right:12px; top:12px; color:#00b894; font-size:12px; cursor:pointer;">MAX</span>
-          </div>
-          <div style="font-size:11px; color:#636e72; margin-top:4px;">Spot Available: ${userWallet.usdt.toFixed(2)} USDT</div>
-          <div style="font-size:11px; color:#636e72;">Futures Balance: ${userWallet.futuresUsdt.toFixed(2)} USDT</div>
-        </div>
-        
-        <button class="modal-action-btn" onclick="performTransfer()">Confirm Transfer</button>
-      `;
-      break;
-
-    // CASE: History (List & Filter)
-    case 'history':
-      title.textContent = 'Transaction History';
-      // Filter UI (Screenshot အတိုင်း)
-      body.innerHTML = `
-        <div class="history-header">
-          <span style="font-size:13px; color:#b2bec3;">Recent Records</span>
-          <button class="history-filter-btn" onclick="openModal('filter')">
-            <span>Filter</span> <span style="color:#00b894;">▼</span>
-          </button>
-        </div>
-        <div class="history-list" id="historyListContainer">
-          ${renderHistoryList()}
-        </div>
-      `;
-      break;
-
-    // CASE: Filter Modal (Screenshot ပုံစံ)
-    case 'filter':
-      title.textContent = 'Filter Transactions';
-      body.innerHTML = `
-        <div class="filter-group">
-          <label class="filter-label">Date Range</label>
-          <div style="display:flex; gap:10px;">
-            <input type="date" class="modal-input" style="flex:1;">
-            <span style="align-self:center;">to</span>
-            <input type="date" class="modal-input" style="flex:1;">
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label">Transaction Type</label>
-          <div class="filter-tags">
-            <div class="filter-tag active">Deposit</div>
-            <div class="filter-tag active">Withdraw</div>
-            <div class="filter-tag">Transfer</div>
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label">Status</label>
-          <div class="filter-tags">
-            <div class="filter-tag active">Completed</div>
-            <div class="filter-tag">Pending</div>
-            <div class="filter-tag">Failed</div>
-          </div>
-        </div>
-
-        <button class="modal-action-btn" onclick="openModal('history')">Apply Filters</button>
-      `;
-      break;
-      
+            
       case 'security':
       title.textContent = 'Security Settings';
       const twoFAEnabled = localStorage.getItem('twoFAEnabled') === 'true';
@@ -1397,6 +1315,112 @@ function openModal(type, subType = null) {
           <p>Version 2.0.1</p>
           <p style="font-size:12px; color:#636e72; margin-top:10px;">The most secure crypto trading platform.</p>
         </div>
+      `;
+      break;
+      
+      // --- TRANSACTION HISTORY (NEW DESIGN) ---
+    case 'history':
+      // Header ကို ဖျောက်မယ်
+      if(document.querySelector('.modal-header')) {
+         document.querySelector('.modal-header').style.display = 'none';
+      }
+
+      // တွက်ချက်မှုများ
+      const totalDep = userTransactions.filter(t => t.type === 'Deposit').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      const totalWit = userTransactions.filter(t => t.type === 'Withdraw').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      const totalPen = userTransactions.filter(t => t.status === 'Pending').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+      body.innerHTML = `
+        <div class="history-nav">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button onclick="closeModal(); document.querySelector('.modal-header').style.display='flex';" style="background:none; border:none; color:white; font-size:20px;">←</button>
+            <span class="history-title">Transaction History</span>
+          </div>
+          <div class="history-actions">
+            <button onclick="openModal('filter')">▼</button>
+            <button onclick="openModal('history')">↻</button>
+          </div>
+        </div>
+
+        <div class="history-tabs">
+          <div class="h-tab active">All</div>
+          <div class="h-tab">Deposit</div>
+          <div class="h-tab">Withdraw</div>
+          <div class="h-tab">Pending</div>
+        </div>
+
+        <div class="wallet-card">
+          <div class="wallet-label">
+            <span style="background:rgba(255,255,255,0.2); padding:4px; border-radius:50%;">💰</span>
+            Wallet Balance
+          </div>
+          <div class="wallet-amount">$${userWallet.usdt.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+          <div style="font-size:10px; opacity:0.7; margin-top:4px; text-align:right;">● updated</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-icon icon-blue">$</div>
+            <div class="stat-info">
+              <span class="stat-title">Total Deposits</span>
+              <span class="stat-val">$${totalDep.toLocaleString()}</span>
+            </div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-icon icon-indigo">💳</div>
+            <div class="stat-info">
+              <span class="stat-title">Total Withdrawals</span>
+              <span class="stat-val">$${totalWit.toLocaleString()}</span>
+            </div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-icon icon-orange">🕒</div>
+            <div class="stat-info">
+              <span class="stat-title">Pending</span>
+              <span class="stat-val">$${totalPen.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px; font-weight:600; font-size:16px;">Recent Transactions</div>
+        <div class="history-list" id="historyListContainer">
+          ${renderHistoryList()} 
+        </div>
+      `;
+      break;
+
+    // --- TRANSFER ASSETS (Fixed Modal) ---
+    case 'transfer':
+      if(document.querySelector('.modal-header')) {
+         document.querySelector('.modal-header').style.display = 'flex';
+      }
+      title.textContent = 'Transfer Assets';
+      
+      body.innerHTML = `
+        <div style="background:#1e1e2d; border-radius:12px; padding:16px; margin-bottom:16px;">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:#636e72; font-size:12px;">From</span>
+              <div style="background:#12121a; padding:8px 12px; border-radius:8px; font-weight:bold;">Spot Wallet</div>
+            </div>
+            <div style="align-self:center; color:#00b894; font-size:20px;">↓</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:#636e72; font-size:12px;">To</span>
+              <div style="background:#12121a; padding:8px 12px; border-radius:8px; font-weight:bold;">Futures Wallet</div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Amount (USDT)</label>
+          <div style="position:relative;">
+             <input type="number" id="transferAmount" class="modal-input" placeholder="Min 10" style="margin:0;">
+             <span onclick="document.getElementById('transferAmount').value = ${userWallet.usdt}" style="position:absolute; right:12px; top:12px; color:#00b894; font-size:12px; cursor:pointer;">MAX</span>
+          </div>
+          <div style="font-size:11px; color:#636e72; margin-top:4px;">Spot Available: ${userWallet.usdt.toFixed(2)} USDT</div>
+        </div>
+        
+        <button class="modal-action-btn" onclick="performTransfer()">Confirm Transfer</button>
       `;
       break;
       
@@ -2442,7 +2466,7 @@ function switchToService() {
   }, 200);
 }
 
-// --- TRANSFER & HISTORY LOGIC ---
+// --- TRANSFER & HISTORY LOGIC (FINAL CLEAN VERSION) ---
 
 function performTransfer() {
   const amount = parseFloat(document.getElementById('transferAmount').value);
@@ -2458,9 +2482,11 @@ function performTransfer() {
 
   // Calculate
   userWallet.usdt -= amount;
+  // Futures wallet မရှိသေးရင် 0 နဲ့ စမယ်
+  if(!userWallet.futuresUsdt) userWallet.futuresUsdt = 0;
   userWallet.futuresUsdt += amount;
   
-  // Record Transaction
+  // Record Transaction (မှတ်တမ်းတင်မယ်)
   addTransaction('Transfer', amount, 'USDT', 'Completed');
   
   alert(`✅ Successfully transferred ${amount} USDT to Futures Wallet!`);
@@ -2468,7 +2494,8 @@ function performTransfer() {
 }
 
 function renderHistoryList() {
-  if (userTransactions.length === 0) {
+  // Transaction မရှိသေးရင် မရှိကြောင်းပြမယ်
+  if (!userTransactions || userTransactions.length === 0) {
     return `<div style="text-align:center; padding:40px; color:#636e72;">
       <div style="font-size:30px; margin-bottom:10px;">📝</div>
       No transactions yet
@@ -2500,4 +2527,31 @@ function renderHistoryList() {
       </div>
     `;
   }).join('');
+}
+
+// Transaction သိမ်းတဲ့ Helper Function (ဒါလေးမရှိရင် Error တက်တတ်ပါတယ်)
+function addTransaction(type, amount, coin, status = 'Completed') {
+  // Array မရှိသေးရင် အသစ်ဆောက်
+  if (typeof userTransactions === 'undefined') {
+     window.userTransactions = []; 
+  }
+  
+  const newTx = {
+    id: 'TX' + Date.now().toString().slice(-6),
+    type: type,
+    amount: amount,
+    coin: coin,
+    status: status,
+    date: new Date().toLocaleDateString()
+  };
+  
+  // ရှေ့ဆုံးမှာ ထည့်မယ်
+  userTransactions.unshift(newTx);
+  
+  // LocalStorage မှာ သိမ်းမယ်
+  localStorage.setItem('userTransactions', JSON.stringify(userTransactions));
+  localStorage.setItem('cryptoUserWallet', JSON.stringify(userWallet));
+  
+  // UI Update
+  updateAssetsUI();
 }
