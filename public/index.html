@@ -112,163 +112,113 @@
     </div>
     
         <!-- Trading PAGE -->
-    
-    <div id="page-trading" class="page">
+      <div id="page-trading" class="page" style="height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; background: #0a0a0f; position: fixed; top:0; left:0; z-index:100;">
       
-      <div class="trading-fixed-top">
-          <div class="contract-header">
-            <div class="c-tab active" onclick="switchContractTab('delivery')" id="tab-delivery">Delivery Contract</div>
-            <div class="c-tab" onclick="switchContractTab('perpetual')" id="tab-perpetual">Perpetual Contract</div>
+      <div style="flex: 0 0 auto; padding-top: 5px;">
+          <div class="contract-header" style="padding: 5px 10px;">
+            <div class="c-tab active" onclick="switchContractTab('delivery')" id="tab-delivery" style="font-size: 12px; padding: 6px;">Delivery</div>
+            <div class="c-tab" onclick="switchContractTab('perpetual')" id="tab-perpetual" style="font-size: 12px; padding: 6px;">Perpetual</div>
           </div>
 
-          <div class="trade-info-header" style="justify-content: space-between;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <button class="menu-trigger" onclick="toggleSideMenu()">
-                <span style="font-size:24px;">☰</span>
-              </button>
+          <div class="trade-info-header" style="justify-content: space-between; padding: 5px 16px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="menu-trigger" onclick="toggleSideMenu()" style="font-size: 20px;">☰</button>
               <div class="symbol-info">
-                <span id="currentSymbolName" style="font-weight:bold; font-size:16px;">BTC/USDT</span>
-                <span id="currentSymbolChange" style="font-size:12px; color:#ff6b6b; margin-left:8px;">-0.21%</span>
+                <span id="currentSymbolName" style="font-weight:bold; font-size:14px;">BTC/USDT</span>
+                <span id="currentSymbolChange" style="font-size:11px; color:#ff6b6b; margin-left:6px;">-0.21%</span>
               </div>
             </div>
-            <div id="connectionStatus" style="font-size: 10px; padding: 4px 8px; border-radius: 4px; background: #2d3436; color: #ff6b6b; font-weight:bold;">
+            <div id="connectionStatus" style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #2d3436; color: #ff6b6b; font-weight:bold;">
               🔴 Disconnected
             </div>
           </div>
 
-          <div class="main-price-display">
-            <span id="mainPrice" class="big-price down">92,066.23</span>
-            <div class="price-details">
-              <div>high <span style="color:white;">93,100</span></div>
-              <div>low <span style="color:white;">91,200</span></div>
-              <div>24H <span style="color:white;">45.2K</span></div>
+          <div class="main-price-display" style="padding: 0 16px;">
+            <span id="mainPrice" class="big-price down" style="font-size: 24px;">92,066.23</span>
+            <div class="price-details" style="font-size: 10px;">
+              <div>H <span style="color:white;">93K</span> L <span style="color:white;">91K</span></div>
             </div>
           </div>
-
-          <div id="tv_chart_container" style="height: 300px; width: 100%; background:#12121a;"></div>
       </div>
-      
-      <div class="trading-scrollable-area">
 
-          <div id="view-delivery" style="display:block;">
+      <div id="tv_chart_container" style="flex: 0 0 30%; width: 100%; background:#12121a; margin: 5px 0;"></div>
+
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; padding: 0 10px;">
+
+          <div id="view-delivery" style="display:block; height: 100%;">
             
-            <div class="time-grid-container">
-              <div class="time-box active" onclick="selectTime(30, 15, this)">
-                <div class="t-sec">30 second</div>
-                <div class="t-rate">profit 15%</div>
-              </div>
-              <div class="time-box" onclick="selectTime(60, 20, this)">
-                <div class="t-sec">60 second</div>
-                <div class="t-rate">profit 20%</div>
-              </div>
-              <div class="time-box" onclick="selectTime(120, 30, this)">
-                <div class="t-sec">120 second</div>
-                <div class="t-rate">profit 30%</div>
-              </div>
-              <div class="time-box" onclick="selectTime(180, 50, this)">
-                <div class="t-sec">180 second</div>
-                <div class="t-rate">profit 50%</div>
-              </div>
-              <div class="time-box" onclick="selectTime(300, 70, this)">
-                <div class="t-sec">300 second</div>
-                <div class="t-rate">profit 70%</div>
-              </div>
-              <div class="time-box" onclick="selectTime(360, 75, this)">
-                <div class="t-sec">360 second</div>
-                <div class="t-rate">profit 75%</div>
-              </div>
-              <div class="time-box" onclick="selectTime(450, 80, this)">
-                <div class="t-sec">450 second</div>
-                <div class="t-rate">profit 80%</div>
-              </div>
-              <div class="time-box" onclick="selectTime(600, 90, this)">
-                <div class="t-sec">600 second</div>
-                <div class="t-rate">profit 90%</div>
-              </div>
+            <div class="time-grid-container" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 5px;">
+              <div class="time-box active" onclick="selectTime(30, 15, this)" style="padding: 4px;"><div class="t-sec" style="font-size:11px;">30s</div><div class="t-rate" style="font-size:9px;">15%</div></div>
+              <div class="time-box" onclick="selectTime(60, 20, this)" style="padding: 4px;"><div class="t-sec" style="font-size:11px;">60s</div><div class="t-rate" style="font-size:9px;">20%</div></div>
+              <div class="time-box" onclick="selectTime(120, 30, this)" style="padding: 4px;"><div class="t-sec" style="font-size:11px;">120s</div><div class="t-rate" style="font-size:9px;">30%</div></div>
+              <div class="time-box" onclick="selectTime(180, 50, this)" style="padding: 4px;"><div class="t-sec" style="font-size:11px;">180s</div><div class="t-rate" style="font-size:9px;">50%</div></div>
+              <div class="time-box" onclick="selectTime(300, 70, this)" style="padding: 4px;"><div class="t-sec" style="font-size:11px;">300s</div><div class="t-rate" style="font-size:9px;">70%</div></div>
+              <div class="time-box" onclick="selectTime(360, 75, this)" style="padding: 4px;"><div class="t-sec" style="font-size:11px;">360s</div><div class="t-rate" style="font-size:9px;">75%</div></div>
+              <div class="time-box" onclick="selectTime(450, 80, this)" style="padding: 4px;"><div class="t-sec" style="font-size:11px;">450s</div><div class="t-rate" style="font-size:9px;">80%</div></div>
+              <div class="time-box" onclick="selectTime(600, 90, this)" style="padding: 4px;"><div class="t-sec" style="font-size:11px;">600s</div><div class="t-rate" style="font-size:9px;">90%</div></div>
             </div>
 
-            <div class="trade-input-area">
-               <div class="trans-mode">Transaction mode</div>
-               <div class="mode-toggles">
-                 <button class="mode-btn active" id="mode-usdt" onclick="selectTransMode('USDT')">USDT</button>
-                 <button class="mode-btn" id="mode-usdc" onclick="selectTransMode('USDC')">USDC</button>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+               <div class="mode-toggles" style="margin:0; flex-shrink: 0;">
+                 <button class="mode-btn active" id="mode-usdt" onclick="selectTransMode('USDT')" style="padding: 4px 8px; font-size: 10px;">USDT</button>
+                 <button class="mode-btn" id="mode-usdc" onclick="selectTransMode('USDC')" style="padding: 4px 8px; font-size: 10px;">USDC</button>
                </div>
-               
-               <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#b2bec3;">
-                 <span>Opening quantity</span>
-                 <span>Min order: 1</span>
-               </div>
-               
-               <div class="qty-input-box">
-                 <input type="number" id="deliveryAmount" placeholder="0" />
-               </div>
-
-               <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px;">
-                 <span style="color:#f39c12;">💰 Contract Balance</span>
-                 <span style="color:white;" id="contractBalance">0.0000 USDT</span>
+               <div class="qty-input-box" style="flex: 1; padding: 4px 8px; margin:0; min-height: 30px;">
+                 <input type="number" id="deliveryAmount" placeholder="Amount" style="font-size: 13px;" />
                </div>
             </div>
+            <div style="text-align: right; font-size: 10px; color: #f39c12; margin-bottom: 5px;">
+               Bal: <span id="contractBalance" style="color: white;">0.0000</span>
+            </div>
 
-            <div class="big-action-buttons">
-              <button class="action-btn buy" onclick="submitDeliveryOrder('buy')">Buy</button>
-              <button class="action-btn sell" onclick="submitDeliveryOrder('sell')">Sell</button>
+            <div class="big-action-buttons" style="gap: 8px; padding: 0;">
+              <button class="action-btn buy" onclick="submitDeliveryOrder('buy')" style="padding: 8px; font-size: 14px;">Buy</button>
+              <button class="action-btn sell" onclick="submitDeliveryOrder('sell')" style="padding: 8px; font-size: 14px;">Sell</button>
             </div>
           </div>
 
-          <div id="view-perpetual" style="display:none;">
-            <div class="trade-input-area">
-              <div class="trading-form" style="padding:0;">
-                 <div class="form-group">
-                    <label>Leverage</label>
-                    <div class="mode-toggles" style="margin-top:0;">
-                       <button class="mode-btn active" onclick="setLeverage(this, 10)">10x</button>
-                       <button class="mode-btn" onclick="setLeverage(this, 20)">20x</button>
-                       <button class="mode-btn" onclick="setLeverage(this, 50)">50x</button>
-                       <button class="mode-btn" onclick="setLeverage(this, 100)">100x</button>
-                    </div>
-                 </div>
-                 <div class="form-group">
-                   <label>Amount (USDT)</label>
-                   <div class="qty-input-box">
-                     <input type="number" id="perpAmount" placeholder="Enter amount">
-                   </div>
-                 </div>
-                 
-                 <div class="big-action-buttons" style="padding: 10px 0;">
-                   <button class="action-btn buy" onclick="submitPerpetualOrder('buy')">Long (Buy)</button>
-                   <button class="action-btn sell" onclick="submitPerpetualOrder('sell')">Short (Sell)</button>
-                 </div>
-              </div>
-            </div>
+          <div id="view-perpetual" style="display:none; height: 100%;">
+             <div class="form-group">
+                <label style="font-size: 11px; color:#b2bec3;">Leverage</label>
+                <div class="mode-toggles" style="margin:5px 0;">
+                   <button class="mode-btn active" onclick="setLeverage(this, 10)">10x</button>
+                   <button class="mode-btn" onclick="setLeverage(this, 50)">50x</button>
+                   <button class="mode-btn" onclick="setLeverage(this, 100)">100x</button>
+                </div>
+             </div>
+             <div class="qty-input-box" style="margin-bottom: 10px;">
+                 <input type="number" id="perpAmount" placeholder="Amount (USDT)">
+             </div>
+             <div class="big-action-buttons" style="padding: 0;">
+               <button class="action-btn buy" onclick="submitPerpetualOrder('buy')">Long</button>
+               <button class="action-btn sell" onclick="submitPerpetualOrder('sell')">Short</button>
+             </div>
           </div>
 
-          <div class="bottom-history-section" style="border-top: 5px solid #0a0a0f;">
-            <div class="history-tabs-header">
-               <button class="h-tab-btn active" onclick="switchHistoryTab('transaction')">In transaction</button>
-               <button class="h-tab-btn" onclick="switchHistoryTab('closed')">Position closed</button>
-            </div>
-            
-            <div id="hist-content-transaction" style="display:block; min-height:150px; background:#12121a; padding:20px; text-align:center;">
-               <div style="font-size:40px; color:#2d3436; margin-bottom:10px;">📄</div>
-               <div style="color:#636e72; font-size:12px;">No record yet</div>
-            </div>
+      </div>
 
-            <div id="hist-content-closed" style="display:none; background:#12121a;">
-               </div>
-          </div>
+      <div class="bottom-history-section" style="flex: 0 0 25%; border-top: 2px solid #2d3436; background: #12121a; overflow-y: auto;">
+        <div class="history-tabs-header" style="padding: 0 10px;">
+           <button class="h-tab-btn active" onclick="switchHistoryTab('transaction')" style="padding: 8px; font-size: 11px;">In transaction</button>
+           <button class="h-tab-btn" onclick="switchHistoryTab('closed')" style="padding: 8px; font-size: 11px;">Position closed</button>
+        </div>
+        
+        <div id="hist-content-transaction" style="display:block; padding:10px; text-align:center;">
+           <div style="font-size:20px;">📄</div>
+           <div style="color:#636e72; font-size:10px;">No record</div>
+        </div>
 
-      </div> <div class="side-menu-backdrop" id="sideMenuBackdrop" onclick="toggleSideMenu()"></div>
+        <div id="hist-content-closed" style="display:none;">
+           </div>
+      </div>
+
+      <div class="side-menu-backdrop" id="sideMenuBackdrop" onclick="toggleSideMenu()"></div>
       <div class="side-menu-drawer" id="sideMenuDrawer">
-        <div class="side-menu-header">
-          <h3 style="color:#f39c12; border-bottom:2px solid #f39c12; display:inline-block; padding-bottom:5px;">Market List</h3>
-        </div>
-        <div class="side-coin-list" id="sideMenuCoinList">
-          <div class="loading">Loading coins...</div>
-        </div>
+        <div class="side-menu-header"><h3 style="color:#f39c12;">Markets</h3></div>
+        <div class="side-coin-list" id="sideMenuCoinList"></div>
       </div>
 
-    </div>
-    
+    </div>         
   
           <!-- DERIVATIVES PAGE -->
       <div id="page-derivatives" class="page">
