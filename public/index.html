@@ -178,9 +178,12 @@
   
           <!-- DERIVATIVES PAGE -->
       <div id="page-derivatives" class="page">
-      <header class="page-header">
+      
+      <header class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
         <h1>Derivatives</h1>
+        <button onclick="openModal('derivHelp')" style="background:none; border:1px solid #636e72; color:#00b894; padding:4px 10px; border-radius:12px; font-size:12px; cursor:pointer;">Help ?</button>
       </header>
+      
       <div class="derivatives-tabs">
         <button class="deriv-tab active" onclick="switchDerivTab('futures')">Futures</button>
         <button class="deriv-tab" onclick="switchDerivTab('options')">Options</button>
@@ -225,6 +228,21 @@
                <button class="btn-short" onclick="tradeDerivative('ETH', 'sell')">Short</button>
              </div>
            </div>
+
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon sol">S</div>
+               <div><div class="crypto-name">SOL Quarter</div><div style="font-size:10px; color:#636e72;">1229 Delivery</div></div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;">$145.00</div>
+               <div style="color:#00b894; font-size:11px;">+2.1%</div>
+             </div>
+             <div class="trade-action-group">
+               <button class="btn-long" onclick="tradeDerivative('SOL', 'buy')">Long</button>
+               <button class="btn-short" onclick="tradeDerivative('SOL', 'sell')">Short</button>
+             </div>
+           </div>
         </div>
 
         <div id="deriv-content-options" style="display:none;">
@@ -267,7 +285,7 @@
              </div>
              <div style="flex:1; text-align:right; margin-right:10px;">
                <div style="font-weight:bold;" id="deriv-price-BTC">$92,539.99</div>
-               <div style="color:#00b894; font-size:11px;">Fund: 0.01%</div>
+               <div style="color:#00b894; font-size:11px;">0.01%</div>
              </div>
              <div class="trade-action-group">
                <button class="btn-long" onclick="tradeDerivative('BTC', 'buy')">Long</button>
@@ -282,7 +300,7 @@
              </div>
              <div style="flex:1; text-align:right; margin-right:10px;">
                <div style="font-weight:bold;" id="deriv-price-ETH">$3,319.73</div>
-               <div style="color:#00b894; font-size:11px;">Fund: 0.01%</div>
+               <div style="color:#00b894; font-size:11px;">0.01%</div>
              </div>
              <div class="trade-action-group">
                <button class="btn-long" onclick="tradeDerivative('ETH', 'buy')">Long</button>
@@ -297,11 +315,26 @@
              </div>
              <div style="flex:1; text-align:right; margin-right:10px;">
                <div style="font-weight:bold;" id="deriv-price-SOL">$145.20</div>
-               <div style="color:#ff6b6b; font-size:11px;">Fund: -0.02%</div>
+               <div style="color:#ff6b6b; font-size:11px;">-0.02%</div>
              </div>
              <div class="trade-action-group">
                <button class="btn-long" onclick="tradeDerivative('SOL', 'buy')">Long</button>
                <button class="btn-short" onclick="tradeDerivative('SOL', 'sell')">Short</button>
+             </div>
+           </div>
+
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon" style="background:#f1c40f;">B</div>
+               <div class="crypto-name">BNB/USDT</div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;">$610.50</div>
+               <div style="color:#00b894; font-size:11px;">0.01%</div>
+             </div>
+             <div class="trade-action-group">
+               <button class="btn-long" onclick="tradeDerivative('BNB', 'buy')">Long</button>
+               <button class="btn-short" onclick="tradeDerivative('BNB', 'sell')">Short</button>
              </div>
            </div>
 
@@ -312,7 +345,7 @@
              </div>
              <div style="flex:1; text-align:right; margin-right:10px;">
                <div style="font-weight:bold;" id="deriv-price-XRP">$2.45</div>
-               <div style="color:#00b894; font-size:11px;">Fund: 0.01%</div>
+               <div style="color:#00b894; font-size:11px;">0.02%</div>
              </div>
              <div class="trade-action-group">
                <button class="btn-long" onclick="tradeDerivative('XRP', 'buy')">Long</button>
@@ -327,11 +360,41 @@
              </div>
              <div style="flex:1; text-align:right; margin-right:10px;">
                <div style="font-weight:bold;" id="deriv-price-DOGE">$0.38</div>
-               <div style="color:#00b894; font-size:11px;">Fund: 0.03%</div>
+               <div style="color:#00b894; font-size:11px;">0.03%</div>
              </div>
              <div class="trade-action-group">
                <button class="btn-long" onclick="tradeDerivative('DOGE', 'buy')">Long</button>
                <button class="btn-short" onclick="tradeDerivative('DOGE', 'sell')">Short</button>
+             </div>
+           </div>
+
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon" style="background:#3498db;">A</div>
+               <div class="crypto-name">ADA/USDT</div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;">$1.12</div>
+               <div style="color:#ff6b6b; font-size:11px;">-0.01%</div>
+             </div>
+             <div class="trade-action-group">
+               <button class="btn-long" onclick="tradeDerivative('ADA', 'buy')">Long</button>
+               <button class="btn-short" onclick="tradeDerivative('ADA', 'sell')">Short</button>
+             </div>
+           </div>
+
+           <div class="crypto-item">
+             <div class="crypto-left">
+               <div class="crypto-icon" style="background:#e84393;">P</div>
+               <div class="crypto-name">DOT/USDT</div>
+             </div>
+             <div style="flex:1; text-align:right; margin-right:10px;">
+               <div style="font-weight:bold;">$7.45</div>
+               <div style="color:#00b894; font-size:11px;">0.01%</div>
+             </div>
+             <div class="trade-action-group">
+               <button class="btn-long" onclick="tradeDerivative('DOT', 'buy')">Long</button>
+               <button class="btn-short" onclick="tradeDerivative('DOT', 'sell')">Short</button>
              </div>
            </div>
 
@@ -350,7 +413,8 @@
         </div>
         <p class="leverage-warning">Higher leverage increases both potential profits and risks.</p>
       </div>
-    </div>
+    </div> 
+    
          
     <!-- ASSETS PAGE -->
     <div id="page-assets" class="page">
