@@ -2660,3 +2660,14 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 300);
   }, 2000);
 }
+// --- DERIVATIVES TRADING LOGIC ---
+function tradeDerivative(symbol, type) {
+  // 1. Trading Page ကို အရင်သွားမယ်
+  showCoinDetail(symbol);
+  
+  // 2. Buy/Sell Tab ကို ချက်ချင်း ပြောင်းပေးမယ်
+  // (0.1 စက္ကန့် စောင့်ပြီးမှ ပြောင်းတာက Page Load ပြီးမှ လုပ်စေချင်လို့ပါ)
+  setTimeout(() => {
+    switchTradeType(type); // type = 'buy' or 'sell'
+  }, 100);
+}
