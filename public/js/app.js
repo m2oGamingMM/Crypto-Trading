@@ -1344,7 +1344,7 @@ function openModal(type, subType = null) {
           </div>
           <div class="history-actions">
             <button onclick="openModal('filter')" style="font-size:20px;">🌪️</button>
-            <button onclick="openModal('history')" style="font-size:20px;">↻</button>
+            <button id="historyRefreshBtn" onclick="animateRefresh()" style="font-size:20px; background:none; border:none; color:white; cursor:pointer;">↻</button>
           </div>
         </div>
 
@@ -2595,4 +2595,14 @@ function addTransaction(type, amount, coin, status = 'Completed') {
   localStorage.setItem('userTransactions', JSON.stringify(userTransactions));
   localStorage.setItem('cryptoUserWallet', JSON.stringify(userWallet));
   updateAssetsUI();
+}
+
+function animateRefresh() {
+  const btn = document.getElementById('historyRefreshBtn');
+  if(btn) btn.style.transform = 'rotate(360deg)'; // ခလုတ်ကို လှည့်မယ်
+  if(btn) btn.style.transition = 'transform 0.5s'; // ချောချောမွေ့မွေ့ ဖြစ်အောင်
+  
+  setTimeout(() => {
+    openModal('history'); // 0.5 စက္ကန့်နေမှ Refresh လုပ်မယ်
+  }, 500);
 }
