@@ -1521,3 +1521,78 @@ body.light-mode .modal-input {
   cursor: pointer;
   padding: 0;
 }
+/* --- HISTORY & FILTER STYLES --- */
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  background: #1e1e2d;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.history-filter-btn {
+  background: #2d3436;
+  border: none;
+  color: #b2bec3;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.history-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #2d3436;
+}
+
+.h-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+.h-left { display: flex; align-items: center; }
+.h-type { font-weight: bold; font-size: 14px; margin-bottom: 2px; }
+.h-date { font-size: 11px; color: #636e72; }
+.h-amount { font-weight: bold; font-size: 14px; text-align: right; }
+.h-status { font-size: 10px; text-align: right; margin-top: 2px; }
+
+.status-completed { color: #00b894; }
+.status-pending { color: #f39c12; }
+.status-failed { color: #ff6b6b; }
+
+/* Filter Modal Specifics */
+.filter-group { margin-bottom: 16px; }
+.filter-label { display: block; color: #b2bec3; font-size: 13px; margin-bottom: 8px; }
+.filter-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-tag {
+  padding: 8px 16px;
+  background: #12121a;
+  border: 1px solid #2d3436;
+  border-radius: 6px;
+  color: #636e72;
+  font-size: 13px;
+  cursor: pointer;
+}
+.filter-tag.active {
+  background: rgba(0, 184, 148, 0.1);
+  border-color: #00b894;
+  color: #00b894;
+}
