@@ -2095,16 +2095,38 @@ function saveNotificationSetting(setting, enabled) {
   localStorage.setItem('notificationSettings', JSON.stringify(settings));
 }
 
-// --- FIAT / ASSET MODAL HELPER FUNCTIONS ---
+// --- FIAT / ASSET MODAL HELPER FUNCTIONS (UPDATED) ---
 
-// 1. Render Deposit Menu (Source 4)
+// 1. Data Structure (Coin အချက်အလက်များ)
+const coinData = {
+  'USDT-TRC20': { network: 'TRC20', min: '10 USDT', fee: '1 USDT', address: 'TQvsNj8U9U67HHX5ayoSQkLw3jb4J3' },
+  'USDT-ERC20': { network: 'ERC20', min: '10 USDT', fee: '5 USDT', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
+  'BTC-Bitcoin': { network: 'Bitcoin', min: '0.001 BTC', fee: '0.0005 BTC', address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' },
+  'ETH-ERC20':   { network: 'ERC20', min: '0.01 ETH', fee: '0.002 ETH', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
+  'USDC-BEP20':  { network: 'BEP20', min: '10 USDC', fee: '0.5 USDC', address: '0x55d398326f99059fF775485246999027B3197955' }
+};
+
+// 2. Tab Style Update (Tab အရောင်ပြောင်းပေးမည့် Function)
+function updateFiatTabs(activeMode) {
+  const depBtn = document.getElementById('btn-fiat-deposit');
+  const witBtn = document.getElementById('btn-fiat-withdraw');
+  
+  if(activeMode === 'deposit') {
+    if(depBtn) { depBtn.style.background = '#00b894'; depBtn.style.color = 'white'; depBtn.style.border = 'none'; }
+    if(witBtn) { witBtn.style.background = '#1e1e2d'; witBtn.style.color = '#b2bec3'; witBtn.style.border = '1px solid #2d3436'; }
+  } else {
+    if(depBtn) { depBtn.style.background = '#1e1e2d'; depBtn.style.color = '#b2bec3'; depBtn.style.border = '1px solid #2d3436'; }
+    if(witBtn) { witBtn.style.background = '#00b894'; witBtn.style.color = 'white'; witBtn.style.border = 'none'; }
+  }
+}
+
+// 3. Render Deposit Menu (Coin ၅ မျိုးလုံးပါသည်)
 function renderDepositMenu() {
   const container = document.getElementById('fiatContentArea');
   const title = document.getElementById('modalTitle');
   if(title) title.textContent = 'Deposit Coins';
   
-  // Tab Styling update
-  updateFiatTabs('deposit');
+  updateFiatTabs('deposit'); // Tab ကို Deposit ဘက်ရွှေ့မယ်
 
   if (!container) return;
 
@@ -2127,7 +2149,7 @@ function renderDepositMenu() {
       <span style="color:#636e72;">›</span>
     </div>
 
-    <div class="fiat-menu-item" onclick="showDepositDetail('BTC')">
+    <div class="fiat-menu-item" onclick="showDepositDetail('BTC-Bitcoin')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#f7931a;">₿</div>
         <span style="font-weight:600;">BTC-Bitcoin</span>
@@ -2135,10 +2157,18 @@ function renderDepositMenu() {
       <span style="color:#636e72;">›</span>
     </div>
 
-    <div class="fiat-menu-item" onclick="showDepositDetail('ETH')">
+    <div class="fiat-menu-item" onclick="showDepositDetail('ETH-ERC20')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#627eea;">Ξ</div>
         <span style="font-weight:600;">ETH-ERC20</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+
+    <div class="fiat-menu-item" onclick="showDepositDetail('USDC-BEP20')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#2980b9;">$</div>
+        <span style="font-weight:600;">USDC-BEP20</span>
       </div>
       <span style="color:#636e72;">›</span>
     </div>
@@ -2153,19 +2183,13 @@ function renderDepositMenu() {
   `;
 }
 
-// 2. Show Deposit Detail View (Source 2 & 5)
+// 4. Show Deposit Detail View (Important စာသား အမှန်ပြင်ထားသည်)
 function showDepositDetail(coinType) {
   const container = document.getElementById('fiatContentArea');
-  // Wallet Address အတုများ
-  const addresses = {
-    'USDT-TRC20': 'TQvsNj8U9U67HHX5ayoSQkLw3jb4J3',
-    'USDT-ERC20': '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-    'BTC': '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
-    'ETH': '0x71C7656EC7ab88b098defB751B7401B5f6d8976F'
-  };
+  const data = coinData[coinType] || coinData['USDT-TRC20'];
   
-  // QR Code API (Placeholder)
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${addresses[coinType]}`;
+  // QR Code URL
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${data.address}`;
 
   container.innerHTML = `
     <div class="modal-sub-header">
@@ -2175,8 +2199,8 @@ function showDepositDetail(coinType) {
 
     <div style="margin-bottom:6px; font-size:13px; color:#b2bec3;">Wallet Address:</div>
     <div class="address-container">
-      <div class="address-text">${addresses[coinType]}</div>
-      <button class="copy-btn" onclick="alert('Address copied!')">❐</button>
+      <div class="address-text">${data.address}</div>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText('${data.address}'); alert('Copied!');">❐</button>
     </div>
 
     <div class="qr-wrapper">
@@ -2195,7 +2219,7 @@ function showDepositDetail(coinType) {
 
     <div style="margin-bottom:6px; font-size:13px; color:#b2bec3;">Upload a picture:</div>
     <div class="upload-box" onclick="document.getElementById('depFile').click()">
-      <input type="file" id="depFile" hidden>
+      <input type="file" id="depFile" hidden onchange="alert('Image selected: ' + this.files[0].name)">
       <div style="font-size:24px; color:#b2bec3;">+</div>
       <div style="font-size:12px; color:#636e72;">click to upload pictures</div>
     </div>
@@ -2207,8 +2231,8 @@ function showDepositDetail(coinType) {
     <div class="warning-box">
       <div style="color:#f39c12; font-weight:bold; font-size:13px; margin-bottom:8px;">Important:</div>
       <ul class="warning-list">
-        <li>Only send ${coinType.split('-')[0]} to this address.</li>
-        <li>Minimum deposit: 10 ${coinType.split('-')[0]}.</li>
+        <li>Only send <span style="color:white; font-weight:bold;">${coinType.split('-')[0]}</span> to this address.</li>
+        <li>Minimum deposit: <span style="color:white; font-weight:bold;">${data.min}</span>.</li>
         <li>Network fees may apply.</li>
         <li>Deposits are usually confirmed within 10-30 minutes.</li>
       </ul>
@@ -2216,13 +2240,13 @@ function showDepositDetail(coinType) {
   `;
 }
 
-// 3. Render Withdraw Menu (Source 6)
+// 5. Render Withdraw Menu (Coin အစုံထည့်ထားသည်)
 function renderWithdrawMenu() {
   const container = document.getElementById('fiatContentArea');
   const title = document.getElementById('modalTitle');
   if(title) title.textContent = 'Withdraw Funds';
   
-  updateFiatTabs('withdraw');
+  updateFiatTabs('withdraw'); // Tab ကို Withdraw ဘက်ရွှေ့မယ်
 
   if (!container) return;
 
@@ -2250,6 +2274,14 @@ function renderWithdrawMenu() {
       </div>
       <span style="color:#636e72;">›</span>
     </div>
+    
+    <div class="fiat-menu-item" onclick="alert('Please verify KYC first')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#2980b9;">$</div>
+        <span style="font-weight:600;">USDC Withdrawal</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
 
     <div class="fiat-menu-item" onclick="showWithdrawDetail()">
       <div style="display:flex; align-items:center;">
@@ -2261,7 +2293,7 @@ function renderWithdrawMenu() {
   `;
 }
 
-// 4. Show Other Withdrawal Form (Source 3)
+// 6. Other Withdraw Detail View
 function showWithdrawDetail() {
   const container = document.getElementById('fiatContentArea');
   
@@ -2286,7 +2318,7 @@ function showWithdrawDetail() {
 
     <div style="margin-bottom:6px; font-size:13px; color:#b2bec3;">Withdrawal Details (QR/Screenshot)</div>
     <div class="upload-box" style="padding:20px;" onclick="document.getElementById('wdFile').click()">
-      <input type="file" id="wdFile" hidden>
+      <input type="file" id="wdFile" hidden onchange="alert('Image selected')">
       <div style="font-size:24px; color:#b2bec3;">☁️</div>
       <div style="font-size:12px; color:#636e72;">Click to upload withdrawal details</div>
     </div>
@@ -2317,21 +2349,10 @@ function showWithdrawDetail() {
   `;
 }
 
-// 5. Helper: Update Top Tabs Style
-function updateFiatTabs(activeMode) {
-  const depBtn = document.querySelector('.fiat-tab:first-child');
-  const witBtn = document.querySelector('.fiat-tab:last-child');
-  
-  // ဒီ Function က Modal ကိုပြန်ဖွင့်စရာမလိုဘဲ Tab Design ကိုပဲ ပြောင်းပေးတာပါ
-  // HTML ကို `renderDepositMenu` က ပြန်ဆွဲပေးမှာမို့ ဒီမှာ Logic အထွေအထူးမလိုပါ
-}
-
-// 6. Switch to Service Modal (Bank Card)
+// 7. Switch to Service Modal
 function switchToService() {
-  // Fiat modal ပိတ်
   closeModal();
-  // Service modal ဖွင့် (Delay နည်းနည်းထားပေးရတယ် Transition ချောအောင်)
   setTimeout(() => {
     openModal('service');
   }, 200);
-}
+}        
