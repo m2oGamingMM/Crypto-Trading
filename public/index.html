@@ -114,17 +114,22 @@
     <div id="page-trading" class="page" style="padding-bottom: 90px;">
       
       <div class="contract-header">
-        <div class="c-tab active">Delivery Contract</div>
-        <div class="c-tab">Perpetual Contract</div>
+        <div class="c-tab active" onclick="switchContractTab('delivery')" id="tab-delivery">Delivery Contract</div>
+        <div class="c-tab" onclick="switchContractTab('perpetual')" id="tab-perpetual">Perpetual Contract</div>
       </div>
 
-      <div class="trade-info-header">
-        <button class="menu-trigger" onclick="toggleSideMenu()">
-          <span style="font-size:24px;">☰</span>
-        </button>
-        <div class="symbol-info">
-          <span id="currentSymbolName" style="font-weight:bold; font-size:16px;">BTC/USDT</span>
-          <span id="currentSymbolChange" style="font-size:12px; color:#ff6b6b; margin-left:8px;">-0.21%</span>
+      <div class="trade-info-header" style="justify-content: space-between;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button class="menu-trigger" onclick="toggleSideMenu()">
+            <span style="font-size:24px;">☰</span>
+          </button>
+          <div class="symbol-info">
+            <span id="currentSymbolName" style="font-weight:bold; font-size:16px;">BTC/USDT</span>
+            <span id="currentSymbolChange" style="font-size:12px; color:#ff6b6b; margin-left:8px;">-0.21%</span>
+          </div>
+        </div>
+        <div id="connectionStatus" style="font-size: 10px; padding: 4px 8px; border-radius: 4px; background: #2d3436; color: #ff6b6b; font-weight:bold;">
+          🔴 Disconnected
         </div>
       </div>
 
@@ -145,64 +150,165 @@
         <span>1hour</span>
         <span>1day</span>
       </div>
-      <div id="tv_chart_container" style="height: 300px; background:#12121a; margin-bottom:10px;"></div>
+      <div id="tv_chart_container" style="height: 280px; background:#12121a; margin-bottom:10px;"></div>
       <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
-      <div class="time-grid-container">
-        <div class="time-box active" onclick="selectTime(30, 15, this)">
-          <div class="t-sec">30 second</div>
-          <div class="t-rate">profit rate 15%</div>
+      <div id="view-delivery" style="display:block;">
+        <div class="time-grid-container">
+          <div class="time-box active" onclick="selectTime(30, 15, this)">
+            <div class="t-sec">30 second</div>
+            <div class="t-rate">profit rate 15%</div>
+          </div>
+          <div class="time-box" onclick="selectTime(60, 20, this)">
+            <div class="t-sec">60 second</div>
+            <div class="t-rate">profit rate 20%</div>
+          </div>
+          <div class="time-box" onclick="selectTime(180, 50, this)">
+            <div class="t-sec">180 second</div>
+            <div class="t-rate">profit rate 50%</div>
+          </div>
         </div>
-        <div class="time-box" onclick="selectTime(60, 20, this)">
-          <div class="t-sec">60 second</div>
-          <div class="t-rate">profit rate 20%</div>
+
+        <div class="trade-input-area">
+           <div class="trans-mode">Transaction mode</div>
+           <div class="mode-toggles">
+             <button class="mode-btn active">USDT</button>
+             <button class="mode-btn">USDC</button>
+           </div>
+           
+           <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#b2bec3;">
+             <span>Opening quantity</span>
+             <span>Min: 1</span>
+           </div>
+           
+           <div class="qty-input-box">
+             <input type="number" id="deliveryAmount" placeholder="0" />
+           </div>
+
+           <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px;">
+             <span style="color:#f39c12;">💰 Account Balance</span>
+             <span style="color:white;" id="contractBalance">0.0000 USDT</span>
+           </div>
         </div>
-        <div class="time-box" onclick="selectTime(120, 30, this)">
-          <div class="t-sec">120 second</div>
-          <div class="t-rate">profit rate 30%</div>
-        </div>
-        <div class="time-box" onclick="selectTime(180, 50, this)">
-          <div class="t-sec">180 second</div>
-          <div class="t-rate">profit rate 50%</div>
-        </div>
-        <div class="time-box" onclick="selectTime(300, 70, this)">
-          <div class="t-sec">300 second</div>
-          <div class="t-rate">profit rate 70%</div>
-        </div>
-        <div class="time-box" onclick="selectTime(600, 90, this)">
-          <div class="t-sec">600 second</div>
-          <div class="t-rate">profit rate 90%</div>
+
+        <div class="big-action-buttons">
+          <button class="action-btn buy" onclick="submitDeliveryOrder('buy')">Buy</button>
+          <button class="action-btn sell" onclick="submitDeliveryOrder('sell')">Sell</button>
         </div>
       </div>
 
-      <div class="trade-input-area">
-        <div class="trans-mode">Transaction mode</div>
-        <div class="mode-toggles">
-          <button class="mode-btn active">USDT</button>
-          <button class="mode-btn">USDC</button>
+      <div id="view-perpetual" style="display:none;">
+        <div class="trade-input-area">
+          <div class="trading-form" style="padding:0;">
+             <div class="form-group">
+                <label>Leverage</label>
+                <div class="mode-toggles" style="margin-top:0;">
+                   <button class="mode-btn active">10x</button>
+                   <button class="mode-btn">20x</button>
+                   <button class="mode-btn">50x</button>
+                   <button class="mode-btn">100x</button>
+                </div>
+             </div>
+             <div class="form-group">
+               <label>Amount (USDT)</label>
+               <div class="qty-input-box">
+                 <input type="number" id="perpAmount" placeholder="Enter amount">
+               </div>
+             </div>
+             
+             <div class="big-action-buttons" style="padding: 10px 0;">
+               <button class="action-btn buy" onclick="submitPerpetualOrder('buy')">Long (Buy)</button>
+               <button class="action-btn sell" onclick="submitPerpetualOrder('sell')">Short (Sell)</button>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-history-section" style="border-top: 5px solid #0a0a0f;">
+        <div class="history-tabs-header">
+           <button class="h-tab-btn active" onclick="switchHistoryTab('transaction')">In transaction</button>
+           <button class="h-tab-btn" onclick="switchHistoryTab('closed')">Position closed</button>
         </div>
         
-        <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#b2bec3;">
-          <span>Opening quantity</span>
-          <span>Minimum order: 1</span>
-        </div>
-        
-        <div class="qty-input-box">
-          <input type="number" id="deliveryAmount" placeholder="0" />
-          <span>></span>
+        <div id="hist-content-transaction" style="display:block; min-height:150px; background:#12121a; padding:20px; text-align:center;">
+           <div style="font-size:40px; color:#2d3436; margin-bottom:10px;">📄</div>
+           <div style="color:#636e72; font-size:12px;">No record yet</div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px;">
-          <span style="color:#f39c12;">💰 Second contract account</span>
-          <span style="color:white;" id="contractBalance">0.0000 USDT</span>
+        <div id="hist-content-closed" style="display:none; background:#12121a;">
+           <div class="closed-item">
+              <div class="closed-header">
+                 <span style="color:#b2bec3;">Position closed</span>
+                 <span style="color:white; font-weight:bold;">XAU/USDT 30 second</span>
+              </div>
+              <div class="closed-grid">
+                 <div>
+                    <div class="grid-lbl">quantity</div>
+                    <div class="grid-val">100</div>
+                 </div>
+                 <div>
+                    <div class="grid-lbl">Purchase price</div>
+                    <div class="grid-val">4196.84</div>
+                 </div>
+                 <div>
+                    <div class="grid-lbl">Transaction price</div>
+                    <div class="grid-val">4197.25</div>
+                 </div>
+                 <div style="text-align:right;">
+                    <div class="grid-lbl">Profit and loss</div>
+                    <div class="grid-val up">+15.0000</div>
+                 </div>
+              </div>
+              <div class="closed-footer">
+                 <div>
+                    <div class="grid-lbl">position opening time</div>
+                    <div class="grid-val sm">2025-12-10 06:22:44</div>
+                 </div>
+                 <div style="text-align:right;">
+                    <div class="grid-lbl">Close time</div>
+                    <div class="grid-val sm">2025-12-10 06:23:14</div>
+                 </div>
+              </div>
+           </div>
+           
+           <div class="closed-item">
+              <div class="closed-header">
+                 <span style="color:#b2bec3;">Position closed</span>
+                 <span style="color:white; font-weight:bold;">BTC/USDT 60 second</span>
+              </div>
+              <div class="closed-grid">
+                 <div>
+                    <div class="grid-lbl">quantity</div>
+                    <div class="grid-val">50</div>
+                 </div>
+                 <div>
+                    <div class="grid-lbl">Purchase price</div>
+                    <div class="grid-val">92100.00</div>
+                 </div>
+                 <div>
+                    <div class="grid-lbl">Transaction price</div>
+                    <div class="grid-val">92050.00</div>
+                 </div>
+                 <div style="text-align:right;">
+                    <div class="grid-lbl">Profit and loss</div>
+                    <div class="grid-val down">-50.0000</div>
+                 </div>
+              </div>
+              <div class="closed-footer">
+                 <div>
+                    <div class="grid-lbl">position opening time</div>
+                    <div class="grid-val sm">2025-12-10 07:00:00</div>
+                 </div>
+                 <div style="text-align:right;">
+                    <div class="grid-lbl">Close time</div>
+                    <div class="grid-val sm">2025-12-10 07:01:00</div>
+                 </div>
+              </div>
+           </div>
+
         </div>
       </div>
 
-      <div class="big-action-buttons">
-        <button class="action-btn buy" onclick="submitDeliveryOrder('buy')">Buy</button>
-        <button class="action-btn sell" onclick="submitDeliveryOrder('sell')">Sell</button>
-      </div>
-      
       <div class="side-menu-backdrop" id="sideMenuBackdrop" onclick="toggleSideMenu()"></div>
       <div class="side-menu-drawer" id="sideMenuDrawer">
         <div class="side-menu-header">
