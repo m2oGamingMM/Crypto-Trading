@@ -1173,14 +1173,32 @@ color: #00b894; }
 
 .modal-content {
   background: #1e1e2d;
-  width: 90%;
-  max-width: 360px;
+  width: 95%; /* ဖုန်းမှာ ပိုကျယ်အောင် */
+  max-width: 400px;
   border-radius: 20px;
-  padding: 24px;
+  padding: 20px;
   position: relative;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   border: 1px solid rgba(255,255,255,0.1);
   animation: slideUp 0.3s ease-out;
+  
+  /* Scroll လုပ်လို့ရမည့် ကုဒ်များ */
+  max-height: 85vh; /* မျက်နှာပြင်ရဲ့ 85% ထက် မကျော်စေရ */
+  overflow-y: auto; /* ကျော်သွားရင် Scroll ဆွဲမယ် */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbar ကို လှအောင်ပြင်မယ် */
+.modal-content::-webkit-scrollbar {
+  width: 4px;
+}
+.modal-content::-webkit-scrollbar-track {
+  background: #12121a;
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background: #2d3436;
+  border-radius: 4px;
 }
 
 @keyframes slideUp {
@@ -1363,6 +1381,7 @@ body.light-mode .modal-input {
   color: #ff6b6b;
   font-size: 12px;
 }
+
 /* --- FIAT MODAL REDESIGN (Deposit/Withdraw) --- */
 
 /* Menu List Item Design */
