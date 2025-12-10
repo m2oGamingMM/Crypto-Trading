@@ -180,9 +180,9 @@
         <h1>Derivatives</h1>
       </header>
       <div class="derivatives-tabs">
-        <button class="deriv-tab active">Futures</button>
-        <button class="deriv-tab">Options</button>
-        <button class="deriv-tab">Perpetual</button>
+        <button class="deriv-tab active" onclick="switchDerivTab('futures')">Futures</button>
+        <button class="deriv-tab" onclick="switchDerivTab('options')">Options</button>
+        <button class="deriv-tab" onclick="switchDerivTab('perpetual')">Perpetual</button>
       </div>
       <div class="derivatives-info">
         
@@ -230,12 +230,12 @@
       <div class="leverage-info">
         <h3>Leverage Options</h3>
         <div class="leverage-buttons">
-          <button class="leverage-btn">1x</button>
-          <button class="leverage-btn">5x</button>
-          <button class="leverage-btn active">10x</button>
-          <button class="leverage-btn">25x</button>
-          <button class="leverage-btn">50x</button>
-          <button class="leverage-btn">100x</button>
+          <button class="leverage-btn" onclick="setLeverage(this, 1)">1x</button>
+          <button class="leverage-btn" onclick="setLeverage(this, 5)">5x</button>
+          <button class="leverage-btn active" onclick="setLeverage(this, 10)">10x</button>
+          <button class="leverage-btn" onclick="setLeverage(this, 25)">25x</button>
+          <button class="leverage-btn" onclick="setLeverage(this, 50)">50x</button>
+          <button class="leverage-btn" onclick="setLeverage(this, 100)">100x</button>
         </div>
         <p class="leverage-warning">Higher leverage increases both potential profits and risks.</p>
       </div>
@@ -254,6 +254,10 @@
         
         <div style="display:flex; gap:12px; margin-top:24px;">
           <button class="asset-action-btn" onclick="openModal('fiat')" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold; cursor: pointer;">
+            <span>📥</span> Deposit
+          </button>
+          
+          <button class="asset-action-btn" onclick="openModal('fiat')" style="flex:1; padding:10px; background:#16213e; border:1px solid #00b894; border-radius:8px; color:#00b894; font-weight:bold; cursor: pointer;">
             <span>📤</span> Withdraw
           </button>
           
@@ -264,9 +268,9 @@
       </div>
 
       <div class="assets-tabs" style="display:flex; padding:0 16px; border-bottom:1px solid #2d3436; margin-bottom:10px;">
-        <button class="asset-tab active" style="padding:10px 20px; background:none; border:none; color:#00b894; border-bottom:2px solid #00b894; font-weight:bold;">Spot</button>
-        <button class="asset-tab" style="padding:10px 20px; background:none; border:none; color:#636e72;">Futures</button>
-        <button class="asset-tab" style="padding:10px 20px; background:none; border:none; color:#636e72;">Earn</button>
+        <button class="asset-tab active" onclick="switchAssetTab('spot')" style="padding:10px 20px; background:none; border:none; color:#00b894; border-bottom:2px solid #00b894; font-weight:bold;">Spot</button>
+        <button class="asset-tab" onclick="switchAssetTab('futures')" style="padding:10px 20px; background:none; border:none; color:#636e72;">Futures</button>
+        <button class="asset-tab" onclick="switchAssetTab('earn')" style="padding:10px 20px; background:none; border:none; color:#636e72;">Earn</button>
       </div>
 
       <div class="assets-list" id="assetsListContainer" style="padding:0 16px;">
