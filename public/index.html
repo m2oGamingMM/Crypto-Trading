@@ -186,44 +186,46 @@
       </div>
       <div class="derivatives-info">
         
-        <div class="info-card">
-          <h3>BTC/USDT Perpetual</h3>
-          <div class="deriv-price" id="deriv-price-BTC">$91,128.00</div>
-          <div class="deriv-stats">
-            <div class="stat">
-              <span class="stat-label">24h Volume</span>
-              <span class="stat-value">$2.5B</span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Open Interest</span>
-              <span class="stat-value">$1.2B</span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Funding Rate</span>
-              <span class="stat-value up">0.01%</span>
-            </div>
-          </div>
-          <button class="trade-now-btn" onclick="showCoinDetail('BTC')">Trade Now</button>
+        <div id="deriv-content-futures" style="display:block;">
+           <div class="info-card" style="text-align:center; padding:40px;">
+              <div style="font-size:40px; margin-bottom:10px;">📉</div>
+              <h3>Quarterly Futures</h3>
+              <p style="color:#636e72; font-size:13px;">Trade delivery contracts with expiration dates.</p>
+              <button class="trade-now-btn" style="margin-top:15px; background:#2d3436;">Market Closed</button>
+           </div>
         </div>
 
-        <div class="info-card">
-          <h3>ETH/USDT Perpetual</h3>
-          <div class="deriv-price" id="deriv-price-ETH">$3,112.00</div>
-          <div class="deriv-stats">
-            <div class="stat">
-              <span class="stat-label">24h Volume</span>
-              <span class="stat-value">$1.8B</span>
-              </div>
-            <div class="stat">
-              <span class="stat-label">Open Interest</span>
-              <span class="stat-value">$890M</span>
+        <div id="deriv-content-options" style="display:none;">
+           <div class="info-card" style="text-align:center; padding:40px;">
+              <div style="font-size:40px; margin-bottom:10px;">📊</div>
+              <h3>Crypto Options</h3>
+              <p style="color:#636e72; font-size:13px;">Call & Put options for hedging risks.</p>
+              <button class="trade-now-btn" style="margin-top:15px; background:#2d3436;">Coming Soon</button>
+           </div>
+        </div>
+
+        <div id="deriv-content-perpetual" style="display:none;">
+          <div class="info-card">
+            <h3>BTC/USDT Perpetual</h3>
+            <div class="deriv-price" id="deriv-price-BTC">$91,128.00</div>
+            <div class="deriv-stats">
+              <div class="stat"><span class="stat-label">24h Vol</span><span class="stat-value">$2.5B</span></div>
+              <div class="stat"><span class="stat-label">Open Int</span><span class="stat-value">$1.2B</span></div>
+              <div class="stat"><span class="stat-label">Funding</span><span class="stat-value up">0.01%</span></div>
             </div>
-            <div class="stat">
-              <span class="stat-label">Funding Rate</span>
-              <span class="stat-value up">0.008%</span>
-            </div>
+            <button class="trade-now-btn" onclick="showCoinDetail('BTC')">Trade Now</button>
           </div>
-          <button class="trade-now-btn" onclick="showCoinDetail('ETH')">Trade Now</button>
+
+          <div class="info-card">
+            <h3>ETH/USDT Perpetual</h3>
+            <div class="deriv-price" id="deriv-price-ETH">$3,112.00</div>
+            <div class="deriv-stats">
+              <div class="stat"><span class="stat-label">24h Vol</span><span class="stat-value">$1.8B</span></div>
+              <div class="stat"><span class="stat-label">Open Int</span><span class="stat-value">$890M</span></div>
+              <div class="stat"><span class="stat-label">Funding</span><span class="stat-value up">0.008%</span></div>
+            </div>
+            <button class="trade-now-btn" onclick="showCoinDetail('ETH')">Trade Now</button>
+          </div>
         </div>
 
       </div>
@@ -253,15 +255,15 @@
         <p style="color:#00b894; margin-top:5px;">≈ $112,450.00</p>
         
         <div style="display:flex; gap:12px; margin-top:24px;">
-          <button class="asset-action-btn" onclick="openModal('fiat')" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold; cursor: pointer;">
+          <button class="asset-action-btn" onclick="openModal('fiat', 'deposit')" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold; cursor: pointer;">
             <span>📥</span> Deposit
           </button>
           
-          <button class="asset-action-btn" onclick="openModal('fiat')" style="flex:1; padding:10px; background:#16213e; border:1px solid #00b894; border-radius:8px; color:#00b894; font-weight:bold; cursor: pointer;">
+          <button class="asset-action-btn" onclick="openModal('fiat', 'withdraw')" style="flex:1; padding:10px; background:#16213e; border:1px solid #00b894; border-radius:8px; color:#00b894; font-weight:bold; cursor: pointer;">
             <span>📤</span> Withdraw
           </button>
           
-          <button class="asset-action-btn" onclick="openModal('service')" style="flex:1; padding:10px; background:#16213e; border:1px solid #00b894; border-radius:8px; color:#00b894; font-weight:bold; cursor: pointer;">
+          <button class="asset-action-btn" onclick="openModal('transfer')" style="flex:1; padding:10px; background:#16213e; border:1px solid #00b894; border-radius:8px; color:#00b894; font-weight:bold; cursor: pointer;">
             <span>🔄</span> Transfer
           </button>
         </div>
