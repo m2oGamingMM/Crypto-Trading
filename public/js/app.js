@@ -993,47 +993,36 @@ function openModal(type, subType = null) {
       `;
       break;
 
-    // CASE ပြင်ဆင်ခြင်း: Fiat Modal (Deposit/Withdraw Auto Switch)
+    // CASE: Fiat / Crypto Transfer System (Redesigned)
     case 'fiat':
-      title.textContent = 'Deposit Funds'; // Default title
-      body.innerHTML = `
+      // subType = 'deposit' (default) or 'withdraw'
+      const mode = subType || 'deposit';
+      
+      // Default Header Buttons
+      const headerHTML = `
         <div style="display:flex; gap:8px; margin-bottom:16px;">
-          <button id="btn-fiat-deposit" class="fiat-tab active" onclick="switchFiatTab('deposit', this)" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">Deposit</button>
-          <button id="btn-fiat-withdraw" class="fiat-tab" onclick="switchFiatTab('withdraw', this)" style="flex:1; padding:10px; background:#1e1e2d; border:1px solid #2d3436; border-radius:8px; color:#b2bec3; font-weight:bold; cursor:pointer;">Withdraw</button>
+          <button class="fiat-tab ${mode === 'deposit' ? 'active' : ''}" 
+            onclick="renderDepositMenu()" 
+            style="flex:1; padding:10px; background:${mode === 'deposit' ? '#00b894' : '#1e1e2d'}; border:${mode === 'deposit' ? 'none' : '1px solid #2d3436'}; border-radius:8px; color:${mode === 'deposit' ? 'white' : '#b2bec3'}; font-weight:bold; cursor:pointer;">
+            Deposit
+          </button>
+          <button class="fiat-tab ${mode === 'withdraw' ? 'active' : ''}" 
+            onclick="renderWithdrawMenu()" 
+            style="flex:1; padding:10px; background:${mode === 'withdraw' ? '#00b894' : '#1e1e2d'}; border:${mode === 'withdraw' ? 'none' : '1px solid #2d3436'}; border-radius:8px; color:${mode === 'withdraw' ? 'white' : '#b2bec3'}; font-weight:bold; cursor:pointer;">
+            Withdraw
+          </button>
         </div>
-        
-        <div id="fiatFormContainer">
-           <div style="margin-bottom:12px;">
-            <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Select Currency</label>
-            <select id="fiatCurrency" class="modal-input" style="margin:0;" onchange="updateFiatRate()">
-              <option value="MMK">🇲🇲 Myanmar Kyat (MMK)</option>
-              <option value="USD">🇺🇸 US Dollar (USD)</option>
-            </select>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Payment Method</label>
-            <select id="paymentMethod" class="modal-input" style="margin:0;">
-              <option>💳 KBZ Pay</option>
-              <option>📱 Wave Pay</option>
-            </select>
-            </div>
-          <div style="margin-bottom:12px;">
-            <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Amount</label>
-            <div style="position:relative;">
-              <input type="number" id="fiatAmount" class="modal-input" style="margin:0; padding-right:60px;" placeholder="Enter amount" oninput="calculateFiatToUsdt()">
-              <span id="fiatCurrencyLabel" style="position:absolute; right:16px; top:50%; transform:translateY(-50%); color:#636e72;">MMK</span>
-            </div>
-          </div>
-          <button class="modal-action-btn" onclick="processFiatDeposit()">Continue</button>
-        </div>
+        <div id="fiatContentArea"></div>
       `;
       
-      // Withdraw ကို နှိပ်လာခဲ့ရင် Auto ပြောင်းပေးမယ်
-      if (subType === 'withdraw') {
-        setTimeout(() => {
-          const wBtn = document.getElementById('btn-fiat-withdraw');
-          if(wBtn) switchFiatTab('withdraw', wBtn);
-        }, 50);
+      title.textContent = mode === 'deposit' ? 'Deposit Coins' : 'Withdraw Funds';
+      body.innerHTML = headerHTML;
+      
+      // Initial Render
+      if (mode === 'deposit') {
+        setTimeout(renderDepositMenu, 0);
+      } else {
+        setTimeout(renderWithdrawMenu, 0);
       }
       break;
       
@@ -2104,4 +2093,245 @@ function saveNotificationSetting(setting, enabled) {
   };
   settings[setting] = enabled;
   localStorage.setItem('notificationSettings', JSON.stringify(settings));
+}
+
+// --- FIAT / ASSET MODAL HELPER FUNCTIONS ---
+
+// 1. Render Deposit Menu (Source 4)
+function renderDepositMenu() {
+  const container = document.getElementById('fiatContentArea');
+  const title = document.getElementById('modalTitle');
+  if(title) title.textContent = 'Deposit Coins';
+  
+  // Tab Styling update
+  updateFiatTabs('deposit');
+
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="margin-bottom:12px; color:#636e72; font-size:12px;">Please select recharge channel:</div>
+    
+    <div class="fiat-menu-item" onclick="showDepositDetail('USDT-TRC20')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#26a17b;">T</div>
+        <span style="font-weight:600;">USDT-TRC20</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+
+    <div class="fiat-menu-item" onclick="showDepositDetail('USDT-ERC20')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#26a17b;">T</div>
+        <span style="font-weight:600;">USDT-ERC20</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+
+    <div class="fiat-menu-item" onclick="showDepositDetail('BTC')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#f7931a;">₿</div>
+        <span style="font-weight:600;">BTC-Bitcoin</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+
+    <div class="fiat-menu-item" onclick="showDepositDetail('ETH')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#627eea;">Ξ</div>
+        <span style="font-weight:600;">ETH-ERC20</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+
+    <div class="fiat-menu-item" onclick="switchToService()">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#0984e3;">💳</div>
+        <span style="font-weight:600;">Bank card recharge</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+  `;
+}
+
+// 2. Show Deposit Detail View (Source 2 & 5)
+function showDepositDetail(coinType) {
+  const container = document.getElementById('fiatContentArea');
+  // Wallet Address အတုများ
+  const addresses = {
+    'USDT-TRC20': 'TQvsNj8U9U67HHX5ayoSQkLw3jb4J3',
+    'USDT-ERC20': '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    'BTC': '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+    'ETH': '0x71C7656EC7ab88b098defB751B7401B5f6d8976F'
+  };
+  
+  // QR Code API (Placeholder)
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${addresses[coinType]}`;
+
+  container.innerHTML = `
+    <div class="modal-sub-header">
+      <button class="back-btn" onclick="renderDepositMenu()">←</button>
+      <span style="font-weight:bold; font-size:16px;">Deposit ${coinType}</span>
+    </div>
+
+    <div style="margin-bottom:6px; font-size:13px; color:#b2bec3;">Wallet Address:</div>
+    <div class="address-container">
+      <div class="address-text">${addresses[coinType]}</div>
+      <button class="copy-btn" onclick="alert('Address copied!')">❐</button>
+    </div>
+
+    <div class="qr-wrapper">
+      <img src="${qrUrl}" alt="QR Code">
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Number of deposits:</label>
+      <input type="number" class="modal-input" placeholder="Please enter deposit amount">
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Trading account email:</label>
+      <input type="email" class="modal-input" placeholder="Please enter your email">
+    </div>
+
+    <div style="margin-bottom:6px; font-size:13px; color:#b2bec3;">Upload a picture:</div>
+    <div class="upload-box" onclick="document.getElementById('depFile').click()">
+      <input type="file" id="depFile" hidden>
+      <div style="font-size:24px; color:#b2bec3;">+</div>
+      <div style="font-size:12px; color:#636e72;">click to upload pictures</div>
+    </div>
+
+    <button class="modal-action-btn" style="background:#0984e3;" onclick="alert('Screenshot uploaded! Waiting for approval.')">
+      Upload Transfer Screenshot
+    </button>
+
+    <div class="warning-box">
+      <div style="color:#f39c12; font-weight:bold; font-size:13px; margin-bottom:8px;">Important:</div>
+      <ul class="warning-list">
+        <li>Only send ${coinType.split('-')[0]} to this address.</li>
+        <li>Minimum deposit: 10 ${coinType.split('-')[0]}.</li>
+        <li>Network fees may apply.</li>
+        <li>Deposits are usually confirmed within 10-30 minutes.</li>
+      </ul>
+    </div>
+  `;
+}
+
+// 3. Render Withdraw Menu (Source 6)
+function renderWithdrawMenu() {
+  const container = document.getElementById('fiatContentArea');
+  const title = document.getElementById('modalTitle');
+  if(title) title.textContent = 'Withdraw Funds';
+  
+  updateFiatTabs('withdraw');
+
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="fiat-menu-item" onclick="alert('Please verify KYC first')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#26a17b;">₮</div>
+        <span style="font-weight:600;">USDT Withdrawal</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+
+    <div class="fiat-menu-item" onclick="alert('Please verify KYC first')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#f7931a;">₿</div>
+        <span style="font-weight:600;">BTC Withdrawal</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+
+    <div class="fiat-menu-item" onclick="alert('Please verify KYC first')">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#627eea;">Ξ</div>
+        <span style="font-weight:600;">ETH Withdrawal</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+
+    <div class="fiat-menu-item" onclick="showWithdrawDetail()">
+      <div style="display:flex; align-items:center;">
+        <div class="fiat-icon-circle" style="background:#6c5ce7;">+</div>
+        <span style="font-weight:600;">Other</span>
+      </div>
+      <span style="color:#636e72;">›</span>
+    </div>
+  `;
+}
+
+// 4. Show Other Withdrawal Form (Source 3)
+function showWithdrawDetail() {
+  const container = document.getElementById('fiatContentArea');
+  
+  container.innerHTML = `
+    <div class="modal-sub-header">
+      <button class="back-btn" onclick="renderWithdrawMenu()">←</button>
+      <span style="font-weight:bold; font-size:16px;">Other Withdrawal</span>
+    </div>
+
+    <div style="background:#1e1e2d; padding:16px; border-radius:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-size:12px; color:#b2bec3;">Available Balance:</div>
+        <div style="font-size:18px; color:#ff6b6b; font-weight:bold;">${userWallet.usdt.toFixed(4)} USDT</div>
+      </div>
+      <button style="background:#2d3436; border:none; color:white; padding:8px; border-radius:6px;">↻</button>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Withdrawal Type</label>
+      <input type="text" class="modal-input" placeholder="Enter withdrawal type (e.g., LTC, XRP)">
+    </div>
+
+    <div style="margin-bottom:6px; font-size:13px; color:#b2bec3;">Withdrawal Details (QR/Screenshot)</div>
+    <div class="upload-box" style="padding:20px;" onclick="document.getElementById('wdFile').click()">
+      <input type="file" id="wdFile" hidden>
+      <div style="font-size:24px; color:#b2bec3;">☁️</div>
+      <div style="font-size:12px; color:#636e72;">Click to upload withdrawal details</div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Withdrawal Address</label>
+      <input type="text" class="modal-input" placeholder="Enter withdrawal address">
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Amount</label>
+      <div style="display:flex; gap:8px;">
+        <input type="number" class="modal-input" placeholder="Enter withdrawal amount" style="margin:0;">
+        <button onclick="alert('All selected')" style="background:#00b894; border:none; color:white; padding:0 16px; border-radius:10px; font-weight:bold;">All</button>
+      </div>
+      <div style="font-size:10px; color:#f39c12; margin-top:4px;">Minimum withdrawal: 10.00 USDT</div>
+    </div>
+
+    <div style="background:#1e1e2d; padding:12px; border-radius:8px; display:flex; justify-content:space-between; margin-bottom:16px;">
+      <span style="color:#b2bec3; font-size:13px;">Arrival Quantity:</span>
+      <div style="text-align:right;">
+        <div style="color:#00b894; font-weight:bold;">0.0 USDT</div>
+        <div style="font-size:10px; color:#636e72;">Fee: 2% USDT</div>
+      </div>
+    </div>
+
+    <button class="modal-action-btn" onclick="alert('Withdrawal request submitted!')">Confirm Withdrawal</button>
+  `;
+}
+
+// 5. Helper: Update Top Tabs Style
+function updateFiatTabs(activeMode) {
+  const depBtn = document.querySelector('.fiat-tab:first-child');
+  const witBtn = document.querySelector('.fiat-tab:last-child');
+  
+  // ဒီ Function က Modal ကိုပြန်ဖွင့်စရာမလိုဘဲ Tab Design ကိုပဲ ပြောင်းပေးတာပါ
+  // HTML ကို `renderDepositMenu` က ပြန်ဆွဲပေးမှာမို့ ဒီမှာ Logic အထွေအထူးမလိုပါ
+}
+
+// 6. Switch to Service Modal (Bank Card)
+function switchToService() {
+  // Fiat modal ပိတ်
+  closeModal();
+  // Service modal ဖွင့် (Delay နည်းနည်းထားပေးရတယ် Transition ချောအောင်)
+  setTimeout(() => {
+    openModal('service');
+  }, 200);
 }
