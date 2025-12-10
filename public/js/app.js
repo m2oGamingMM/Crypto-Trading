@@ -491,175 +491,264 @@ function showTransferModal() {
   alert('Transfer feature - Coming soon!');
 }
 
-// --- DELIVERY & PERPETUAL LOGIC ---
+// --- DELIVERY & PERPETUAL LOGIC (FINAL CLEAN VERSION) ---
 let isSideMenuOpen = false;
 let currentDuration = 30;
 let currentProfitRate = 15;
-let currentContractMode = 'delivery'; // 'delivery' or 'perpetual'
+let currentContractMode = 'delivery'; 
+let currentCurrency = 'USDT';
+let closedPositions = [];
 
-function switchContractTab(mode) {
-  currentContractMode = mode;
+// 1. Transaction Mode (USDT / USDC)
+function selectTransMode(currency) {
+  currentCurrency = currency;
+  const usdtBtn = document.getElementById('mode-usdt');
+  const usdcBtn = document.getElementById('mode-usdc');
+  if(usdtBtn) usdtBtn.className = currency === 'USDT' ? 'mode-btn active' : 'mode-btn';
+  if(usdcBtn) usdcBtn.className = currency === 'USDC' ? 'mode-btn active' : 'mode-btn';
   
-  // Tab Styling
-  document.getElementById('tab-delivery').className = mode === 'delivery' ? 'c-tab active' : 'c-tab';
-  document.getElementById('tab-perpetual').className = mode === 'perpetual' ? 'c-tab active' : 'c-tab';
-  
-  // Content Switching
-  document.getElementById('view-delivery').style.display = mode === 'delivery' ? 'block' : 'none';
-  document.getElementById('view-perpetual').style.display = mode === 'perpetual' ? 'block' : 'none';
-}
-
-function switchHistoryTab(tab) {
-  const btns = document.querySelectorAll('.h-tab-btn');
-  btns.forEach(b => b.classList.remove('active'));
-  
-  // Simple check for text content or index (Here simpler to just toggle class on click event target if passed, but strictly separate IDs is safer. For now:)
-  // Let's assume the button passed 'this' in a real scenario, but here we hardcode visibility
-  
-  if(tab === 'transaction') {
-     btns[0].classList.add('active');
-     document.getElementById('hist-content-transaction').style.display = 'block';
-     document.getElementById('hist-content-closed').style.display = 'none';
-  } else {
-     btns[1].classList.add('active');
-     document.getElementById('hist-content-transaction').style.display = 'none';
-     document.getElementById('hist-content-closed').style.display = 'block';
+  const balanceEl = document.getElementById('contractBalance');
+  if(balanceEl && typeof userWallet !== 'undefined') {
+      const bal = currency === 'USDT' ? userWallet.usdt : (userWallet.usdt * 0.99); 
+      balanceEl.textContent = `${bal.toFixed(4)} ${currency}`;
   }
 }
 
-function submitPerpetualOrder(type) {
-  const amount = document.getElementById('perpAmount').value;
-  alert(`PERPETUAL ${type.toUpperCase()} Order\nAmount: ${amount}`);
+// 2. Tab Switching
+function switchContractTab(mode) {
+  currentContractMode = mode;
+  const delTab = document.getElementById('tab-delivery');
+  const perpTab = document.getElementById('tab-perpetual');
+  const delView = document.getElementById('view-delivery');
+  const perpView = document.getElementById('view-perpetual');
+
+  if(delTab) delTab.className = mode === 'delivery' ? 'c-tab active' : 'c-tab';
+  if(perpTab) perpTab.className = mode === 'perpetual' ? 'c-tab active' : 'c-tab';
+  if(delView) delView.style.display = mode === 'delivery' ? 'block' : 'none';
+  if(perpView) perpView.style.display = mode === 'perpetual' ? 'block' : 'none';
 }
 
+// 3. Time Selection (8 Buttons Support)
+function selectTime(seconds, rate, element) {
+  currentDuration = seconds;
+  currentProfitRate = rate;
+  document.querySelectorAll('.time-box').forEach(box => box.classList.remove('active'));
+  if(element) element.classList.add('active');
+}
+
+// 4. Side Menu Logic
 function toggleSideMenu() {
   const backdrop = document.getElementById('sideMenuBackdrop');
   const drawer = document.getElementById('sideMenuDrawer');
-  
   isSideMenuOpen = !isSideMenuOpen;
   
   if (isSideMenuOpen) {
-    backdrop.style.display = 'block';
-    // Delay slightly to allow CSS transition
-    setTimeout(() => { drawer.classList.add('open'); }, 10);
-    renderSideMenuCoins();
+    if(backdrop) backdrop.style.display = 'block';
+    if(drawer) setTimeout(() => { drawer.classList.add('open'); }, 10);
+    renderSideMenuCoins(); 
   } else {
-    drawer.classList.remove('open');
-    setTimeout(() => { backdrop.style.display = 'none'; }, 300);
+    if(drawer) drawer.classList.remove('open');
+    if(backdrop) setTimeout(() => { backdrop.style.display = 'none'; }, 300);
   }
 }
 
 function renderSideMenuCoins() {
   const container = document.getElementById('sideMenuCoinList');
   if (!container) return;
-  
-  if (!allPrices || allPrices.length === 0) {
-    container.innerHTML = '<div style="padding:16px;">Loading...</div>';
+  if (typeof allPrices === 'undefined' || !allPrices || allPrices.length === 0) {
+    container.innerHTML = '<div style="padding:16px;">Loading market data...</div>';
     return;
   }
-
   container.innerHTML = allPrices.map(coin => `
-    <div class="side-coin-item" onclick="selectSideMenuCoin('${coin.symbol}')">
-      <div style="font-weight:bold; font-size:14px; color:white;">${coin.symbol}<span style="font-size:10px; color:#636e72;">/USDT</span></div>
-      <div style="color:${coin.change24h >= 0 ? '#00b894' : '#ff6b6b'}; font-size:14px;">${coin.price.toLocaleString()}</div>
+    <div class="side-coin-item" onclick="selectSideMenuCoin('${coin.symbol}')" style="display:flex; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #1e1e2d; cursor:pointer;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="${coin.image}" style="width:24px; height:24px; border-radius:50%;">
+        <div>
+           <div style="font-weight:bold; font-size:14px; color:white;">${coin.symbol}</div>
+           <div style="font-size:10px; color:#636e72;">Perpetual</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:14px; color:white;">${coin.price.toLocaleString()}</div>
+        <div style="font-size:10px; color:${coin.change24h >= 0 ? '#00b894' : '#ff6b6b'};">${coin.change24h.toFixed(2)}%</div>
+      </div>
     </div>
   `).join('');
 }
 
 function selectSideMenuCoin(symbol) {
-  // Update Global Trading Symbol
-  const select = document.getElementById('tradingPair');
-  if (select) {
-     if (!select.querySelector(`option[value="${symbol}"]`)) {
-        const opt = document.createElement('option');
-        opt.value = symbol;
-        opt.text = symbol + "/USDT";
-        select.add(opt);
-     }
-     select.value = symbol;
-  }
-  
-  // Update Display
-  showCoinDetail(symbol);
-  
-  // Close Menu
+  if(typeof showCoinDetail === 'function') showCoinDetail(symbol); 
   toggleSideMenu();
 }
 
-function selectTime(seconds, rate, element) {
-  currentDuration = seconds;
-  currentProfitRate = rate;
+// 5. History Tabs & Rendering
+function switchHistoryTab(tab) {
+  const btns = document.querySelectorAll('.h-tab-btn');
+  const transView = document.getElementById('hist-content-transaction');
+  const closedView = document.getElementById('hist-content-closed');
+
+  btns.forEach(b => b.classList.remove('active'));
   
-  document.querySelectorAll('.time-box').forEach(box => box.classList.remove('active'));
-  element.classList.add('active');
+  if(tab === 'transaction') {
+     if(btns[0]) btns[0].classList.add('active');
+     if(transView) transView.style.display = 'block';
+     if(closedView) closedView.style.display = 'none';
+  } else {
+     if(btns[1]) btns[1].classList.add('active');
+     if(transView) transView.style.display = 'none';
+     if(closedView) closedView.style.display = 'block';
+     renderClosedPositions();
+  }
 }
 
+function renderClosedPositions() {
+  const container = document.getElementById('hist-content-closed');
+  if(!container) return;
+  
+  if(closedPositions.length === 0) {
+      container.innerHTML = '<div style="padding:40px; text-align:center; color:#636e72;">No records</div>';
+      return;
+  }
+
+  container.innerHTML = closedPositions.map(pos => `
+    <div class="closed-item" style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
+       <div class="closed-header" style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:10px;">
+          <span style="color:#b2bec3;">Position closed</span>
+          <span style="color:white; font-weight:bold;">${pos.symbol} ${pos.time} second</span>
+       </div>
+       <div class="closed-grid" style="display:grid; grid-template-columns:1fr 1.5fr 1.5fr 1fr; gap:4px; margin-bottom:8px;">
+          <div><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">quantity</div><div class="grid-val" style="font-size:13px; color:white;">${pos.qty}</div></div>
+          <div><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">Purchase price</div><div class="grid-val" style="font-size:13px; color:white;">${pos.buyPrice.toFixed(2)}</div></div>
+          <div><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">Transaction price</div><div class="grid-val" style="font-size:13px; color:white;">${pos.closePrice.toFixed(2)}</div></div>
+          <div style="text-align:right;">
+             <div class="grid-lbl" style="font-size:11px; color:#b2bec3;">Profit and loss</div>
+             <div class="grid-val ${pos.isWin ? 'up' : 'down'}" style="font-size:13px; color:${pos.isWin ? '#00b894' : '#ff6b6b'};">${pos.isWin ? '+' : ''}${pos.pnl.toFixed(4)}</div>
+          </div>
+       </div>
+       <div class="closed-footer" style="display:flex; justify-content:space-between; border-top:1px dashed #2d3436; padding-top:8px;">
+          <div><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">position opening time</div><div class="grid-val sm" style="font-size:11px; color:#b2bec3;">${pos.openTime}</div></div>
+          <div style="text-align:right;"><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">Close time</div><div class="grid-val sm" style="font-size:11px; color:#b2bec3;">${pos.closeTime}</div></div>
+       </div>
+    </div>
+  `).join('');
+}
+
+// 6. Order Submission
 function submitDeliveryOrder(type) {
-  const amount = document.getElementById('deliveryAmount').value;
-  if(!amount || amount <= 0) {
-    alert('Please enter amount');
-    return;
+  const amountInput = document.getElementById('deliveryAmount');
+  const amount = parseFloat(amountInput ? amountInput.value : 0);
+  
+  if(!amount || amount <= 0) { alert('Please enter amount'); return; }
+  
+  if(typeof userWallet !== 'undefined' && amount > userWallet.usdt) { 
+      alert('Insufficient balance'); return; 
   }
-  alert(`${type.toUpperCase()} Order Placed!\nTime: ${currentDuration}s\nProfit: ${currentProfitRate}%`);
+  
+  // Deduct Balance
+  if(typeof userWallet !== 'undefined') {
+      userWallet.usdt -= amount;
+      if(typeof saveWallet === 'function') saveWallet();
+  }
+  
+  selectTransMode(currentCurrency); // Refresh UI
+
+  alert(`Order Submitted!\nType: ${type.toUpperCase()}\nTime: ${currentDuration}s\nAmount: ${amount}`);
+  switchHistoryTab('transaction');
+  
+  // Simulate Result
+  setTimeout(() => {
+     const isWin = Math.random() > 0.4; // 60% win chance
+     const profit = amount * (currentProfitRate / 100);
+     const pnl = isWin ? profit : -amount;
+     
+     if(isWin && typeof userWallet !== 'undefined') {
+         userWallet.usdt += (amount + profit);
+         if(typeof saveWallet === 'function') saveWallet();
+         selectTransMode(currentCurrency);
+     }
+
+     const now = new Date();
+     const close = new Date(now.getTime() + currentDuration*1000);
+     const priceEl = document.getElementById('mainPrice');
+     const currentPrice = priceEl ? parseFloat(priceEl.textContent.replace(/,/g,'')) : 92000;
+     const symbolEl = document.getElementById('currentSymbolName');
+     const symbol = symbolEl ? symbolEl.textContent.split('/')[0] + '/USDT' : 'BTC/USDT';
+     
+     const newPos = {
+        symbol: symbol,
+        time: currentDuration,
+        qty: amount,
+        buyPrice: currentPrice,
+        closePrice: currentPrice + (isWin ? (Math.random()*10) : -(Math.random()*10)),
+        pnl: pnl,
+        openTime: now.toLocaleString(),
+        closeTime: close.toLocaleString(),
+        isWin: isWin
+     };
+     
+     closedPositions.unshift(newPos); 
+     
+     const closedTabBtn = document.querySelectorAll('.h-tab-btn')[1];
+     if(closedTabBtn && closedTabBtn.classList.contains('active')) {
+        renderClosedPositions();
+     } else {
+        switchHistoryTab('closed');
+     }
+     
+     alert(`Order Result: ${isWin ? 'WIN 🟢' : 'LOSS 🔴'}\nPnL: ${pnl.toFixed(2)}`);
+  }, 2000); 
 }
 
-// Update Trading Display for Delivery Layout
-function updateDeliveryUI(symbol, price) {
-  document.getElementById('currentSymbolName').textContent = `${symbol}/USDT`;
-  document.getElementById('contractBalance').textContent = `${userWallet.usdt.toFixed(2)} USDT`;
-  
-  const mainPrice = document.getElementById('mainPrice');
-  if(mainPrice) {
-    mainPrice.textContent = price.toLocaleString('en-US', {minimumFractionDigits: 2});
-    // Add logic to toggle color based on price movement if needed
-  }
+function submitPerpetualOrder(type) {
+  const amount = document.getElementById('perpAmount').value;
+  if(!amount) { alert('Enter amount'); return; }
+  alert(`PERPETUAL ${type.toUpperCase()} Order Placed!\nAmount: ${amount}`);
+}
+
+function setLeverage(btn, value) {
+  document.querySelectorAll('.mode-btn').forEach(b => {
+      if(b.textContent.includes('x')) b.classList.remove('active');
+  });
+  if(btn) btn.classList.add('active');
+}
+
+// 7. Initialization & Hook
+function initDummyHistory() {
+  closedPositions = [
+    {
+       symbol: 'XAU/USDT', time: '30', qty: 100, buyPrice: 4196.84, closePrice: 4197.25, pnl: 15.00, 
+       openTime: '2025-12-10 06:22:44', closeTime: '2025-12-10 06:23:14', isWin: true
+    },
+    {
+       symbol: 'BTC/USDT', time: '60', qty: 50, buyPrice: 92100.00, closePrice: 92050.00, pnl: -50.00, 
+       openTime: '2025-12-10 07:00:00', closeTime: '2025-12-10 07:01:00', isWin: false
+    }
+  ];
 }
 
 // Hook into existing updateTradingUI
-const originalUpdateTradingUI = updateTradingUI;
+const oldUpdateTradingUI = typeof updateTradingUI === 'function' ? updateTradingUI : null;
 updateTradingUI = function(symbol, price) {
-  originalUpdateTradingUI(symbol, price); // Keep old logic
-  updateDeliveryUI(symbol, price); // Add new logic
+  if(oldUpdateTradingUI) oldUpdateTradingUI(symbol, price);
+  
+  // New Delivery UI Updates
+  const nameEl = document.getElementById('currentSymbolName');
+  const priceEl = document.getElementById('mainPrice');
+  
+  if(nameEl && (nameEl.textContent.includes(symbol) || nameEl.textContent === 'BTC/USDT')) {
+      if(priceEl) {
+         const oldP = parseFloat(priceEl.textContent.replace(/,/g,''));
+         priceEl.textContent = price.toLocaleString('en-US', {minimumFractionDigits: 2});
+         priceEl.className = price >= oldP ? 'big-price up' : 'big-price down';
+      }
+      if(nameEl) nameEl.textContent = `${symbol}/USDT`;
+  }
 };
 
-// --- DERIVATIVES TAB SWITCHING ---
-let currentDerivTab = 'futures';
-
-function switchDerivTab(tab) {
-  currentDerivTab = tab;
-  
-  // 1. Button Styling
-  document.querySelectorAll('.deriv-tab').forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.textContent.toLowerCase() === tab) {
-      btn.classList.add('active');
-    }
-  });
-
-  // 2. Content Switching (အသစ်ထည့်တဲ့အပိုင်း)
-  // အကုန်ဖျောက်မယ်
-  document.getElementById('deriv-content-futures').style.display = 'none';
-  document.getElementById('deriv-content-options').style.display = 'none';
-  document.getElementById('deriv-content-perpetual').style.display = 'none';
-
-  // ရွေးထားတာ ပြမယ်
-  if (tab === 'futures') {
-    document.getElementById('deriv-content-futures').style.display = 'block';
-  } else if (tab === 'options') {
-    document.getElementById('deriv-content-options').style.display = 'block';
-  } else if (tab === 'perpetual') {
-    document.getElementById('deriv-content-perpetual').style.display = 'block';
-  }
-}
-
-// --- LEVERAGE BUTTON SWITCHING ---
-let currentLeverage = 10;
-
-function setLeverage(btn, value) {
-  currentLeverage = value;
-  document.querySelectorAll('.leverage-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
+document.addEventListener('DOMContentLoaded', () => {
+    initDummyHistory();
+    selectTransMode('USDT');
+});
 
 // --- ASSETS TAB SWITCHING ---
 let currentAssetTab = 'spot';
