@@ -2599,10 +2599,64 @@ function addTransaction(type, amount, coin, status = 'Completed') {
 
 function animateRefresh() {
   const btn = document.getElementById('historyRefreshBtn');
-  if(btn) btn.style.transform = 'rotate(360deg)'; // ခလုတ်ကို လှည့်မယ်
-  if(btn) btn.style.transition = 'transform 0.5s'; // ချောချောမွေ့မွေ့ ဖြစ်အောင်
+  if(btn) {
+    btn.style.transition = 'transform 0.5s ease-in-out';
+    btn.style.transform = 'rotate(360deg)';
+  }
   
+  // 0.5 စက္ကန့်နေရင် Refresh လုပ်မယ်၊ ပြီးရင် Notification ပြမယ်
   setTimeout(() => {
-    openModal('history'); // 0.5 စက္ကန့်နေမှ Refresh လုပ်မယ်
+    openModal('history'); 
+    
+    // Toast Notification (အပေါ်ကနေ စာတန်းလေး ကျလာမယ်)
+    showToast('Transactions refreshed successfully');
+    
+    // ခလုတ်ကို ပြန်လှည့်ထားမယ် (နောက်တစ်ခါနှိပ်ရင် လှည့်လို့ရအောင်)
+    if(btn) {
+        btn.style.transition = 'none';
+        btn.style.transform = 'rotate(0deg)';
+    }
   }, 500);
+}
+
+// Toast Notification Helper (ဒါလေးပါ ထည့်ထားပါ)
+function showToast(message) {
+  // အရင်ရှိရင် ဖျက်မယ်
+  const existing = document.getElementById('toast-notification');
+  if(existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'toast-notification';
+  toast.innerText = message;
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #00b894;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.3s, top 0.3s;
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Animation In
+  setTimeout(() => {
+    toast.style.opacity = '1';
+    toast.style.top = '30px';
+  }, 10);
+
+  // Animation Out (2 စက္ကန့်နေရင် ပျောက်မယ်)
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.top = '20px';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
 }
