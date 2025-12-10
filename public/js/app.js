@@ -1317,6 +1317,45 @@ function openModal(type, subType = null) {
         </div>
       `;
       break;
+
+      // --- DERIVATIVES HELP MODAL ---
+    case 'derivHelp':
+      if(document.querySelector('.modal-header')) document.querySelector('.modal-header').style.display = 'flex';
+      title.textContent = 'Trading Guide';
+      body.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          
+          <div style="background:#1e1e2d; padding:12px; border-radius:12px; border-left:4px solid #00b894;">
+            <h3 style="color:#00b894; margin:0 0 6px 0; font-size:16px;">🚀 Perpetual Futures</h3>
+            <p style="font-size:13px; color:#b2bec3; line-height:1.4;">
+              <b>No Expiration:</b> You can hold positions as long as you want.<br>
+              <b>Funding Fee:</b> Exchanged every 8 hours between Long/Short positions to keep price close to Spot price.<br>
+              <b>Use Case:</b> Best for daily trading and long-term holding.
+            </p>
+          </div>
+
+          <div style="background:#1e1e2d; padding:12px; border-radius:12px; border-left:4px solid #f39c12;">
+            <h3 style="color:#f39c12; margin:0 0 6px 0; font-size:16px;">📅 Quarterly Futures</h3>
+            <p style="font-size:13px; color:#b2bec3; line-height:1.4;">
+              <b>Expiration Date:</b> Contracts settle on a specific date (e.g., Dec 29).<br>
+              <b>No Funding Fee:</b> You don't pay swap/funding fees.<br>
+              <b>Use Case:</b> Good for hedging or betting on price at a specific date.
+            </p>
+          </div>
+
+          <div style="background:#1e1e2d; padding:12px; border-radius:12px; border-left:4px solid #6c5ce7;">
+            <h3 style="color:#6c5ce7; margin:0 0 6px 0; font-size:16px;">🛡️ Options</h3>
+            <p style="font-size:13px; color:#b2bec3; line-height:1.4;">
+              <b>Call (Buy):</b> Profit if price goes UP.<br>
+              <b>Put (Sell):</b> Profit if price goes DOWN.<br>
+              <b>Risk:</b> Limited risk (only the premium paid), unlimited profit potential.
+            </p>
+          </div>
+
+          <button class="modal-action-btn" onclick="closeModal()">Got it</button>
+        </div>
+      `;
+      break;
       
       // --- TRANSACTION HISTORY (NEW DESIGN) ---
     case 'history':
