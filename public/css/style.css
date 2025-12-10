@@ -1748,3 +1748,222 @@ body.light-mode .modal-input {
 }
 .btn-long { background: #00b894; } /* Green */
 .btn-short { background: #ff6b6b; } /* Red */
+/* --- DELIVERY CONTRACT STYLES --- */
+.contract-header {
+  display: flex;
+  background: #12121a;
+  padding: 10px;
+}
+.c-tab {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  color: #636e72;
+  font-size: 13px;
+  background: #1e1e2d;
+  border-radius: 0 20px 20px 0;
+  cursor: pointer;
+}
+.c-tab:first-child {
+  border-radius: 20px 0 0 20px;
+}
+.c-tab.active {
+  background: #0984e3;
+  color: white;
+}
+
+.trade-info-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 10px;
+}
+.menu-trigger {
+  background: none;
+  border: none;
+  color: #b2bec3;
+  cursor: pointer;
+}
+
+.main-price-display {
+  padding: 0 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.big-price {
+  font-size: 32px;
+  font-weight: 700;
+}
+.big-price.up { color: #00b894; }
+.big-price.down { color: #ff6b6b; }
+.price-details {
+  font-size: 11px;
+  color: #636e72;
+  text-align: right;
+  line-height: 1.4;
+}
+
+.chart-controls {
+  display: flex;
+  gap: 15px;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #636e72;
+  border-bottom: 1px solid #1e1e2d;
+}
+.chart-controls span.active {
+  color: #00b894;
+  border-bottom: 2px solid #00b894;
+}
+
+.time-grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 16px;
+}
+.time-box {
+  background: #ffffff; /* White background as per screenshot */
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.time-box .t-sec {
+  color: #2d3436;
+  font-weight: 700;
+  font-size: 13px;
+}
+.time-box .t-rate {
+  color: #e17055;
+  font-size: 10px;
+}
+.time-box.active {
+  background: #ffffff;
+  border: 1px solid #0984e3;
+  position: relative;
+}
+.time-box.active::after {
+  content: '✓';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #0984e3;
+  color: white;
+  font-size: 8px;
+  padding: 2px 4px;
+  border-radius: 4px 0 4px 0;
+}
+
+.trade-input-area {
+  padding: 10px 16px;
+}
+.mode-toggles {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.mode-btn {
+  padding: 6px 20px;
+  border-radius: 4px;
+  border: none;
+  background: #1e1e2d;
+  color: #b2bec3;
+  font-size: 12px;
+}
+.mode-btn.active {
+  background: #dfe6e9;
+  color: #0984e3;
+  font-weight: bold;
+  position: relative;
+}
+.mode-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0; 
+  height: 0; 
+  border-left: 10px solid transparent;
+  border-bottom: 10px solid #0984e3;
+}
+
+.qty-input-box {
+  background: #1e1e2d;
+  border: 1px solid #2d3436;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.qty-input-box input {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  width: 100%;
+  outline: none;
+}
+
+.big-action-buttons {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+}
+.action-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.action-btn.buy { background: #00b894; }
+.action-btn.sell { background: #ff6b6b; }
+
+/* SIDE MENU STYLES */
+.side-menu-backdrop {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 2000;
+  display: none;
+}
+.side-menu-drawer {
+  position: fixed;
+  top: 0; left: -80%;
+  width: 75%;
+  height: 100%;
+  background: #12121a;
+  z-index: 2001;
+  transition: left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+.side-menu-drawer.open {
+  left: 0;
+}
+.side-menu-header {
+  padding: 20px 16px;
+  border-bottom: 1px solid #2d3436;
+}
+.side-coin-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.side-coin-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #1e1e2d;
+  cursor: pointer;
+}
+.side-coin-item:hover {
+  background: #1e1e2d;
+}
