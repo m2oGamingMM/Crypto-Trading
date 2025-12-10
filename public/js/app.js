@@ -2245,8 +2245,6 @@ function showDepositDetail(coinType) {
   `;
 }
 
-// 5. Render Withdraw Menu (Coin အစုံထည့်ထားသည်)
-// 5. Render Withdraw Menu (Deposit နဲ့ တထပ်တည်းတူအောင် ပြင်ဆင်ထားသည်)
 function renderWithdrawMenu() {
   const container = document.getElementById('fiatContentArea');
   const title = document.getElementById('modalTitle');
@@ -2279,7 +2277,7 @@ function renderWithdrawMenu() {
     <div class="fiat-menu-item" onclick="showWithdrawDetail('BTC-Bitcoin')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#f7931a;">₿</div>
-        <span style="font-weight:600;">BTC Withdrawal</span>
+        <span style="font-weight:600;">BTC-Bitcoin Withdrawal</span>
       </div>
       <span style="color:#636e72;">›</span>
     </div>
@@ -2287,7 +2285,7 @@ function renderWithdrawMenu() {
     <div class="fiat-menu-item" onclick="showWithdrawDetail('ETH-ERC20')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#627eea;">Ξ</div>
-        <span style="font-weight:600;">ETH Withdrawal</span>
+        <span style="font-weight:600;">ETH-ERC20 Withdrawal</span>
       </div>
       <span style="color:#636e72;">›</span>
     </div>
@@ -2295,7 +2293,7 @@ function renderWithdrawMenu() {
     <div class="fiat-menu-item" onclick="showWithdrawDetail('USDC-BEP20')">
       <div style="display:flex; align-items:center;">
         <div class="fiat-icon-circle" style="background:#2980b9;">$</div>
-        <span style="font-weight:600;">USDC Withdrawal</span>
+        <span style="font-weight:600;">USDC-BEP20 Withdrawal</span>
       </div>
       <span style="color:#636e72;">›</span>
     </div>
