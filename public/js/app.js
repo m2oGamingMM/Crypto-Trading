@@ -491,6 +491,101 @@ function showTransferModal() {
   alert('Transfer feature - Coming soon!');
 }
 
+// --- DELIVERY CONTRACT LOGIC ---
+let isSideMenuOpen = false;
+let currentDuration = 30;
+let currentProfitRate = 15;
+
+function toggleSideMenu() {
+  const backdrop = document.getElementById('sideMenuBackdrop');
+  const drawer = document.getElementById('sideMenuDrawer');
+  
+  isSideMenuOpen = !isSideMenuOpen;
+  
+  if (isSideMenuOpen) {
+    backdrop.style.display = 'block';
+    // Delay slightly to allow CSS transition
+    setTimeout(() => { drawer.classList.add('open'); }, 10);
+    renderSideMenuCoins();
+  } else {
+    drawer.classList.remove('open');
+    setTimeout(() => { backdrop.style.display = 'none'; }, 300);
+  }
+}
+
+function renderSideMenuCoins() {
+  const container = document.getElementById('sideMenuCoinList');
+  if (!container) return;
+  
+  if (!allPrices || allPrices.length === 0) {
+    container.innerHTML = '<div style="padding:16px;">Loading...</div>';
+    return;
+  }
+
+  container.innerHTML = allPrices.map(coin => `
+    <div class="side-coin-item" onclick="selectSideMenuCoin('${coin.symbol}')">
+      <div style="font-weight:bold; font-size:14px; color:white;">${coin.symbol}<span style="font-size:10px; color:#636e72;">/USDT</span></div>
+      <div style="color:${coin.change24h >= 0 ? '#00b894' : '#ff6b6b'}; font-size:14px;">${coin.price.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+function selectSideMenuCoin(symbol) {
+  // Update Global Trading Symbol
+  const select = document.getElementById('tradingPair');
+  if (select) {
+     if (!select.querySelector(`option[value="${symbol}"]`)) {
+        const opt = document.createElement('option');
+        opt.value = symbol;
+        opt.text = symbol + "/USDT";
+        select.add(opt);
+     }
+     select.value = symbol;
+  }
+  
+  // Update Display
+  showCoinDetail(symbol);
+  
+  // Close Menu
+  toggleSideMenu();
+}
+
+function selectTime(seconds, rate, element) {
+  currentDuration = seconds;
+  currentProfitRate = rate;
+  
+  document.querySelectorAll('.time-box').forEach(box => box.classList.remove('active'));
+  element.classList.add('active');
+}
+
+function submitDeliveryOrder(type) {
+  const amount = document.getElementById('deliveryAmount').value;
+  if(!amount || amount <= 0) {
+    alert('Please enter amount');
+    return;
+  }
+  alert(`${type.toUpperCase()} Order Placed!\nTime: ${currentDuration}s\nProfit: ${currentProfitRate}%`);
+}
+
+// Update Trading Display for Delivery Layout
+function updateDeliveryUI(symbol, price) {
+  document.getElementById('currentSymbolName').textContent = `${symbol}/USDT`;
+  document.getElementById('contractBalance').textContent = `${userWallet.usdt.toFixed(2)} USDT`;
+  
+  const mainPrice = document.getElementById('mainPrice');
+  if(mainPrice) {
+    mainPrice.textContent = price.toLocaleString('en-US', {minimumFractionDigits: 2});
+    // Add logic to toggle color based on price movement if needed
+  }
+}
+
+// Hook into existing updateTradingUI
+const originalUpdateTradingUI = updateTradingUI;
+updateTradingUI = function(symbol, price) {
+  originalUpdateTradingUI(symbol, price); // Keep old logic
+  updateDeliveryUI(symbol, price); // Add new logic
+};
+
 // --- DERIVATIVES TAB SWITCHING ---
 let currentDerivTab = 'futures';
 
@@ -1317,7 +1412,7 @@ function openModal(type, subType = null) {
         </div>
       `;
       break;
-
+      
       // --- DERIVATIVES HELP MODAL ---
     case 'derivHelp':
       if(document.querySelector('.modal-header')) document.querySelector('.modal-header').style.display = 'flex';
@@ -2699,6 +2794,7 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 300);
   }, 2000);
 }
+
 // --- DERIVATIVES TRADING LOGIC ---
 function tradeDerivative(symbol, type) {
   // 1. Trading Page ကို အရင်သွားမယ်
