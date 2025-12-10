@@ -490,6 +490,116 @@ function showWithdrawModal() {
 function showTransferModal() {
   alert('Transfer feature - Coming soon!');
 }
+
+// --- DERIVATIVES TAB SWITCHING ---
+let currentDerivTab = 'futures';
+
+function switchDerivTab(tab) {
+  currentDerivTab = tab;
+  document.querySelectorAll('.deriv-tab').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.textContent.toLowerCase() === tab) {
+      btn.classList.add('active');
+    }
+  });
+}
+
+// --- LEVERAGE BUTTON SWITCHING ---
+let currentLeverage = 10;
+
+function setLeverage(btn, value) {
+  currentLeverage = value;
+  document.querySelectorAll('.leverage-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// --- ASSETS TAB SWITCHING ---
+let currentAssetTab = 'spot';
+
+function switchAssetTab(tab) {
+  currentAssetTab = tab;
+  
+  document.querySelectorAll('.assets-tabs .asset-tab').forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.color = '#636e72';
+    btn.style.borderBottom = 'none';
+    
+    if (btn.textContent.toLowerCase() === tab) {
+      btn.classList.add('active');
+      btn.style.color = '#00b894';
+      btn.style.borderBottom = '2px solid #00b894';
+    }
+  });
+  
+  renderAssetsByTab(tab);
+}
+
+function renderAssetsByTab(tab) {
+  const container = document.getElementById('assetsListContainer');
+  if (!container) return;
+  
+  const stableIcons = {
+    'BTC': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/128px-Bitcoin.svg.png',
+    'ETH': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Ethereum_logo_2014.svg/128px-Ethereum_logo_2014.svg.png',
+    'USDT': 'https://seeklogo.com/images/T/tether-usdt-logo-FA55C7F397-seeklogo.com.png',
+    'BNB': 'https://upload.wikimedia.org/wikipedia/commons/f/fc/Binance-coin-bnb-logo.png',
+    'SOL': 'https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png',
+    'XRP': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Ripple_logo.svg/128px-Ripple_logo.svg.png',
+    'DOGE': 'https://upload.wikimedia.org/wikipedia/en/d/d0/Dogecoin_Logo.png'
+  };
+  
+  if (tab === 'spot') {
+    let listHTML = `
+      <div class="asset-item" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1e1e2d;">
+        <div class="asset-left" style="display:flex; align-items:center; gap:12px;">
+          <img src="${stableIcons['USDT']}" style="width:36px; height:36px; border-radius:50%;">
+          <div>
+            <div style="font-weight:bold; color:white;">USDT</div>
+            <div style="font-size:12px; color:#636e72;">Tether</div>
+          </div>
+        </div>
+        <div class="asset-right" style="text-align:right;">
+          <div style="font-weight:bold; color:white;">${userWallet.usdt.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+          <div style="font-size:12px; color:#b2bec3;">$1.00</div>
+        </div>
+      </div>
+    `;
+    
+    for (const [symbol, amount] of Object.entries(userWallet.holdings)) {
+      if (amount > 0) {
+        const coinInfo = allPrices.find(c => c.symbol === symbol) || { name: symbol, price: 0, image: '' };
+        const valueUSD = amount * coinInfo.price;
+        const iconUrl = stableIcons[symbol] || coinInfo.image || 'https://via.placeholder.com/36';
+        
+        listHTML += `
+          <div class="asset-item" onclick="showCoinDetail('${symbol}')" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #1e1e2d; cursor:pointer;">
+            <div class="asset-left" style="display:flex; align-items:center; gap:12px;">
+              <img src="${iconUrl}" style="width:36px; height:36px; border-radius:50%; object-fit:contain; background:white; padding:2px;">
+              <div>
+                <div style="font-weight:bold; color:white;">${symbol}</div>
+                <div style="font-size:12px; color:#636e72;">${coinInfo.name}</div>
+              </div>
+            </div>
+            <div class="asset-right" style="text-align:right;">
+              <div style="font-weight:bold; color:white;">${amount.toFixed(4)}</div>
+              <div style="font-size:12px; color:#b2bec3;">$${valueUSD.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    container.innerHTML = listHTML;
+  } else if (tab === 'futures' || tab === 'earn') {
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px 20px; color:#636e72;">
+        <div style="font-size:48px; margin-bottom:16px;">📭</div>
+        <div style="font-size:16px; font-weight:bold; margin-bottom:8px;">No ${tab === 'futures' ? 'Futures' : 'Earn'} Assets</div>
+        <div style="font-size:13px;">Start trading ${tab === 'futures' ? 'derivatives' : 'and earning'} to see assets here</div>
+      </div>
+    `;
+  }
+}
   
 
 async function loadAllData() {
@@ -661,26 +771,104 @@ function openModal(type) {
     case 'ieo':
       title.textContent = 'IEO Subscription';
       body.innerHTML = `
-        <div style="text-align:center;">
-          <div style="font-size:40px; margin-bottom:10px;">🚀</div>
-          <p style="color:#b2bec3; margin-bottom:15px;">Upcoming Launch: <strong>SPACE-X Token</strong></p>
-          <div style="background:#12121a; padding:10px; border-radius:8px; margin-bottom:15px; color:#00b894;">
-            Starts in: 02d : 14h : 30m
+        <div style="margin-bottom:20px;">
+          <div style="background:linear-gradient(135deg, #1e3a5f, #2d5a87); padding:16px; border-radius:12px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:40px; height:40px; background:#f7931a; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">🚀</div>
+                <div>
+                  <div style="font-weight:bold;">SPACE-X Token</div>
+                  <div style="font-size:11px; color:#b2bec3;">Aerospace & Technology</div>
+                </div>
+              </div>
+              <div style="background:#00b894; padding:4px 10px; border-radius:12px; font-size:11px;">Live</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#b2bec3; margin-bottom:8px;">
+              <span>Price: $0.05</span>
+              <span>Total: 10M Tokens</span>
+            </div>
+            <div style="background:#12121a; padding:8px; border-radius:8px; text-align:center; color:#00b894; font-weight:bold;" id="ieoCountdown1">
+              02d : 14h : 30m : 45s
+            </div>
           </div>
-          <button class="modal-action-btn">Subscribe Reminder</button>
+          
+          <div style="background:#1e1e2d; padding:16px; border-radius:12px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:40px; height:40px; background:#627eea; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">🎮</div>
+                <div>
+                  <div style="font-weight:bold;">GAME-FI Token</div>
+                  <div style="font-size:11px; color:#b2bec3;">Gaming & Metaverse</div>
+                </div>
+              </div>
+              <div style="background:#fdcb6e; color:#000; padding:4px 10px; border-radius:12px; font-size:11px;">Upcoming</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#b2bec3; margin-bottom:8px;">
+              <span>Price: $0.02</span>
+              <span>Total: 50M Tokens</span>
+            </div>
+            <div style="background:#12121a; padding:8px; border-radius:8px; text-align:center; color:#fdcb6e; font-weight:bold;">
+              Starts: Dec 20, 2024
+            </div>
+          </div>
+          
+          <div style="background:#1e1e2d; padding:16px; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:40px; height:40px; background:#00b894; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">🌿</div>
+                <div>
+                  <div style="font-weight:bold;">ECO-CHAIN</div>
+                  <div style="font-size:11px; color:#b2bec3;">Green Energy</div>
+                </div>
+              </div>
+              <div style="background:#636e72; padding:4px 10px; border-radius:12px; font-size:11px;">Coming Soon</div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#b2bec3;">
+              <span>Price: TBA</span>
+              <span>Total: 100M Tokens</span>
+            </div>
+          </div>
         </div>
+        <button class="modal-action-btn" onclick="alert('You will be notified when IEO starts!')">🔔 Set Reminder</button>
       `;
       break;
 
     case 'service':
-      title.textContent = 'Customer Service';
+      title.textContent = 'Customer Support';
       body.innerHTML = `
-        <div style="height:200px; background:#12121a; border-radius:10px; padding:10px; overflow-y:auto; margin-bottom:10px;">
-          <div style="background:#2d3436; padding:8px; border-radius:8px; display:inline-block; font-size:12px; margin-bottom:5px;">Hello! How can we help you?</div>
+        <div style="height:280px; background:#12121a; border-radius:12px; padding:12px; overflow-y:auto; margin-bottom:12px;" id="chatContainer">
+          <div style="text-align:center; margin-bottom:16px;">
+            <div style="font-size:11px; color:#636e72; background:#1e1e2d; display:inline-block; padding:4px 12px; border-radius:12px;">Today</div>
+          </div>
+          
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <div style="width:32px; height:32px; background:#00b894; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">🤖</div>
+            <div>
+              <div style="font-size:11px; color:#636e72; margin-bottom:4px;">Support Bot • 10:30 AM</div>
+              <div style="background:#2d3436; padding:10px 14px; border-radius:0 12px 12px 12px; font-size:13px; max-width:220px;">
+                Hello! 👋 Welcome to Crypto Trading Support. How can I help you today?
+              </div>
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <div style="width:32px; height:32px; background:#00b894; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">🤖</div>
+            <div>
+              <div style="font-size:11px; color:#636e72; margin-bottom:4px;">Support Bot • 10:30 AM</div>
+              <div style="background:#2d3436; padding:10px 14px; border-radius:0 12px 12px 12px; font-size:13px; max-width:220px;">
+                Quick options:<br>
+                1️⃣ Account Issues<br>
+                2️⃣ Deposit/Withdraw<br>
+                3️⃣ Trading Help<br>
+                4️⃣ Speak to Agent
+              </div>
+            </div>
+          </div>
         </div>
-        <div style="display:flex; gap:10px;">
-          <input type="text" class="modal-input" style="margin:0;" placeholder="Type message...">
-          <button style="background:#00b894; border:none; width:40px; border-radius:8px; cursor:pointer;">➤</button>
+        
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="chatInput" class="modal-input" style="margin:0; flex:1;" placeholder="Type your message..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+          <button onclick="sendChatMessage()" style="background:#00b894; border:none; width:48px; border-radius:10px; cursor:pointer; font-size:18px;">➤</button>
         </div>
       `;
       break;
@@ -688,105 +876,441 @@ function openModal(type) {
     case 'verify':
       title.textContent = 'Identity Verification';
       body.innerHTML = `
-        <p style="color:#b2bec3; font-size:13px; margin-bottom:10px;">Please upload your ID/Passport.</p>
-        <div style="border:2px dashed #2d3436; padding:30px; text-align:center; border-radius:10px; margin-bottom:15px; cursor:pointer;">
-          <span style="font-size:24px; color:#636e72;">📷</span>
-          <div style="font-size:12px; color:#636e72;">Tap to upload photo</div>
+        <div style="background:#1e1e2d; padding:16px; border-radius:12px; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+            <div style="width:48px; height:48px; background:linear-gradient(135deg, #00b894, #00cec9); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">🛡️</div>
+            <div>
+              <div style="font-weight:bold; font-size:16px;">KYC Verification</div>
+              <div style="font-size:12px; color:#636e72;">Complete to unlock full features</div>
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <div style="flex:1; text-align:center; padding:8px; background:#12121a; border-radius:8px;">
+              <div style="font-size:20px; margin-bottom:4px;">📝</div>
+              <div style="font-size:10px; color:#00b894;">Step 1</div>
+            </div>
+            <div style="flex:1; text-align:center; padding:8px; background:#12121a; border-radius:8px; opacity:0.5;">
+              <div style="font-size:20px; margin-bottom:4px;">📷</div>
+              <div style="font-size:10px; color:#636e72;">Step 2</div>
+            </div>
+            <div style="flex:1; text-align:center; padding:8px; background:#12121a; border-radius:8px; opacity:0.5;">
+              <div style="font-size:20px; margin-bottom:4px;">✅</div>
+              <div style="font-size:10px; color:#636e72;">Done</div>
+            </div>
+          </div>
         </div>
-        <button class="modal-action-btn">Submit for Review</button>
+        
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Full Legal Name</label>
+          <input type="text" class="modal-input" style="margin:0;" placeholder="As shown on your ID">
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">ID Number</label>
+          <input type="text" class="modal-input" style="margin:0;" placeholder="Passport / National ID">
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Date of Birth</label>
+          <input type="date" class="modal-input" style="margin:0;">
+        </div>
+        
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Upload ID Document</label>
+          <div style="border:2px dashed #2d3436; padding:24px; text-align:center; border-radius:12px; cursor:pointer; background:#12121a;" onclick="document.getElementById('idFileInput').click()">
+            <input type="file" id="idFileInput" style="display:none;" accept="image/*" onchange="handleFileSelect(this)">
+            <span style="font-size:32px; display:block; margin-bottom:8px;">📄</span>
+            <div style="font-size:13px; color:#636e72;" id="fileLabel">Click to upload (JPG, PNG, PDF)</div>
+          </div>
+        </div>
+        
+        <button class="modal-action-btn" onclick="submitVerification()">Submit for Review</button>
       `;
       break;
 
     case 'ai':
       title.textContent = 'AI Quant Bot';
       body.innerHTML = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-          <span>Bot Status:</span>
-          <span style="color:#ff6b6b;">● Stopped</span>
+        <div style="background:linear-gradient(135deg, #1e3a5f, #2d5a87); padding:20px; border-radius:16px; text-align:center; margin-bottom:16px;">
+          <div style="font-size:48px; margin-bottom:8px;">🤖</div>
+          <div style="font-size:18px; font-weight:bold; margin-bottom:4px;">Smart Trading Bot</div>
+          <div style="font-size:12px; color:#b2bec3;">AI-powered automated trading</div>
         </div>
-        <div style="background:#12121a; padding:15px; border-radius:10px; margin-bottom:15px;">
-          <div style="font-size:12px; color:#b2bec3;">Est. Daily Yield</div>
-          <div style="font-size:20px; color:#00b894; font-weight:bold;">1.5% - 3.0%</div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#1e1e2d; border-radius:10px; margin-bottom:12px;">
+          <span style="font-size:14px;">Bot Status</span>
+          <div id="botStatusIndicator" style="display:flex; align-items:center; gap:6px;">
+            <span style="width:10px; height:10px; background:#ff6b6b; border-radius:50%; animation: pulse 1.5s infinite;"></span>
+            <span style="color:#ff6b6b; font-weight:bold;">Stopped</span>
+          </div>
         </div>
-        <input type="number" class="modal-input" placeholder="Investment Amount (USDT)">
-        <button class="modal-action-btn">Start AI Bot</button>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+          <div style="background:#12121a; padding:14px; border-radius:10px; text-align:center;">
+            <div style="font-size:11px; color:#636e72; margin-bottom:4px;">Daily Yield</div>
+            <div style="font-size:18px; color:#00b894; font-weight:bold;">1.5% - 3.0%</div>
+          </div>
+          <div style="background:#12121a; padding:14px; border-radius:10px; text-align:center;">
+            <div style="font-size:11px; color:#636e72; margin-bottom:4px;">Win Rate</div>
+            <div style="font-size:18px; color:#00b894; font-weight:bold;">87.5%</div>
+          </div>
+          <div style="background:#12121a; padding:14px; border-radius:10px; text-align:center;">
+            <div style="font-size:11px; color:#636e72; margin-bottom:4px;">Total Trades</div>
+            <div style="font-size:18px; color:#ffffff; font-weight:bold;">1,247</div>
+          </div>
+          <div style="background:#12121a; padding:14px; border-radius:10px; text-align:center;">
+            <div style="font-size:11px; color:#636e72; margin-bottom:4px;">Active Users</div>
+            <div style="font-size:18px; color:#ffffff; font-weight:bold;">5,892</div>
+          </div>
+        </div>
+        
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Investment Amount (USDT)</label>
+          <input type="number" id="botInvestment" class="modal-input" style="margin:0;" placeholder="Min: 100 USDT" value="500">
+        </div>
+        
+        <button class="modal-action-btn" id="startBotBtn" onclick="toggleAIBot()">🚀 Start AI Bot</button>
+        <p style="font-size:11px; color:#636e72; text-align:center; margin-top:10px;">⚠️ Trading involves risk. Past performance is not indicative of future results.</p>
       `;
       break;
 
     case 'fiat':
-      title.textContent = 'Fiat Deposit';
+      title.textContent = 'Deposit Funds';
       body.innerHTML = `
-        <select class="modal-input">
-          <option>KBZ Pay</option>
-          <option>Wave Pay</option>
-          <option>Bank Transfer</option>
-        </select>
-        <input type="number" class="modal-input" placeholder="Amount (MMK)">
-        <div style="font-size:12px; color:#b2bec3; margin-bottom:15px;">Rate: 1 USD = 4,500 MMK</div>
-        <button class="modal-action-btn">Request Deposit</button>
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <button class="fiat-tab active" onclick="switchFiatTab('deposit', this)" style="flex:1; padding:10px; background:#00b894; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">Deposit</button>
+          <button class="fiat-tab" onclick="switchFiatTab('withdraw', this)" style="flex:1; padding:10px; background:#1e1e2d; border:1px solid #2d3436; border-radius:8px; color:#b2bec3; font-weight:bold; cursor:pointer;">Withdraw</button>
+        </div>
+        
+        <div id="fiatFormContainer">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Select Currency</label>
+            <select id="fiatCurrency" class="modal-input" style="margin:0;" onchange="updateFiatRate()">
+              <option value="MMK">🇲🇲 Myanmar Kyat (MMK)</option>
+              <option value="USD">🇺🇸 US Dollar (USD)</option>
+              <option value="THB">🇹🇭 Thai Baht (THB)</option>
+              <option value="CNY">🇨🇳 Chinese Yuan (CNY)</option>
+            </select>
+          </div>
+          
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Payment Method</label>
+            <select id="paymentMethod" class="modal-input" style="margin:0;">
+              <option>💳 KBZ Pay</option>
+              <option>📱 Wave Pay</option>
+              <option>🏦 Bank Transfer</option>
+              <option>💰 CB Pay</option>
+            </select>
+          </div>
+          
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Amount</label>
+            <div style="position:relative;">
+              <input type="number" id="fiatAmount" class="modal-input" style="margin:0; padding-right:60px;" placeholder="Enter amount" oninput="calculateFiatToUsdt()">
+              <span id="fiatCurrencyLabel" style="position:absolute; right:16px; top:50%; transform:translateY(-50%); color:#636e72;">MMK</span>
+            </div>
+          </div>
+          
+          <div style="background:#12121a; padding:14px; border-radius:10px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <span style="color:#636e72; font-size:13px;">Exchange Rate</span>
+              <span id="fiatRate" style="color:#00b894; font-weight:bold;">1 USDT = 4,500 MMK</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="color:#636e72; font-size:13px;">You will receive</span>
+              <span id="fiatReceive" style="color:#ffffff; font-weight:bold; font-size:16px;">0.00 USDT</span>
+            </div>
+          </div>
+          
+          <button class="modal-action-btn" onclick="processFiatDeposit()">💳 Continue to Payment</button>
+        </div>
+        
+        <div style="display:flex; justify-content:center; gap:16px; margin-top:12px; padding-top:12px; border-top:1px solid #2d3436;">
+          <div style="text-align:center;">
+            <div style="font-size:20px;">🔒</div>
+            <div style="font-size:10px; color:#636e72;">Secure</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:20px;">⚡</div>
+            <div style="font-size:10px; color:#636e72;">Instant</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:20px;">💯</div>
+            <div style="font-size:10px; color:#636e72;">0% Fee</div>
+          </div>
+        </div>
       `;
       break;
       
       case 'security':
       title.textContent = 'Security Settings';
+      const twoFAEnabled = localStorage.getItem('twoFAEnabled') === 'true';
+      const biometricEnabled = localStorage.getItem('biometricEnabled') !== 'false';
       body.innerHTML = `
-        <div class="menu-item" style="border-bottom:1px solid #2d3436;">
+        <div class="menu-item" onclick="openModal('change_password')" style="border-bottom:1px solid #2d3436; cursor:pointer;">
           <span>🔑 Change Password</span>
-          <span style="font-size:12px; color:#00b894;">Active</span>
+          <span style="font-size:12px; color:#00b894;">›</span>
         </div>
         <div class="menu-item" style="border-bottom:1px solid #2d3436;">
           <span>📱 2FA Authentication</span>
-          <span style="font-size:12px; color:#ff6b6b;">Disabled</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="twoFAToggle" ${twoFAEnabled ? 'checked' : ''} onchange="toggleSecuritySetting('twoFA', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
         <div class="menu-item">
           <span>🖐 Biometric Login</span>
-          <input type="checkbox" checked>
+          <label class="toggle-switch">
+            <input type="checkbox" id="biometricToggle" ${biometricEnabled ? 'checked' : ''} onchange="toggleSecuritySetting('biometric', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
+      `;
+      break;
+      
+    case 'change_password':
+      title.textContent = 'Change Password';
+      body.innerHTML = `
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Current Password</label>
+          <input type="password" id="currentPass" class="modal-input" style="margin:0;" placeholder="Enter current password">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">New Password</label>
+          <input type="password" id="newPass" class="modal-input" style="margin:0;" placeholder="Enter new password">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Confirm New Password</label>
+          <input type="password" id="confirmPass" class="modal-input" style="margin:0;" placeholder="Confirm new password">
+        </div>
+        <button class="modal-action-btn" onclick="changePassword()">Update Password</button>
       `;
       break;
 
     case 'payment':
       title.textContent = 'Payment Methods';
-      body.innerHTML = `
-        <div style="padding:10px; background:#12121a; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
-          <span>💳 Visa **** 4242</span>
-          <span style="color:#ff6b6b; cursor:pointer;">Remove</span>
+      const savedPayments = JSON.parse(localStorage.getItem('paymentMethods')) || [
+        {type: 'visa', last4: '4242'},
+        {type: 'kbz', last4: '8899'}
+      ];
+      let paymentHTML = savedPayments.map((p, i) => `
+        <div style="padding:12px; background:#12121a; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+          <span>${p.type === 'visa' ? '💳 Visa' : p.type === 'mastercard' ? '💳 Mastercard' : '📱 ' + p.type.toUpperCase()} **** ${p.last4}</span>
+          <span style="color:#ff6b6b; cursor:pointer;" onclick="removePaymentMethod(${i})">Remove</span>
         </div>
-        <button class="modal-action-btn">＋ Add New Card</button>
+      `).join('');
+      body.innerHTML = `
+        ${paymentHTML}
+        <div style="border:2px dashed #2d3436; padding:16px; text-align:center; border-radius:10px; cursor:pointer;" onclick="openModal('add_payment')">
+          <span style="font-size:24px;">+</span>
+          <div style="font-size:13px; color:#636e72; margin-top:4px;">Add Payment Method</div>
+        </div>
+      `;
+      break;
+      
+    case 'add_payment':
+      title.textContent = 'Add Payment Method';
+      body.innerHTML = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+          <div onclick="selectPaymentType('visa')" id="payType-visa" class="pay-type-option" style="background:#1e1e2d; padding:16px; border-radius:10px; text-align:center; cursor:pointer; border:2px solid transparent;">
+            <div style="font-size:24px;">💳</div>
+            <div style="font-size:12px; margin-top:4px;">Visa/Mastercard</div>
+          </div>
+          <div onclick="selectPaymentType('kbz')" id="payType-kbz" class="pay-type-option" style="background:#1e1e2d; padding:16px; border-radius:10px; text-align:center; cursor:pointer; border:2px solid transparent;">
+            <div style="font-size:24px;">📱</div>
+            <div style="font-size:12px; margin-top:4px;">KBZ Pay</div>
+          </div>
+          <div onclick="selectPaymentType('wave')" id="payType-wave" class="pay-type-option" style="background:#1e1e2d; padding:16px; border-radius:10px; text-align:center; cursor:pointer; border:2px solid transparent;">
+            <div style="font-size:24px;">📱</div>
+            <div style="font-size:12px; margin-top:4px;">Wave Pay</div>
+          </div>
+          <div onclick="selectPaymentType('cb')" id="payType-cb" class="pay-type-option" style="background:#1e1e2d; padding:16px; border-radius:10px; text-align:center; cursor:pointer; border:2px solid transparent;">
+            <div style="font-size:24px;">🏦</div>
+            <div style="font-size:12px; margin-top:4px;">CB Bank</div>
+          </div>
+        </div>
+        <div id="cardDetails" style="display:none;">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Card Number / Phone Number</label>
+            <input type="text" id="paymentNumber" class="modal-input" style="margin:0;" placeholder="Enter number">
+          </div>
+        </div>
+        <button class="modal-action-btn" onclick="addPaymentMethod()">Add Payment Method</button>
       `;
       break;
 
     case 'notifications':
       title.textContent = 'Notifications';
+      const notifSettings = JSON.parse(localStorage.getItem('notificationSettings')) || {
+        priceAlerts: true, news: false, orderStatus: true, promotions: false
+      };
       body.innerHTML = `
-        <div class="menu-item">
-          <span>Price Alerts</span>
-          <input type="checkbox" checked>
+        <div class="menu-item" style="border-bottom:1px solid #2d3436;">
+          <span>💰 Price Alerts</span>
+          <label class="toggle-switch">
+            <input type="checkbox" ${notifSettings.priceAlerts ? 'checked' : ''} onchange="saveNotificationSetting('priceAlerts', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="menu-item" style="border-bottom:1px solid #2d3436;">
+          <span>📰 News & Updates</span>
+          <label class="toggle-switch">
+            <input type="checkbox" ${notifSettings.news ? 'checked' : ''} onchange="saveNotificationSetting('news', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="menu-item" style="border-bottom:1px solid #2d3436;">
+          <span>📦 Order Status</span>
+          <label class="toggle-switch">
+            <input type="checkbox" ${notifSettings.orderStatus ? 'checked' : ''} onchange="saveNotificationSetting('orderStatus', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
         <div class="menu-item">
-          <span>News & Updates</span>
-          <input type="checkbox">
-        </div>
-        <div class="menu-item">
-          <span>Order Status</span>
-          <input type="checkbox" checked>
+          <span>🎁 Promotions</span>
+          <label class="toggle-switch">
+            <input type="checkbox" ${notifSettings.promotions ? 'checked' : ''} onchange="saveNotificationSetting('promotions', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
       `;
       break;
 
     case 'language':
       title.textContent = 'Select Language';
+      const currentLang = localStorage.getItem('selectedLanguage') || 'English';
       body.innerHTML = `
         <div class="menu-item" onclick="setLanguage('English')" style="cursor:pointer;">
           <span>🇺🇸 English</span>
-          <span style="color:#00b894;">✓</span>
+          <span style="color:#00b894;">${currentLang === 'English' ? '✓' : ''}</span>
         </div>
         <div class="menu-item" onclick="setLanguage('Myanmar')" style="cursor:pointer;">
           <span>🇲🇲 Myanmar</span>
+          <span style="color:#00b894;">${currentLang === 'Myanmar' ? '✓' : ''}</span>
         </div>
         <div class="menu-item" onclick="setLanguage('Chinese')" style="cursor:pointer;">
           <span>🇨🇳 Chinese</span>
+          <span style="color:#00b894;">${currentLang === 'Chinese' ? '✓' : ''}</span>
         </div>
+      `;
+      break;
+      
+    case 'profile_edit':
+      title.textContent = 'Edit Profile';
+      const savedUser = localStorage.getItem('cryptoUser') || 'User';
+      body.innerHTML = `
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="width:80px; height:80px; background:#2d3436; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; margin:0 auto 12px;">👤</div>
+          <button onclick="document.getElementById('avatarInput').click()" style="background:#1e1e2d; border:1px solid #00b894; color:#00b894; padding:8px 16px; border-radius:8px; cursor:pointer;">Change Photo</button>
+          <input type="file" id="avatarInput" style="display:none;" accept="image/*">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Username</label>
+          <input type="text" id="editUsername" class="modal-input" style="margin:0;" value="${savedUser}">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Email</label>
+          <input type="email" id="editEmail" class="modal-input" style="margin:0;" value="${savedUser}@gmail.com">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Phone Number</label>
+          <input type="tel" id="editPhone" class="modal-input" style="margin:0;" placeholder="+95 9xxxxxxxx">
+        </div>
+        <button class="modal-action-btn" onclick="saveProfile()">Save Changes</button>
+      `;
+      break;
+      
+    case 'verify_email':
+      title.textContent = 'Email Verification';
+      const emailVerified = localStorage.getItem('emailVerified') === 'true';
+      body.innerHTML = emailVerified ? `
+        <div style="text-align:center; padding:30px;">
+          <div style="font-size:64px; margin-bottom:16px;">✅</div>
+          <div style="font-size:18px; font-weight:bold; color:#00b894; margin-bottom:8px;">Email Verified</div>
+          <div style="color:#b2bec3;">Your email has been successfully verified.</div>
+        </div>
+      ` : `
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="font-size:48px; margin-bottom:12px;">📧</div>
+          <div style="color:#b2bec3;">Verify your email to secure your account</div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Email Address</label>
+          <input type="email" id="verifyEmail" class="modal-input" style="margin:0;" placeholder="Enter your email">
+        </div>
+        <button class="modal-action-btn" onclick="sendVerificationCode('email')">Send Verification Code</button>
+        <div id="emailCodeSection" style="display:none; margin-top:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Enter Code</label>
+          <input type="text" id="emailCode" class="modal-input" style="margin:0;" placeholder="6-digit code">
+          <button class="modal-action-btn" style="margin-top:12px;" onclick="verifyCode('email')">Verify</button>
+        </div>
+      `;
+      break;
+      
+    case 'verify_phone':
+      title.textContent = 'Phone Verification';
+      const phoneVerified = localStorage.getItem('phoneVerified') === 'true';
+      body.innerHTML = phoneVerified ? `
+        <div style="text-align:center; padding:30px;">
+          <div style="font-size:64px; margin-bottom:16px;">✅</div>
+          <div style="font-size:18px; font-weight:bold; color:#00b894; margin-bottom:8px;">Phone Verified</div>
+          <div style="color:#b2bec3;">Your phone number has been verified.</div>
+        </div>
+      ` : `
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="font-size:48px; margin-bottom:12px;">📱</div>
+          <div style="color:#b2bec3;">Verify your phone for added security</div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Phone Number</label>
+          <input type="tel" id="verifyPhone" class="modal-input" style="margin:0;" placeholder="+95 9xxxxxxxx">
+        </div>
+        <button class="modal-action-btn" onclick="sendVerificationCode('phone')">Send SMS Code</button>
+        <div id="phoneCodeSection" style="display:none; margin-top:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Enter Code</label>
+          <input type="text" id="phoneCode" class="modal-input" style="margin:0;" placeholder="6-digit code">
+          <button class="modal-action-btn" style="margin-top:12px;" onclick="verifyCode('phone')">Verify</button>
+        </div>
+      `;
+      break;
+      
+    case 'verify_id':
+      title.textContent = 'ID Verification';
+      const idVerified = localStorage.getItem('idVerified') === 'true';
+      body.innerHTML = idVerified ? `
+        <div style="text-align:center; padding:30px;">
+          <div style="font-size:64px; margin-bottom:16px;">✅</div>
+          <div style="font-size:18px; font-weight:bold; color:#00b894; margin-bottom:8px;">ID Verified</div>
+          <div style="color:#b2bec3;">Your identity has been verified.</div>
+        </div>
+      ` : `
+        <div style="background:#1e1e2d; padding:16px; border-radius:12px; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <div style="width:48px; height:48px; background:linear-gradient(135deg, #00b894, #00cec9); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">🛡️</div>
+            <div>
+              <div style="font-weight:bold;">KYC Verification</div>
+              <div style="font-size:12px; color:#636e72;">Upload ID to verify identity</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Full Legal Name</label>
+          <input type="text" id="idName" class="modal-input" style="margin:0;" placeholder="As shown on your ID">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">ID Number</label>
+          <input type="text" id="idNumber" class="modal-input" style="margin:0;" placeholder="Passport / National ID">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; color:#b2bec3; margin-bottom:6px;">Upload ID Document</label>
+          <div style="border:2px dashed #2d3436; padding:24px; text-align:center; border-radius:12px; cursor:pointer; background:#12121a;" onclick="document.getElementById('idDocInput').click()">
+            <input type="file" id="idDocInput" style="display:none;" accept="image/*" onchange="handleIdFileSelect(this)">
+            <span style="font-size:32px; display:block; margin-bottom:8px;">📄</span>
+            <div style="font-size:13px; color:#636e72;" id="idFileLabel">Click to upload</div>
+          </div>
+        </div>
+        <button class="modal-action-btn" onclick="submitIdVerification()">Submit for Review</button>
       `;
       break;
       
@@ -1142,15 +1666,237 @@ function toggleTheme() {
   }
 }
 
+// Language Translation Data
+const translations = {
+  'English': {
+    home: 'Home', quotes: 'Quotes', coins: 'Coins', trading: 'Trading',
+    derivatives: 'Derivatives', assets: 'Assets', mine: 'Mine',
+    darkLight: 'Dark / Light Theme', security: 'Security Settings',
+    payment: 'Payment Methods', notifications: 'Notifications',
+    language: 'Language', support: 'Customer Support', terms: 'Terms & Conditions',
+    about: 'About Us', logout: 'Log Out', totalBalance: 'Total Balance (BTC)',
+    deposit: 'Deposit', withdraw: 'Withdraw', transfer: 'Transfer',
+    emailVerify: 'Email Verification', phoneVerify: 'Phone Verification',
+    idVerify: 'ID Verification', verified: 'Verified', notVerified: 'Not Verified'
+  },
+  'Myanmar': {
+    home: 'ပင်မ', quotes: 'စျေးနှုန်း', coins: 'ဒင်္ဂါးများ', trading: 'အရောင်းအဝယ်',
+    derivatives: 'ဒီရီဗေးတစ်', assets: 'ပိုင်ဆိုင်မှု', mine: 'ကျွန်ုပ်',
+    darkLight: 'အမှောင် / အလင်း', security: 'လုံခြုံရေး ဆက်တင်',
+    payment: 'ငွေပေးချေမှု', notifications: 'အကြောင်းကြားချက်',
+    language: 'ဘာသာစကား', support: 'ဖောက်သည် ဝန်ဆောင်မှု', terms: 'စည်းကမ်းချက်များ',
+    about: 'ကျွန်ုပ်တို့ အကြောင်း', logout: 'ထွက်မည်', totalBalance: 'စုစုပေါင်း လက်ကျန် (BTC)',
+    deposit: 'ငွေသွင်း', withdraw: 'ငွေထုတ်', transfer: 'လွှဲပြောင်း',
+    emailVerify: 'အီးမေးလ် အတည်ပြုခြင်း', phoneVerify: 'ဖုန်း အတည်ပြုခြင်း',
+    idVerify: 'ID အတည်ပြုခြင်း', verified: 'အတည်ပြုပြီး', notVerified: 'မအတည်ပြုရသေး'
+  },
+  'Chinese': {
+    home: '首页', quotes: '行情', coins: '币种', trading: '交易',
+    derivatives: '衍生品', assets: '资产', mine: '我的',
+    darkLight: '深色 / 浅色主题', security: '安全设置',
+    payment: '支付方式', notifications: '通知',
+    language: '语言', support: '客户服务', terms: '条款与条件',
+    about: '关于我们', logout: '退出', totalBalance: '总余额 (BTC)',
+    deposit: '充值', withdraw: '提现', transfer: '转账',
+    emailVerify: '邮箱验证', phoneVerify: '手机验证',
+    idVerify: '身份验证', verified: '已验证', notVerified: '未验证'
+  }
+};
+
 function setLanguage(lang) {
-  document.getElementById('current-lang').textContent = lang + ' ›';
-  // ဤနေရာတွင် ဘာသာစကားပြောင်းမည့် Logic အပြည့်အစုံထည့်နိုင်သည်
-  // လောလောဆယ် Modal ပိတ်ပြီး Alert ပြပါမည်
+  const langLabel = document.getElementById('current-lang');
+  if (langLabel) {
+    langLabel.textContent = lang + ' ›';
+  }
+  localStorage.setItem('selectedLanguage', lang);
+  
+  // Apply translations
+  applyTranslations(lang);
   closeModal();
-  alert('Language changed to ' + lang);
 }
 
-// App စဖွင့်ရင် Theme အဟောင်းကို ပြန်ယူမယ်
+function applyTranslations(lang) {
+  const t = translations[lang] || translations['English'];
+  
+  // Nav items
+  const navItems = document.querySelectorAll('.nav-item span:last-child');
+  const navKeys = ['home', 'quotes', 'coins', 'trading', 'derivatives', 'assets', 'mine'];
+  navItems.forEach((item, i) => {
+    if (navKeys[i] && t[navKeys[i]]) item.textContent = t[navKeys[i]];
+  });
+  
+  // Mine page menu items
+  const menuItems = document.querySelectorAll('.menu-item span:nth-child(2)');
+  const menuKeys = ['darkLight', 'security', 'payment', 'notifications', 'language', 'support', 'terms', 'about'];
+  menuItems.forEach((item, i) => {
+    if (menuKeys[i] && t[menuKeys[i]]) item.textContent = t[menuKeys[i]];
+  });
+  
+  // Logout button
+  const logoutBtn = document.querySelector('.logout-btn');
+  if (logoutBtn) logoutBtn.textContent = t.logout;
+  
+  // Assets page buttons
+  const depositBtn = document.querySelector('.asset-action-btn:nth-child(1) span');
+  const withdrawBtn = document.querySelector('.asset-action-btn:nth-child(2) span');
+  const transferBtn = document.querySelector('.asset-action-btn:nth-child(3) span');
+  
+  // Verification items
+  const verifyItems = document.querySelectorAll('.verify-item span:first-child');
+  const verifyKeys = ['emailVerify', 'phoneVerify', 'idVerify'];
+  verifyItems.forEach((item, i) => {
+    if (verifyKeys[i] && t[verifyKeys[i]]) item.textContent = t[verifyKeys[i]];
+  });
+}
+
+// --- CHAT MESSAGE FUNCTION ---
+function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const container = document.getElementById('chatContainer');
+  if (!input || !container || !input.value.trim()) return;
+  
+  const message = input.value.trim();
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  
+  container.innerHTML += `
+    <div style="display:flex; gap:8px; margin-bottom:12px; justify-content:flex-end;">
+      <div style="text-align:right;">
+        <div style="font-size:11px; color:#636e72; margin-bottom:4px;">You • ${time}</div>
+        <div style="background:#00b894; padding:10px 14px; border-radius:12px 0 12px 12px; font-size:13px; max-width:220px; display:inline-block;">
+          ${message}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  input.value = '';
+  container.scrollTop = container.scrollHeight;
+  
+  setTimeout(() => {
+    container.innerHTML += `
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <div style="width:32px; height:32px; background:#00b894; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">🤖</div>
+        <div>
+          <div style="font-size:11px; color:#636e72; margin-bottom:4px;">Support Bot • ${time}</div>
+          <div style="background:#2d3436; padding:10px 14px; border-radius:0 12px 12px 12px; font-size:13px; max-width:220px;">
+            Thank you for your message! A support agent will respond shortly. Average wait time: 2-3 minutes.
+          </div>
+        </div>
+      </div>
+    `;
+    container.scrollTop = container.scrollHeight;
+  }, 1000);
+}
+
+// --- FILE SELECT FOR KYC ---
+function handleFileSelect(input) {
+  const label = document.getElementById('fileLabel');
+  if (input.files && input.files[0] && label) {
+    label.textContent = '✅ ' + input.files[0].name;
+    label.style.color = '#00b894';
+  }
+}
+
+function submitVerification() {
+  alert('✅ Your documents have been submitted for review. You will be notified within 24-48 hours.');
+  closeModal();
+}
+
+// --- AI BOT TOGGLE ---
+let isBotRunning = false;
+
+function toggleAIBot() {
+  const indicator = document.getElementById('botStatusIndicator');
+  const btn = document.getElementById('startBotBtn');
+  const investment = document.getElementById('botInvestment')?.value || 500;
+  
+  if (!indicator || !btn) return;
+  
+  isBotRunning = !isBotRunning;
+  
+  if (isBotRunning) {
+    indicator.innerHTML = `
+      <span style="width:10px; height:10px; background:#00b894; border-radius:50%; animation: pulse 1s infinite;"></span>
+      <span style="color:#00b894; font-weight:bold;">Running</span>
+    `;
+    btn.textContent = '⏹️ Stop AI Bot';
+    btn.style.background = '#ff6b6b';
+    alert(`✅ AI Bot started with $${investment} USDT investment!`);
+  } else {
+    indicator.innerHTML = `
+      <span style="width:10px; height:10px; background:#ff6b6b; border-radius:50%;"></span>
+      <span style="color:#ff6b6b; font-weight:bold;">Stopped</span>
+    `;
+    btn.textContent = '🚀 Start AI Bot';
+    btn.style.background = '#00b894';
+  }
+}
+
+// --- FIAT DEPOSIT FUNCTIONS ---
+const fiatRates = {
+  'MMK': 4500,
+  'USD': 1,
+  'THB': 35,
+  'CNY': 7.2
+};
+
+function switchFiatTab(tab, btn) {
+  document.querySelectorAll('.fiat-tab').forEach(b => {
+    b.style.background = '#1e1e2d';
+    b.style.color = '#b2bec3';
+    b.style.border = '1px solid #2d3436';
+  });
+  btn.style.background = '#00b894';
+  btn.style.color = 'white';
+  btn.style.border = 'none';
+  
+  const title = document.getElementById('modalTitle');
+  if (title) {
+    title.textContent = tab === 'deposit' ? 'Deposit Funds' : 'Withdraw Funds';
+  }
+}
+
+function updateFiatRate() {
+  const currency = document.getElementById('fiatCurrency')?.value || 'MMK';
+  const rateEl = document.getElementById('fiatRate');
+  const labelEl = document.getElementById('fiatCurrencyLabel');
+  
+  if (rateEl) {
+    rateEl.textContent = `1 USDT = ${fiatRates[currency].toLocaleString()} ${currency}`;
+  }
+  if (labelEl) {
+    labelEl.textContent = currency;
+  }
+  calculateFiatToUsdt();
+}
+
+function calculateFiatToUsdt() {
+  const currency = document.getElementById('fiatCurrency')?.value || 'MMK';
+  const amount = parseFloat(document.getElementById('fiatAmount')?.value) || 0;
+  const receiveEl = document.getElementById('fiatReceive');
+  
+  const usdt = amount / fiatRates[currency];
+  
+  if (receiveEl) {
+    receiveEl.textContent = usdt.toFixed(2) + ' USDT';
+  }
+}
+
+function processFiatDeposit() {
+  const currency = document.getElementById('fiatCurrency')?.value || 'MMK';
+  const amount = parseFloat(document.getElementById('fiatAmount')?.value) || 0;
+  const usdt = amount / fiatRates[currency];
+  
+  if (amount <= 0) {
+    alert('Please enter a valid amount');
+    return;
+  }
+  
+  alert(`✅ Deposit request submitted!\n\nAmount: ${amount.toLocaleString()} ${currency}\nYou will receive: ${usdt.toFixed(2)} USDT\n\nPlease complete payment within 30 minutes.`);
+  closeModal();
+}
+
+// App စဖွင့်ရင် Theme နဲ့ Language အဟောင်းကို ပြန်ယူမယ်
 document.addEventListener('DOMContentLoaded', function() {
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme === 'light') {
@@ -1158,4 +1904,174 @@ document.addEventListener('DOMContentLoaded', function() {
     const label = document.getElementById('theme-label');
     if(label) label.textContent = 'Light';
   }
+  
+  const savedLang = localStorage.getItem('selectedLanguage');
+  if (savedLang) {
+    const langLabel = document.getElementById('current-lang');
+    if (langLabel) langLabel.textContent = savedLang + ' ›';
+    applyTranslations(savedLang);
+  }
+  
+  updateVerificationStatus();
 });
+
+// --- MINE TAB FUNCTIONS ---
+
+function saveProfile() {
+  const username = document.getElementById('editUsername')?.value || 'User';
+  const email = document.getElementById('editEmail')?.value || '';
+  const phone = document.getElementById('editPhone')?.value || '';
+  
+  localStorage.setItem('cryptoUser', username);
+  localStorage.setItem('userEmail', email);
+  localStorage.setItem('userPhone', phone);
+  
+  updateProfileUI(username);
+  alert('✅ Profile updated successfully!');
+  closeModal();
+}
+
+function sendVerificationCode(type) {
+  const section = document.getElementById(`${type}CodeSection`);
+  if (section) {
+    section.style.display = 'block';
+  }
+  alert(`✅ Verification code sent to your ${type}!`);
+}
+
+function verifyCode(type) {
+  const code = document.getElementById(`${type}Code`)?.value || '';
+  if (code.length === 6) {
+    localStorage.setItem(`${type}Verified`, 'true');
+    alert(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} verified successfully!`);
+    updateVerificationStatus();
+    closeModal();
+  } else {
+    alert('❌ Invalid code. Please enter 6 digits.');
+  }
+}
+
+function handleIdFileSelect(input) {
+  const label = document.getElementById('idFileLabel');
+  if (input.files && input.files[0] && label) {
+    label.textContent = '✅ ' + input.files[0].name;
+    label.style.color = '#00b894';
+  }
+}
+
+function submitIdVerification() {
+  const name = document.getElementById('idName')?.value || '';
+  const idNum = document.getElementById('idNumber')?.value || '';
+  
+  if (!name || !idNum) {
+    alert('❌ Please fill in all fields');
+    return;
+  }
+  
+  localStorage.setItem('idVerified', 'true');
+  alert('✅ ID verification submitted! You will be notified within 24-48 hours.');
+  updateVerificationStatus();
+  closeModal();
+}
+
+function updateVerificationStatus() {
+  const emailStatus = document.getElementById('status-email');
+  const phoneStatus = document.getElementById('status-phone');
+  const idStatus = document.getElementById('status-id');
+  
+  if (emailStatus) {
+    const verified = localStorage.getItem('emailVerified') === 'true';
+    emailStatus.textContent = verified ? '✓ Verified' : 'Not Verified';
+    emailStatus.className = verified ? 'verified' : 'not-verified';
+  }
+  if (phoneStatus) {
+    const verified = localStorage.getItem('phoneVerified') === 'true';
+    phoneStatus.textContent = verified ? '✓ Verified' : 'Not Verified';
+    phoneStatus.className = verified ? 'verified' : 'not-verified';
+  }
+  if (idStatus) {
+    const verified = localStorage.getItem('idVerified') === 'true';
+    idStatus.textContent = verified ? '✓ Verified' : 'Not Verified';
+    idStatus.className = verified ? 'verified' : 'not-verified';
+  }
+}
+
+function toggleSecuritySetting(setting, enabled) {
+  localStorage.setItem(`${setting}Enabled`, enabled.toString());
+  const msg = enabled ? 'enabled' : 'disabled';
+  const settingName = setting === 'twoFA' ? '2FA Authentication' : 'Biometric Login';
+  alert(`✅ ${settingName} ${msg}`);
+}
+
+function changePassword() {
+  const current = document.getElementById('currentPass')?.value || '';
+  const newPass = document.getElementById('newPass')?.value || '';
+  const confirm = document.getElementById('confirmPass')?.value || '';
+  
+  if (!current || !newPass || !confirm) {
+    alert('❌ Please fill in all fields');
+    return;
+  }
+  if (newPass !== confirm) {
+    alert('❌ New passwords do not match');
+    return;
+  }
+  if (newPass.length < 6) {
+    alert('❌ Password must be at least 6 characters');
+    return;
+  }
+  
+  alert('✅ Password changed successfully!');
+  closeModal();
+}
+
+let selectedPaymentType = '';
+
+function selectPaymentType(type) {
+  selectedPaymentType = type;
+  document.querySelectorAll('.pay-type-option').forEach(el => {
+    el.style.border = '2px solid transparent';
+  });
+  const selected = document.getElementById(`payType-${type}`);
+  if (selected) {
+    selected.style.border = '2px solid #00b894';
+  }
+  document.getElementById('cardDetails').style.display = 'block';
+}
+
+function addPaymentMethod() {
+  if (!selectedPaymentType) {
+    alert('❌ Please select a payment type');
+    return;
+  }
+  const number = document.getElementById('paymentNumber')?.value || '';
+  if (!number || number.length < 4) {
+    alert('❌ Please enter a valid number');
+    return;
+  }
+  
+  const payments = JSON.parse(localStorage.getItem('paymentMethods')) || [];
+  payments.push({
+    type: selectedPaymentType,
+    last4: number.slice(-4)
+  });
+  localStorage.setItem('paymentMethods', JSON.stringify(payments));
+  
+  alert('✅ Payment method added!');
+  openModal('payment');
+}
+
+function removePaymentMethod(index) {
+  const payments = JSON.parse(localStorage.getItem('paymentMethods')) || [];
+  payments.splice(index, 1);
+  localStorage.setItem('paymentMethods', JSON.stringify(payments));
+  openModal('payment');
+}
+
+function saveNotificationSetting(setting, enabled) {
+  const settings = JSON.parse(localStorage.getItem('notificationSettings')) || {
+    priceAlerts: true, news: false, orderStatus: true, promotions: false
+  };
+  settings[setting] = enabled;
+  localStorage.setItem('notificationSettings', JSON.stringify(settings));
+}
