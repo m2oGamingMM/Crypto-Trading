@@ -3260,9 +3260,9 @@ function renderDerivMenu() {
     // Fixed Logos (New Stable Source)
     const markets = [
         // Gold (Using Tether Gold icon which looks like a Gold Coin)
-        { sym: 'XAU', name: 'Gold', img: 'public/images/gold.png' }, 
+        { sym: 'XAU', name: 'Gold', img: 'images/gold.png' }, 
         // Silver (Using Kinesis Silver icon which looks like Silver)
-        { sym: 'XAG', name: 'Silver', img: 'public/images/silver.png' },
+        { sym: 'XAG', name: 'Silver', img: 'images/silver.png' },
         { sym: 'WTI', name: 'Crude Oil', img: 'https://cdn-icons-png.flaticon.com/512/2103/2103383.png' },
         { sym: 'EUR', name: 'Euro/USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1200px-Flag_of_Europe.svg.png' },
         { sym: 'GBP', name: 'GBP/USD', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/1200px-Flag_of_the_United_Kingdom.svg.png' },
