@@ -237,46 +237,74 @@
                         </div>
 
                         <div style="display:flex; gap:4px; margin-bottom:15px;">
-                            <button class="percent-btn" onclick="setPerpPercent(25)">25%</button>
-                            <button class="percent-btn" onclick="setPerpPercent(50)">50%</button>
-                            <button class="percent-btn" onclick="setPerpPercent(75)">75%</button>
-                            <button class="percent-btn" onclick="setPerpPercent(100)">100%</button>
+                            <button class="percent-btn" onclick="setPerpPercent(25, this)">25%</button>
+                            <button class="percent-btn" onclick="setPerpPercent(50, this)">50%</button>
+                            <button class="percent-btn" onclick="setPerpPercent(75, this)">75%</button>
+                            <button class="percent-btn" onclick="setPerpPercent(100, this)">100%</button>
                         </div>
 
                         <div style="font-size:10px; color:#b2bec3; margin-bottom:5px;">Balance: <span id="perpBalance">0.00</span> USDT</div>
 
                         <button id="perpSubmitBtn" class="action-btn buy" style="width:100%; padding:12px; font-size:14px; margin-bottom:15px;" onclick="submitPerpetualOrder()">Buy (Go Long)</button>
 
-                        <div style="display:flex; gap:2px;">
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:4px;">
+                             <button class="lev-btn" onclick="setLeverage(this, 1)">1x</button>
+                             <button class="lev-btn" onclick="setLeverage(this, 5)">5x</button>
                              <button class="lev-btn" onclick="setLeverage(this, 10)">10x</button>
+                             <button class="lev-btn" onclick="setLeverage(this, 25)">25x</button>
                              <button class="lev-btn" onclick="setLeverage(this, 50)">50x</button>
                              <button class="lev-btn active" onclick="setLeverage(this, 100)">100x</button>
                          </div>
                     </div>
 
-                    <div style="flex:0.8; font-size:11px;">
+                    <div style="flex:0.8; font-size:11px; display:flex; flex-direction:column;">
                         <div style="display:flex; justify-content:space-between; color:#636e72; margin-bottom:4px;">
                             <span>Price</span>
                             <span>Amount</span>
                         </div>
                         
-                        <div id="orderbook-asks" style="margin-bottom:8px;">
-                            <div style="display:flex; justify-content:space-between;"><span style="color:#ff6b6b;">--</span><span style="color:#b2bec3;">--</span></div>
-                        </div>
+                        <div id="orderbook-asks" style="flex:1; overflow:hidden;">
+                            </div>
 
-                        <div id="ob-current-price" style="font-size:16px; font-weight:bold; color:#00b894; text-align:center; margin:5px 0;">--</div>
+                        <div id="ob-current-price" style="font-size:16px; font-weight:bold; color:#00b894; text-align:center; margin:8px 0;">--</div>
 
-                        <div id="orderbook-bids">
-                            <div style="display:flex; justify-content:space-between;"><span style="color:#00b894;">--</span><span style="color:#b2bec3;">--</span></div>
+                        <div id="orderbook-bids" style="flex:1; overflow:hidden;">
+                            </div>
+
+                        <div class="ob-filters" style="display:flex; gap:5px; margin-top:8px; border-top:1px solid #2d3436; padding-top:5px;">
+                            <button class="ob-filter-btn active" onclick="filterOrderBook('all')">
+                                <div style="display:flex; flex-direction:column; gap:1px;">
+                                    <div style="width:12px; height:2px; background:#ff6b6b;"></div>
+                                    <div style="width:12px; height:2px; background:#ff6b6b;"></div>
+                                    <div style="width:12px; height:2px; background:#00b894;"></div>
+                                    <div style="width:12px; height:2px; background:#00b894;"></div>
+                                </div>
+                            </button>
+                            <button class="ob-filter-btn" onclick="filterOrderBook('buy')">
+                                <div style="display:flex; flex-direction:column; gap:1px;">
+                                    <div style="width:12px; height:2px; background:#00b894;"></div>
+                                    <div style="width:12px; height:2px; background:#00b894;"></div>
+                                    <div style="width:12px; height:2px; background:#00b894;"></div>
+                                    <div style="width:12px; height:2px; background:#00b894;"></div>
+                                </div>
+                            </button>
+                            <button class="ob-filter-btn" onclick="filterOrderBook('sell')">
+                                <div style="display:flex; flex-direction:column; gap:1px;">
+                                    <div style="width:12px; height:2px; background:#ff6b6b;"></div>
+                                    <div style="width:12px; height:2px; background:#ff6b6b;"></div>
+                                    <div style="width:12px; height:2px; background:#ff6b6b;"></div>
+                                    <div style="width:12px; height:2px; background:#ff6b6b;"></div>
+                                </div>
+                            </button>
                         </div>
                     </div>
                  </div>
 
                  <div style="background:#12121a; margin-top:10px; border-top:5px solid #0a0a0f;">
                     <div style="display:flex; border-bottom:1px solid #2d3436;">
-                        <button class="perp-hist-tab active">Current Delegate</button>
-                        <button class="perp-hist-tab">Hold Position</button>
-                        <button class="perp-hist-tab">History</button>
+                        <button class="perp-hist-tab active" onclick="switchPerpHistoryTab(this, 'delegate')">Current Delegate</button>
+                        <button class="perp-hist-tab" onclick="switchPerpHistoryTab(this, 'hold')">Hold Position</button>
+                        <button class="perp-hist-tab" onclick="switchPerpHistoryTab(this, 'history')">History</button>
                     </div>
                     
                     <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:10px; color:#636e72; font-size:10px; text-align:center;">
@@ -287,9 +315,11 @@
                         <span>Action</span>
                     </div>
 
-                    <div id="perp-delegate-list" style="padding:20px; text-align:center; color:#636e72;">
-                        <div style="font-size:24px; margin-bottom:5px;">📄</div>
-                        <div style="font-size:10px;">No Data</div>
+                    <div id="perp-list-container" style="min-height: 150px;">
+                        <div id="perp-delegate-list" style="padding:20px; text-align:center; color:#636e72;">
+                            <div style="font-size:24px; margin-bottom:5px;">📄</div>
+                            <div style="font-size:10px;">No Data</div>
+                        </div>
                     </div>
                  </div>
 
