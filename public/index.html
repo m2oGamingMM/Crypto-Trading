@@ -370,62 +370,120 @@
               <div style="margin-bottom:2px;">low <span style="color:white; margin-left:5px;">2028.90</span></div>
             </div>
           </div>
+
+          <div class="chart-time-bar">
+             <button class="time-btn" onclick="setChartTime('1')">1min</button>
+             <button class="time-btn" onclick="setChartTime('5')">5min</button>
+             <button class="time-btn active" onclick="setChartTime('15')">15min</button>
+             <button class="time-btn" onclick="setChartTime('30')">30min</button>
+             <button class="time-btn" onclick="setChartTime('60')">1hour</button>
+             <button class="time-btn" onclick="setChartTime('D')">1day</button>
+          </div>
           
-          <div id="deriv_chart_container" style="height: 350px; background:#12121a; margin: 10px 0;"></div>
+          <div id="deriv_chart_container" style="height: 350px; background:#12121a; margin-bottom: 10px;"></div>
 
           <div style="padding: 0 10px;">
               
               <div id="deriv-view-time" style="display:block;">
                 <div class="time-grid-container" style="margin-bottom: 16px;">
-                  <div class="time-box active" onclick="selectTime(30, 15, this)"><div class="t-sec">30 s</div><div class="t-rate">15%</div></div>
-                  <div class="time-box" onclick="selectTime(60, 30, this)"><div class="t-sec">60 s</div><div class="t-rate">30%</div></div>
-                  <div class="time-box" onclick="selectTime(180, 60, this)"><div class="t-sec">180 s</div><div class="t-rate">60%</div></div>
+                  <div class="time-box active" onclick="selectTime(30, 15, this)"><div class="t-sec">30 second</div><div class="t-rate">profit rate 15%</div></div>
+                  <div class="time-box" onclick="selectTime(60, 20, this)"><div class="t-sec">60 second</div><div class="t-rate">profit rate 20%</div></div>
+                  <div class="time-box" onclick="selectTime(120, 30, this)"><div class="t-sec">120 second</div><div class="t-rate">profit rate 30%</div></div>
+                  <div class="time-box" onclick="selectTime(180, 50, this)"><div class="t-sec">180 second</div><div class="t-rate">profit rate 50%</div></div>
+                  <div class="time-box" onclick="selectTime(300, 70, this)"><div class="t-sec">300 second</div><div class="t-rate">profit rate 70%</div></div>
+                  <div class="time-box" onclick="selectTime(360, 75, this)"><div class="t-sec">360 second</div><div class="t-rate">profit rate 75%</div></div>
                 </div>
 
-                <div class="qty-input-box" style="margin-bottom: 15px; background:#1e1e2d;">
+                <div class="qty-input-box" style="margin-bottom: 15px; background:#1e1e2d; border:1px solid #2d3436;">
                     <input type="number" id="derivTimeAmount" placeholder="Order Amount (USDT)" style="font-weight:bold;">
                 </div>
 
-                <div class="big-action-buttons" style="padding: 0;">
+                <div class="big-action-buttons" style="padding: 0; margin-bottom:20px;">
                   <button class="action-btn buy" onclick="alert('Call/Buy Order Submitted')">Call / Buy</button>
                   <button class="action-btn sell" onclick="alert('Put/Sell Order Submitted')">Put / Sell</button>
+                </div>
+
+                <div class="history-tabs-container">
+                    <div class="history-tabs-header">
+                       <button class="h-tab-link active">In transaction</button>
+                       <button class="h-tab-link">Position closed</button>
+                    </div>
+                    <div class="history-content-area" style="padding:40px; text-align:center;">
+                       <div style="font-size:30px; opacity:0.5;">📄</div>
+                       <div style="color:#636e72; font-size:12px; margin-top:10px;">No transaction data</div>
+                    </div>
                 </div>
               </div>
 
               <div id="deriv-view-std" style="display:none;">
                  
                  <div style="background:#1e1e2d; padding:15px; border-radius:12px; margin-bottom:20px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="color:#b2bec3; font-size:12px;">Volume (Lots)</span>
-                        <span style="color:#f39c12; font-size:12px;">Fee: 0.1%</span>
-                    </div>
                     
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                       <select class="modal-input" style="flex:2; margin:0; font-size:13px;">
+                           <option>Market Price</option>
+                           <option>Limit Price</option>
+                       </select>
+                       <div style="flex:1; display:flex; align-items:center; justify-content:center; color:#636e72; font-size:12px;">
+                           Lot Fee: <span style="color:#f39c12; margin-left:4px;">0.1%</span>
+                       </div>
+                    </div>
+
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
                         <button onclick="adjLot(-0.01)" style="width:40px; height:40px; background:#2d3436; border:none; color:white; border-radius:8px; font-size:18px;">-</button>
                         <input type="number" id="stdLotInput" value="1.00" style="flex:1; text-align:center; background:#12121a; border:1px solid #2d3436; height:40px; color:white; border-radius:8px; font-weight:bold;">
                         <button onclick="adjLot(0.01)" style="width:40px; height:40px; background:#2d3436; border:none; color:white; border-radius:8px; font-size:18px;">+</button>
                     </div>
 
-                    <div style="font-size:11px; color:#636e72; text-align:center; margin-bottom:15px;">
-                        1 Standard Lot = 100 Units
+                    <div style="display:flex; gap:4px; margin-bottom:15px;">
+                        <button class="percent-btn" onclick="setPerpPercent(25, this)">25%</button>
+                        <button class="percent-btn" onclick="setPerpPercent(50, this)">50%</button>
+                        <button class="percent-btn" onclick="setPerpPercent(75, this)">75%</button>
+                        <button class="percent-btn" onclick="setPerpPercent(100, this)">100%</button>
+                    </div>
+
+                    <div style="margin-bottom:15px;">
+                        <label style="font-size:11px; color:#b2bec3; display:block; margin-bottom:5px;">Leverage</label>
+                        <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:4px;">
+                             <button class="lev-btn" onclick="setLeverage(this, 1)">1x</button>
+                             <button class="lev-btn" onclick="setLeverage(this, 5)">5x</button>
+                             <button class="lev-btn" onclick="setLeverage(this, 10)">10x</button>
+                             <button class="lev-btn" onclick="setLeverage(this, 25)">25x</button>
+                             <button class="lev-btn" onclick="setLeverage(this, 50)">50x</button>
+                             <button class="lev-btn active" onclick="setLeverage(this, 100)">100x</button>
+                        </div>
                     </div>
 
                     <div style="display:flex; gap:10px;">
                         <button class="action-btn buy" style="display:flex; flex-direction:column; align-items:center; padding:10px;" onclick="submitStdOrder('buy')">
-                            <span style="font-size:14px;">Buy</span>
-                            <span id="btn-ask-price" style="font-size:12px; opacity:0.8;">--</span>
+                            <span style="font-size:14px;">Buy (Long)</span>
+                            <span id="btn-ask-price" style="font-size:11px; opacity:0.8;">--</span>
                         </button>
                         <button class="action-btn sell" style="display:flex; flex-direction:column; align-items:center; padding:10px;" onclick="submitStdOrder('sell')">
-                            <span style="font-size:14px;">Sell</span>
-                            <span id="btn-bid-price" style="font-size:12px; opacity:0.8;">--</span>
+                            <span style="font-size:14px;">Sell (Short)</span>
+                            <span id="btn-bid-price" style="font-size:11px; opacity:0.8;">--</span>
                         </button>
                     </div>
                  </div>
 
-                 <div style="margin-top:20px;">
-                    <h3 style="font-size:14px; color:#b2bec3; margin-bottom:10px;">Open Positions</h3>
-                    <div id="std-position-list">
-                        <div style="text-align:center; padding:20px; color:#636e72; font-size:12px;">No open positions</div>
+                 <div style="background:#12121a; margin-top:10px; border-top:5px solid #0a0a0f;">
+                    <div style="display:flex; border-bottom:1px solid #2d3436;">
+                        <button class="perp-hist-tab active">Current Delegate</button>
+                        <button class="perp-hist-tab">Hold Position</button>
+                        <button class="perp-hist-tab">History</button>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:10px; color:#636e72; font-size:10px; text-align:center;">
+                        <span>Type</span>
+                        <span>Time</span>
+                        <span>Price</span>
+                        <span>Qty</span>
+                        <span>Action</span>
+                    </div>
+
+                    <div style="padding:40px; text-align:center; color:#636e72;">
+                        <div style="font-size:24px; margin-bottom:5px;">📄</div>
+                        <div style="font-size:10px;">No Data</div>
                     </div>
                  </div>
 
