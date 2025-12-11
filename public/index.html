@@ -405,10 +405,10 @@
 
                 <div class="history-tabs-container">
                     <div class="history-tabs-header">
-                       <button class="h-tab-link active">In transaction</button>
-                       <button class="h-tab-link">Position closed</button>
+                       <button class="h-tab-link active" onclick="switchDerivHistoryTab('transaction')">In transaction</button>
+                       <button class="h-tab-link" onclick="switchDerivHistoryTab('closed')">Position closed</button>
                     </div>
-                    <div class="history-content-area" style="padding:40px; text-align:center;">
+                    <div class="history-content-area" style="padding:40px; text-align:center; min-height: 150px;">
                        <div style="font-size:30px; opacity:0.5;">📄</div>
                        <div style="color:#636e72; font-size:12px; margin-top:10px;">No transaction data</div>
                     </div>
@@ -468,9 +468,9 @@
 
                  <div style="background:#12121a; margin-top:10px; border-top:5px solid #0a0a0f;">
                     <div style="display:flex; border-bottom:1px solid #2d3436;">
-                        <button class="perp-hist-tab active">Current Delegate</button>
-                        <button class="perp-hist-tab">Hold Position</button>
-                        <button class="perp-hist-tab">History</button>
+                        <button class="perp-hist-tab active" onclick="switchPerpHistoryTab(this, 'delegate')">Current Delegate</button>
+                        <button class="perp-hist-tab" onclick="switchPerpHistoryTab(this, 'hold')">Hold Position</button>
+                        <button class="perp-hist-tab" onclick="switchPerpHistoryTab(this, 'history')">History</button>
                     </div>
                     
                     <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:10px; color:#636e72; font-size:10px; text-align:center;">
@@ -481,9 +481,11 @@
                         <span>Action</span>
                     </div>
 
-                    <div style="padding:40px; text-align:center; color:#636e72;">
-                        <div style="font-size:24px; margin-bottom:5px;">📄</div>
-                        <div style="font-size:10px;">No Data</div>
+                    <div id="std-history-container" style="min-height: 150px;">
+                        <div style="padding:40px; text-align:center; color:#636e72;">
+                            <div style="font-size:24px; margin-bottom:5px;">📄</div>
+                            <div style="font-size:10px;">No Data</div>
+                        </div>
                     </div>
                  </div>
 
