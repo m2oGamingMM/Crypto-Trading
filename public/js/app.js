@@ -3219,6 +3219,9 @@ function generateSyntheticData() {
         // Update Buttons for Standard Mode
         if(askBtn) askBtn.textContent = (data.price + (activeDerivSymbol === 'XAU' ? 0.1 : 0.0002)).toFixed(activeDerivSymbol === 'XAU' ? 2 : 5);
         if(bidBtn) bidBtn.textContent = (data.price - (activeDerivSymbol === 'XAU' ? 0.1 : 0.0002)).toFixed(activeDerivSymbol === 'XAU' ? 2 : 5);
+        
+        // Update Derivatives Order Book (Graphics)
+        updateDerivOrderBook(data.price);
     }
 }
 
@@ -3253,22 +3256,22 @@ function toggleDerivMenu() {
 function renderDerivMenu() {
     const container = document.getElementById('derivMenuList');
     
-    // Fixed Logos (Using Reliable Sources)
+    // Expanded List with Logos (User Preferred Version)
     const markets = [
-        { sym: 'XAU', name: 'Gold', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/2083.png' }, 
-        { sym: 'XAG', name: 'Silver', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/3053.png' },
-        { sym: 'WTI', name: 'Crude Oil', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1857.png' },
-        { sym: 'EUR', name: 'Euro/USD', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/8467.png' },
-        { sym: 'GBP', name: 'GBP/USD', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/28328.png' },
-        { sym: 'JPY', name: 'USD/JPY', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/2989.png' },
-        { sym: 'AUD', name: 'AUD/USD', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/28329.png' },
-        { sym: 'BTC', name: 'Bitcoin', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png' }
+        { sym: 'XAU', name: 'Gold', img: 'https://assets.coingecko.com/coins/images/32298/large/PAXG_Token_Icon_Color.png' },
+        { sym: 'XAG', name: 'Silver', img: 'https://assets.coingecko.com/coins/images/12693/large/silver.png' },
+        { sym: 'WTI', name: 'Crude Oil', img: 'https://cdn-icons-png.flaticon.com/512/2103/2103383.png' },
+        { sym: 'EUR', name: 'Euro/USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1200px-Flag_of_Europe.svg.png' },
+        { sym: 'GBP', name: 'GBP/USD', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/1200px-Flag_of_the_United_Kingdom.svg.png' },
+        { sym: 'JPY', name: 'USD/JPY', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/Flag_of_Japan.svg/1200px-Flag_of_Japan.svg.png' },
+        { sym: 'AUD', name: 'AUD/USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Flag_of_Australia_%28converted%29.svg/1200px-Flag_of_Australia_%28converted%29.svg.png' },
+        { sym: 'US30', name: 'Dow Jones', img: 'https://cdn-icons-png.flaticon.com/512/330/330430.png' }
     ];
     
     container.innerHTML = markets.map(m => `
         <div class="side-coin-item" onclick="selectDerivAsset('${m.sym}')" style="padding:15px; border-bottom:1px solid #1e1e2d; display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; align-items:center; gap:12px;">
-                <img src="${m.img}" onerror="this.src='https://via.placeholder.com/30?text=${m.sym}'" style="width:30px; height:30px; border-radius:50%; background:white; padding:2px; object-fit:contain;">
+                <img src="${m.img}" style="width:30px; height:30px; border-radius:50%; background:white; padding:2px; object-fit:contain;">
                 <div>
                     <div style="color:white; font-weight:bold; font-size:14px;">${m.sym}/USDT</div>
                     <div style="font-size:11px; color:#636e72;">${m.name}</div>
@@ -3408,3 +3411,88 @@ function submitStdOrder(type) {
 // Initialize Derivatives on Load
 // (Call this manually or add to DOMContentLoaded if you want it ready)
 selectDerivAsset('XAU');
+
+// --- DERIVATIVES ORDER BOOK GRAPHIC ---
+function updateDerivOrderBook(currentPrice) {
+    const asksContainer = document.getElementById('deriv-asks');
+    const bidsContainer = document.getElementById('deriv-bids');
+    const priceDisplay = document.getElementById('deriv-ob-price');
+    
+    if(!asksContainer || !bidsContainer) return;
+
+    if(priceDisplay) {
+        priceDisplay.textContent = currentPrice.toFixed(activeDerivSymbol === 'XAU' ? 2 : 4);
+    }
+
+    // Generate Asks (Red)
+    let asksHtml = '';
+    for(let i=5; i>0; i--) {
+        const p = currentPrice + (Math.random() * (activeDerivSymbol === 'XAU' ? 0.5 : 0.0005) * i);
+        const q = (Math.random() * 10).toFixed(4);
+        const width = Math.min((q / 10) * 100, 100);
+        asksHtml += `<div class="ob-row ask" style="--width: ${width}%"><span style="color:#ff6b6b;">${p.toFixed(activeDerivSymbol === 'XAU'?2:4)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    }
+    asksContainer.innerHTML = asksHtml;
+
+    // Generate Bids (Green)
+    let bidsHtml = '';
+    for(let i=1; i<=5; i++) {
+        const p = currentPrice - (Math.random() * (activeDerivSymbol === 'XAU' ? 0.5 : 0.0005) * i);
+        const q = (Math.random() * 10).toFixed(4);
+        const width = Math.min((q / 10) * 100, 100);
+        bidsHtml += `<div class="ob-row bid" style="--width: ${width}%"><span style="color:#00b894;">${p.toFixed(activeDerivSymbol === 'XAU'?2:4)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    }
+    bidsContainer.innerHTML = bidsHtml;
+}
+
+// --- HISTORY TABS LOGIC (Delivery Style) ---
+function switchDerivHistoryTab(tab) {
+    // UI Update
+    document.querySelectorAll('.h-tab-link').forEach(btn => {
+        btn.classList.remove('active');
+        if(btn.textContent.includes(tab === 'transaction' ? 'In transaction' : 'Position closed')) {
+            btn.classList.add('active');
+        }
+    });
+
+    const content = document.querySelector('#deriv-view-time .history-content-area');
+    if(!content) return;
+
+    if(tab === 'transaction') {
+        content.innerHTML = `<div style="font-size:30px; opacity:0.5;">📄</div><div style="color:#636e72; font-size:12px; margin-top:10px;">No transaction data</div>`;
+    } else {
+        // Render List like Delivery Tab
+        content.innerHTML = '<div class="history-loading"><div class="loading-spinner"></div><br>Loading history...</div>';
+        setTimeout(() => {
+            let html = '';
+            for(let i=0; i<5; i++) {
+                const isWin = Math.random() > 0.5;
+                const profit = (Math.random() * 50).toFixed(2);
+                html += `
+                <div style="padding:12px 0; border-bottom:1px solid #2d3436;">
+                   <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+                      <span style="color:#b2bec3;">Position closed</span>
+                      <span style="color:white; font-weight:bold;">${activeDerivSymbol}/USDT 60s</span>
+                   </div>
+                   <div style="display:flex; justify-content:space-between; font-size:12px;">
+                      <span style="color:#636e72;">Profit/Loss</span>
+                      <span style="color:${isWin ? '#00b894' : '#ff6b6b'};">${isWin?'+':''}${profit}</span>
+                   </div>
+                </div>`;
+            }
+            content.innerHTML = html;
+        }, 800);
+    }
+}
+
+// Manual Input Logic for Standard
+function setStdPercent(percent, btn) {
+    const balance = 10000; // Simulated
+    const amount = (balance * percent / 100).toFixed(2);
+    const input = document.getElementById('stdLotInput'); // This is now amount input
+    if(input) input.value = amount;
+    
+    const parent = btn.parentNode;
+    parent.querySelectorAll('.percent-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
