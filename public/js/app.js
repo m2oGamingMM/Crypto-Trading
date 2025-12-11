@@ -327,7 +327,35 @@ function renderCoinsGrid() {
     </div>
   `).join('');
 }
-// Chart Always Load Function
+// --- CHART INITIALIZATION (FIXED) ---
+function loadTradingViewChart(symbol) {
+  // Container မရှိရင် ဘာမှ မလုပ်ဘူး
+  if (!document.getElementById('tv_chart_container')) return;
+
+  // TradingView Library ရှိ/မရှိ စစ်မယ် (HTML မှာ script link ထည့်ထားရမယ်)
+  if (typeof TradingView !== 'undefined') {
+      new TradingView.widget({
+        "width": "100%",
+        "height": 350,
+        "symbol": `BINANCE:${symbol}USDT`,
+        "interval": "1", // 1 Minute Candle for Live Feel
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1", // Candlestick Style
+        "locale": "en",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_top_toolbar": true,
+        "hide_side_toolbar": true,
+        "container_id": "tv_chart_container",
+        "backgroundColor": "#12121a"
+      });
+  } else {
+      // Library မရောက်သေးရင် 0.5 စက္ကန့်နေမှ ပြန်စမ်းမယ်
+      setTimeout(() => loadTradingViewChart(symbol), 500);
+  }
+}
+
 function initChart() {
     loadTradingViewChart(activeSymbol);
 }
@@ -536,15 +564,21 @@ function selectTransMode(currency) {
 }
 
 // 2. Tab Switching
+// --- TAB SWITCHING (FINAL CLEAN VERSION) ---
 function switchContractTab(mode) {
   currentContractMode = mode;
+  
+  // 1. Tabs Design Update
   const delTab = document.getElementById('tab-delivery');
   const perpTab = document.getElementById('tab-perpetual');
+  if(delTab) delTab.className = mode === 'delivery' ? 'c-tab active' : 'c-tab';
+  if(perpTab) perpTab.className = mode === 'perpetual' ? 'c-tab active' : 'c-tab';
+
+  // 2. View Container Toggle
+  // (History က view-delivery ထဲမှာ ရှိပြီးသားမို့ သူ့အလိုလို ပျောက်သွားပါလိမ့်မယ်)
   const delView = document.getElementById('view-delivery');
   const perpView = document.getElementById('view-perpetual');
 
-  if(delTab) delTab.className = mode === 'delivery' ? 'c-tab active' : 'c-tab';
-  if(perpTab) perpTab.className = mode === 'perpetual' ? 'c-tab active' : 'c-tab';
   if(delView) delView.style.display = mode === 'delivery' ? 'block' : 'none';
   if(perpView) perpView.style.display = mode === 'perpetual' ? 'block' : 'none';
 }
@@ -573,18 +607,40 @@ function toggleSideMenu() {
   }
 }
 
+// --- SIDE MENU WITH LOGOS ---
 function renderSideMenuCoins() {
   const container = document.getElementById('sideMenuCoinList');
-  // Popular coins list for menu (You can add more)
-  const coins = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'BNB', 'LTC', 'ADA', 'TRX', 'MATIC']; 
-  
-  container.innerHTML = coins.map(sym => `
-    <div class="side-coin-item" onclick="selectSideMenuCoin('${sym}')" 
-         style="display:flex; justify-content:space-between; padding:15px 16px; border-bottom:1px solid #1e1e2d; cursor:pointer;">
-      <div style="color:white; font-weight:bold; font-size:15px;">${sym}<span style="font-size:12px; color:#636e72; margin-left:4px;">/USDT</span></div>
+  if (!container) return;
+
+  // API Data ရှိရင်သုံးမယ်၊ မရှိရင် Default စာရင်းသုံးမယ်
+  let displayList = [];
+  if (typeof allPrices !== 'undefined' && allPrices.length > 0) {
+      displayList = allPrices;
+  } else {
+      const defaults = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'BNB', 'LTC', 'ADA', 'TRX', 'MATIC'];
+      displayList = defaults.map(sym => ({
+          symbol: sym,
+          image: `https://assets.coingecko.com/coins/images/1/large/${sym.toLowerCase()}.png`,
+          price: 0,
+          change24h: 0
+      }));
+  }
+
+  container.innerHTML = displayList.map(coin => `
+    <div class="side-coin-item" onclick="selectSideMenuCoin('${coin.symbol}')" 
+         style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #1e1e2d; cursor:pointer;">
+      
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="${coin.image}" onerror="this.src='https://via.placeholder.com/30'" style="width:28px; height:28px; border-radius:50%; background:white; padding:2px;">
+        
+        <div style="display:flex; flex-direction:column;">
+           <span style="color:white; font-weight:bold; font-size:14px;">${coin.symbol} <span style="font-size:11px; color:#636e72;">/USDT</span></span>
+        </div>
+      </div>
+
       <div style="text-align:right;">
-        <div id="side-price-${sym}" style="color:white; font-weight:bold;">Loading...</div>
-        <div id="side-change-${sym}" style="font-size:11px; color:#636e72;">0.00%</div>
+        <div id="side-price-${coin.symbol}" style="color:white; font-weight:bold; font-size:14px;">${coin.price > 0 ? coin.price.toLocaleString() : 'Loading...'}</div>
+        <div id="side-change-${coin.symbol}" style="font-size:11px; color:#636e72;">0.00%</div>
       </div>
     </div>
   `).join('');
