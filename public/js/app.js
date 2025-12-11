@@ -3252,20 +3252,29 @@ function toggleDerivMenu() {
 
 function renderDerivMenu() {
     const container = document.getElementById('derivMenuList');
+    
+    // Expanded List with Logos
     const markets = [
-        { sym: 'XAU', name: 'Gold' },
-        { sym: 'EUR', name: 'Euro' },
-        { sym: 'GBP', name: 'British Pound' },
-        { sym: 'WTI', name: 'Crude Oil' }
+        { sym: 'XAU', name: 'Gold', img: 'https://assets.coingecko.com/coins/images/32298/large/PAXG_Token_Icon_Color.png' }, // Using Pax Gold as icon
+        { sym: 'XAG', name: 'Silver', img: 'https://assets.coingecko.com/coins/images/12693/large/silver.png' },
+        { sym: 'WTI', name: 'Crude Oil', img: 'https://cdn-icons-png.flaticon.com/512/2103/2103383.png' },
+        { sym: 'EUR', name: 'Euro/USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1200px-Flag_of_Europe.svg.png' },
+        { sym: 'GBP', name: 'GBP/USD', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/1200px-Flag_of_the_United_Kingdom.svg.png' },
+        { sym: 'JPY', name: 'USD/JPY', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/Flag_of_Japan.svg/1200px-Flag_of_Japan.svg.png' },
+        { sym: 'AUD', name: 'AUD/USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Flag_of_Australia_%28converted%29.svg/1200px-Flag_of_Australia_%28converted%29.svg.png' },
+        { sym: 'US30', name: 'Dow Jones', img: 'https://cdn-icons-png.flaticon.com/512/330/330430.png' }
     ];
     
     container.innerHTML = markets.map(m => `
-        <div class="side-coin-item" onclick="selectDerivAsset('${m.sym}')" style="padding:15px; border-bottom:1px solid #1e1e2d; display:flex; justify-content:space-between;">
-            <div>
-                <span style="color:white; font-weight:bold;">${m.sym}/USDT</span>
-                <div style="font-size:11px; color:#636e72;">${m.name}</div>
+        <div class="side-coin-item" onclick="selectDerivAsset('${m.sym}')" style="padding:15px; border-bottom:1px solid #1e1e2d; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${m.img}" style="width:30px; height:30px; border-radius:50%; background:white; padding:2px; object-fit:contain;">
+                <div>
+                    <div style="color:white; font-weight:bold; font-size:14px;">${m.sym}/USDT</div>
+                    <div style="font-size:11px; color:#636e72;">${m.name}</div>
+                </div>
             </div>
-            <div style="color:white;">Trade ›</div>
+            <div style="color:#b2bec3; font-size:12px;">Trade ›</div>
         </div>
     `).join('');
 }
