@@ -3253,22 +3253,22 @@ function toggleDerivMenu() {
 function renderDerivMenu() {
     const container = document.getElementById('derivMenuList');
     
-    // Expanded List with Logos
+    // Fixed Logos (Using Reliable Sources)
     const markets = [
-        { sym: 'XAU', name: 'Gold', img: 'https://assets.coingecko.com/coins/images/32298/large/PAXG_Token_Icon_Color.png' }, // Using Pax Gold as icon
-        { sym: 'XAG', name: 'Silver', img: 'https://assets.coingecko.com/coins/images/12693/large/silver.png' },
-        { sym: 'WTI', name: 'Crude Oil', img: 'https://cdn-icons-png.flaticon.com/512/2103/2103383.png' },
-        { sym: 'EUR', name: 'Euro/USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1200px-Flag_of_Europe.svg.png' },
-        { sym: 'GBP', name: 'GBP/USD', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/1200px-Flag_of_the_United_Kingdom.svg.png' },
-        { sym: 'JPY', name: 'USD/JPY', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/Flag_of_Japan.svg/1200px-Flag_of_Japan.svg.png' },
-        { sym: 'AUD', name: 'AUD/USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Flag_of_Australia_%28converted%29.svg/1200px-Flag_of_Australia_%28converted%29.svg.png' },
-        { sym: 'US30', name: 'Dow Jones', img: 'https://cdn-icons-png.flaticon.com/512/330/330430.png' }
+        { sym: 'XAU', name: 'Gold', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/2083.png' }, 
+        { sym: 'XAG', name: 'Silver', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/3053.png' },
+        { sym: 'WTI', name: 'Crude Oil', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1857.png' },
+        { sym: 'EUR', name: 'Euro/USD', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/8467.png' },
+        { sym: 'GBP', name: 'GBP/USD', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/28328.png' },
+        { sym: 'JPY', name: 'USD/JPY', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/2989.png' },
+        { sym: 'AUD', name: 'AUD/USD', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/28329.png' },
+        { sym: 'BTC', name: 'Bitcoin', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png' }
     ];
     
     container.innerHTML = markets.map(m => `
         <div class="side-coin-item" onclick="selectDerivAsset('${m.sym}')" style="padding:15px; border-bottom:1px solid #1e1e2d; display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; align-items:center; gap:12px;">
-                <img src="${m.img}" style="width:30px; height:30px; border-radius:50%; background:white; padding:2px; object-fit:contain;">
+                <img src="${m.img}" onerror="this.src='https://via.placeholder.com/30?text=${m.sym}'" style="width:30px; height:30px; border-radius:50%; background:white; padding:2px; object-fit:contain;">
                 <div>
                     <div style="color:white; font-weight:bold; font-size:14px;">${m.sym}/USDT</div>
                     <div style="font-size:11px; color:#636e72;">${m.name}</div>
@@ -3281,14 +3281,21 @@ function renderDerivMenu() {
 
 function selectDerivAsset(symbol) {
     activeDerivSymbol = symbol;
-    toggleDerivMenu();
+    
+    // Close Menu
+    const drawer = document.getElementById('derivMenuDrawer');
+    if(drawer && drawer.classList.contains('open')) toggleDerivMenu();
     
     // Update Header
     document.getElementById('derivSymbolName').textContent = `${symbol}/USDT`;
     
-    // Reload Chart (Using TradingView with different symbol mapping)
-    // Note: XAU mapping to OANDA:XAUUSD for chart data
-    const tvSymbol = symbol === 'XAU' ? 'OANDA:XAUUSD' : (symbol === 'WTI' ? 'TVC:USOIL' : `FX:${symbol}USD`);
+    // --- CHART MAPPING FIX ---
+    let tvSymbol;
+    if (symbol === 'XAU') tvSymbol = 'OANDA:XAUUSD';
+    else if (symbol === 'XAG') tvSymbol = 'OANDA:XAGUSD'; // Fixed Silver Chart
+    else if (symbol === 'WTI') tvSymbol = 'TVC:USOIL';
+    else if (symbol === 'BTC') tvSymbol = 'BINANCE:BTCUSDT';
+    else tvSymbol = `FX:${symbol}USD`; // Default for Forex
     
     if (typeof TradingView !== 'undefined') {
       new TradingView.widget({
@@ -3300,6 +3307,88 @@ function selectDerivAsset(symbol) {
         "container_id": "deriv_chart_container",
         "backgroundColor": "#12121a"
       });
+    }
+}
+
+// --- TAB SWITCHING FIXES ---
+
+// 1. Time Options History Tabs
+function switchDerivHistoryTab(tab) {
+    // UI Update
+    document.querySelectorAll('.h-tab-link').forEach(btn => {
+        btn.classList.remove('active');
+        if(btn.textContent.includes(tab === 'transaction' ? 'In transaction' : 'Position closed')) {
+            btn.classList.add('active');
+        }
+    });
+
+    const content = document.querySelector('#deriv-view-time .history-content-area');
+    if(content) {
+        if(tab === 'transaction') {
+            content.innerHTML = `<div style="font-size:30px; opacity:0.5;">📄</div><div style="color:#636e72; font-size:12px; margin-top:10px;">No transaction data</div>`;
+        } else {
+            // Fake Loading
+            content.innerHTML = '<div class="loading-spinner" style="width:20px; height:20px; margin:0 auto;"></div>';
+            setTimeout(() => {
+                content.innerHTML = `<div style="text-align:left; padding:10px;">
+                    <div style="border-bottom:1px solid #2d3436; padding-bottom:5px; margin-bottom:5px;">
+                        <span style="color:${Math.random()>0.5?'#00b894':'#ff6b6b'}; font-weight:bold;">${activeDerivSymbol}/USDT</span>
+                        <span style="float:right; font-size:11px; color:#b2bec3;">60s</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span>Result:</span>
+                        <span style="color:#00b894;">+10.50 USDT</span>
+                    </div>
+                </div>`;
+            }, 500);
+        }
+    }
+}
+
+// 2. Standard (CFD) History Tabs
+function switchPerpHistoryTab(btn, tabName) {
+    // 1. UI Active State
+    document.querySelectorAll('.perp-hist-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // 2. Content Switching
+    const container = document.getElementById('std-history-container'); // Need to ensure ID matches HTML
+    if(!container) return; // Safety check
+    
+    if (tabName === 'delegate') {
+        container.innerHTML = `
+            <div style="padding:20px; text-align:center; color:#636e72;">
+                <div style="font-size:24px; margin-bottom:5px;">📄</div>
+                <div style="font-size:10px;">No Current Delegates</div>
+            </div>`;
+    } else if (tabName === 'hold') {
+        container.innerHTML = `
+            <div style="padding:10px; font-size:12px;">
+                <div style="background:#1e1e2d; padding:10px; border-radius:8px; border-left:4px solid #00b894; margin-bottom:5px;">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span style="color:#00b894;">Buy ${activeDerivSymbol}</span>
+                        <span>+12.50 USDT</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:5px; color:#b2bec3; font-size:11px;">
+                        <span>Vol: 1.00</span>
+                        <span>Price: 2034.50</span>
+                    </div>
+                </div>
+            </div>`;
+    } else if (tabName === 'history') {
+        container.innerHTML = `
+            <div style="padding:10px; font-size:12px;">
+               <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #2d3436;">
+                  <span style="color:#ff6b6b;">Sell ${activeDerivSymbol}</span>
+                  <span>-5.00 USDT</span>
+                  <span style="color:#636e72;">10:30 AM</span>
+               </div>
+               <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #2d3436;">
+                  <span style="color:#00b894;">Buy ${activeDerivSymbol}</span>
+                  <span>+25.00 USDT</span>
+                  <span style="color:#636e72;">09:15 AM</span>
+               </div>
+            </div>`;
     }
 }
 
