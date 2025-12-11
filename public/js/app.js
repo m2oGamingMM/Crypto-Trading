@@ -827,30 +827,21 @@ function submitDeliveryOrder(type) {
   }, 2000); 
 }
 
-// --- PERPETUAL UI LOGIC (NEW) ---
-let perpSide = 'buy'; // 'buy' or 'sell'
+// --- PERPETUAL UI LOGIC (UPDATED) ---
+let perpSide = 'buy';
+let obFilterMode = 'all'; // all, buy, sell
 
 function switchPerpSide(side) {
     perpSide = side;
     
-    // Update Tabs
-    const buyBtn = document.getElementById('btn-perp-buy');
-    const sellBtn = document.getElementById('btn-perp-sell');
-    if(buyBtn) buyBtn.className = side === 'buy' ? 'perp-side-btn buy active' : 'perp-side-btn buy';
-    if(sellBtn) sellBtn.className = side === 'sell' ? 'perp-side-btn sell active' : 'perp-side-btn sell';
+    document.getElementById('btn-perp-buy').className = side === 'buy' ? 'perp-side-btn buy active' : 'perp-side-btn buy';
+    document.getElementById('btn-perp-sell').className = side === 'sell' ? 'perp-side-btn sell active' : 'perp-side-btn sell';
     
-    // Update Main Submit Button Style
     const btn = document.getElementById('perpSubmitBtn');
     if(btn) {
-        if(side === 'buy') {
-            btn.textContent = 'Buy (Go Long)';
-            btn.className = 'action-btn buy';
-            btn.style.background = '#00b894';
-        } else {
-            btn.textContent = 'Sell (Go Short)';
-            btn.className = 'action-btn sell';
-            btn.style.background = '#ff6b6b';
-        }
+        btn.textContent = side === 'buy' ? 'Buy (Go Long)' : 'Sell (Go Short)';
+        btn.className = `action-btn ${side}`;
+        btn.style.background = side === 'buy' ? '#00b894' : '#ff6b6b';
     }
 }
 
@@ -860,30 +851,42 @@ function toggleLimitInput() {
     if(limitBox) limitBox.style.display = type === 'limit' ? 'block' : 'none';
 }
 
-function setPerpPercent(percent) {
-    // Simulate Balance Calculation
+// Fixed Percent Buttons (Color Update)
+function setPerpPercent(percent, btn) {
+    // 1. Update Amount
     const balance = 10000; 
     const amount = (balance * percent / 100).toFixed(2);
     const input = document.getElementById('perpAmount');
     if(input) input.value = amount;
+
+    // 2. Update Active Class
+    const parent = btn.parentNode;
+    parent.querySelectorAll('.percent-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+// Fixed Leverage Buttons (Container Scoped)
+function setLeverage(btn, value) {
+    // Find parent container to only toggle siblings
+    const container = btn.parentNode;
+    if(container) {
+        container.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
 }
 
 function submitPerpetualOrder() {
     const amount = document.getElementById('perpAmount')?.value;
     const type = document.getElementById('perpOrderType')?.value;
-    
     if(!amount) { alert('Please enter an amount'); return; }
     
-    // Alert Confirmation like Screenshot
-    let msg = `${perpSide.toUpperCase()} Order Placed!\n`;
-    msg += `Symbol: ${activeSymbol}\n`;
-    msg += `Amount: ${amount} USDT\n`;
-    msg += `Type: ${type.toUpperCase()}`;
-    
-    alert(msg);
+    alert(`${perpSide.toUpperCase()} Order Placed!\nSymbol: ${activeSymbol}\nAmount: ${amount} USDT\nType: ${type.toUpperCase()}`);
+    // Auto switch to Delegate tab to show "fake" order
+    const tabs = document.querySelectorAll('.perp-hist-tab');
+    if(tabs[0]) switchPerpHistoryTab(tabs[0], 'delegate');
 }
 
-// --- ORDER BOOK SIMULATION ---
+// --- ORDER BOOK GRAPHIC LOGIC ---
 function updateOrderBookUI(currentPrice) {
     const asksContainer = document.getElementById('orderbook-asks');
     const bidsContainer = document.getElementById('orderbook-bids');
@@ -897,30 +900,117 @@ function updateOrderBookUI(currentPrice) {
         priceDisplay.style.color = perpSide === 'buy' ? '#00b894' : '#ff6b6b';
     }
 
-    // Generate Fake Asks (Red)
-    let asksHtml = '';
-    for(let i=5; i>0; i--) {
-        const p = currentPrice + (Math.random() * 2 * i);
-        const q = (Math.random() * 5).toFixed(4);
-        asksHtml += `<div class="ob-row"><span style="color:#ff6b6b;">${p.toFixed(2)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    // Filter Logic
+    if (obFilterMode === 'buy') {
+        asksContainer.style.display = 'none';
+        bidsContainer.style.display = 'block';
+        bidsContainer.style.height = '300px'; // Full height
+    } else if (obFilterMode === 'sell') {
+        asksContainer.style.display = 'block';
+        bidsContainer.style.display = 'none';
+        asksContainer.style.height = '300px';
+    } else {
+        asksContainer.style.display = 'block';
+        bidsContainer.style.display = 'block';
+        asksContainer.style.height = 'auto';
+        bidsContainer.style.height = 'auto';
     }
-    asksContainer.innerHTML = asksHtml;
 
-    // Generate Fake Bids (Green)
-    let bidsHtml = '';
-    for(let i=1; i<=5; i++) {
-        const p = currentPrice - (Math.random() * 2 * i);
-        const q = (Math.random() * 5).toFixed(4);
-        bidsHtml += `<div class="ob-row"><span style="color:#00b894;">${p.toFixed(2)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    // Generate Asks (Red) - With Graphic Bars
+    if(obFilterMode !== 'buy') {
+        let asksHtml = '';
+        for(let i=5; i>0; i--) {
+            const p = currentPrice + (Math.random() * 2 * i);
+            const q = (Math.random() * 15).toFixed(4);
+            const width = Math.min((q / 15) * 100, 100); // Calculate bar width based on volume
+            asksHtml += `
+                <div class="ob-row ask" style="--width: ${width}%">
+                    <span style="color:#ff6b6b;">${p.toFixed(2)}</span>
+                    <span style="color:#b2bec3;">${q}</span>
+                </div>`;
+        }
+        asksContainer.innerHTML = asksHtml;
     }
-    bidsContainer.innerHTML = bidsHtml;
+
+    // Generate Bids (Green) - With Graphic Bars
+    if(obFilterMode !== 'sell') {
+        let bidsHtml = '';
+        for(let i=1; i<=5; i++) {
+            const p = currentPrice - (Math.random() * 2 * i);
+            const q = (Math.random() * 15).toFixed(4);
+            const width = Math.min((q / 15) * 100, 100); 
+            bidsHtml += `
+                <div class="ob-row bid" style="--width: ${width}%">
+                    <span style="color:#00b894;">${p.toFixed(2)}</span>
+                    <span style="color:#b2bec3;">${q}</span>
+                </div>`;
+        }
+        bidsContainer.innerHTML = bidsHtml;
+    }
 }
 
-function setLeverage(btn, value) {
-  document.querySelectorAll('.mode-btn').forEach(b => {
-      if(b.textContent.includes('x')) b.classList.remove('active');
-  });
-  if(btn) btn.classList.add('active');
+// Order Book Filter Switcher
+function filterOrderBook(mode) {
+    obFilterMode = mode;
+    // Update Icons UI
+    const btns = document.querySelectorAll('.ob-filter-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    // Simple logic to find clicked button based on index or just re-render
+    // For simplicity, we just trigger UI update immediately
+    const priceEl = document.getElementById('mainPrice');
+    const price = priceEl ? parseFloat(priceEl.textContent.replace(/,/g,'')) : 0;
+    updateOrderBookUI(price);
+    
+    // Highlight correct button (Visual only)
+    if(mode === 'all') btns[0].classList.add('active');
+    if(mode === 'buy') btns[1].classList.add('active');
+    if(mode === 'sell') btns[2].classList.add('active');
+}
+
+// --- PERPETUAL HISTORY TABS ---
+function switchPerpHistoryTab(btn, tabName) {
+    // 1. UI Active State
+    document.querySelectorAll('.perp-hist-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // 2. Content Switching
+    const container = document.getElementById('perp-list-container');
+    
+    if (tabName === 'delegate') {
+        container.innerHTML = `
+            <div id="perp-delegate-list" style="padding:20px; text-align:center; color:#636e72;">
+                <div style="font-size:24px; margin-bottom:5px;">📄</div>
+                <div style="font-size:10px;">No Current Delegates</div>
+            </div>`;
+    } else if (tabName === 'hold') {
+        container.innerHTML = `
+            <div style="padding:10px; font-size:12px;">
+                <div style="background:#1e1e2d; padding:10px; border-radius:8px; border-left:4px solid #00b894;">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span style="color:#00b894;">Long ${activeSymbol}</span>
+                        <span>+12.50 USDT</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:5px; color:#b2bec3; font-size:11px;">
+                        <span>Size: 100 USDT</span>
+                        <span>Entry: 92,100.50</span>
+                    </div>
+                </div>
+            </div>`;
+    } else if (tabName === 'history') {
+        container.innerHTML = `
+            <div style="padding:10px; font-size:12px;">
+               <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #2d3436;">
+                  <span style="color:#ff6b6b;">Short ${activeSymbol}</span>
+                  <span>-5.00 USDT</span>
+                  <span style="color:#636e72;">10:30 AM</span>
+               </div>
+               <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #2d3436;">
+                  <span style="color:#00b894;">Long ${activeSymbol}</span>
+                  <span>+25.00 USDT</span>
+                  <span style="color:#636e72;">09:15 AM</span>
+               </div>
+            </div>`;
+    }
 }
 
 // 7. Initialization & Hook
