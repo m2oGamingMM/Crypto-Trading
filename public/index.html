@@ -145,8 +145,17 @@
               <div>24H <span id="vol24h" style="color:white; margin-left:5px;">0.00</span></div>
             </div>
           </div>
+
+          <div class="chart-time-bar">
+             <button class="time-btn" onclick="setChartTime('1')">1min</button>
+             <button class="time-btn" onclick="setChartTime('5')">5min</button>
+             <button class="time-btn active" onclick="setChartTime('15')">15min</button>
+             <button class="time-btn" onclick="setChartTime('30')">30min</button>
+             <button class="time-btn" onclick="setChartTime('60')">1hour</button>
+             <button class="time-btn" onclick="setChartTime('D')">1day</button>
+          </div>
           
-          <div id="tv_chart_container" style="height: 350px; background:#12121a; margin: 10px 0;"></div>
+          <div id="tv_chart_container" style="height: 350px; background:#12121a; margin-bottom: 10px;"></div>
 
           <div style="padding: 0 10px;">
               
@@ -203,33 +212,87 @@
                 </div>
               </div>
 
-              <div id="view-perpetual" style="display:none; padding-top:10px;">
+              <div id="view-perpetual" style="display:none;">
                  
-                 <div class="form-group" style="margin-bottom:15px;">
-                    <label style="font-size: 12px; color:#b2bec3;">Leverage</label>
-                    <div class="mode-toggles" style="margin:5px 0; display:flex; gap:5px;">
-                       <button class="mode-btn active" onclick="setLeverage(this, 10)" style="flex:1;">10x</button>
-                       <button class="mode-btn" onclick="setLeverage(this, 50)" style="flex:1;">50x</button>
-                       <button class="mode-btn" onclick="setLeverage(this, 100)" style="flex:1;">100x</button>
+                 <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    
+                    <div style="flex:1.2;">
+                        <div style="display:flex; margin-bottom:10px; background:#12121a; border-radius:4px; overflow:hidden;">
+                            <button class="perp-side-btn active buy" onclick="switchPerpSide('buy')" id="btn-perp-buy">Buy</button>
+                            <button class="perp-side-btn sell" onclick="switchPerpSide('sell')" id="btn-perp-sell">Sell</button>
+                        </div>
+
+                        <select id="perpOrderType" onchange="toggleLimitInput()" style="width:100%; background:#1e1e2d; color:white; border:1px solid #2d3436; padding:8px; border-radius:4px; margin-bottom:10px; font-size:12px;">
+                            <option value="market">Market Price</option>
+                            <option value="limit">Limit Price</option>
+                        </select>
+
+                        <div id="perpLimitInputBox" style="display:none; margin-bottom:10px; background:#1e1e2d; border:1px solid #2d3436; border-radius:4px; padding:8px;">
+                            <input type="number" placeholder="Price" style="width:100%; background:none; border:none; color:white; font-size:13px;">
+                        </div>
+
+                        <div style="margin-bottom:10px; background:#1e1e2d; border:1px solid #2d3436; border-radius:4px; padding:8px; display:flex; justify-content:space-between; align-items:center;">
+                            <input type="number" id="perpAmount" placeholder="Amount (USDT)" style="width:70%; background:none; border:none; color:white; font-size:13px;">
+                            <span style="font-size:10px; color:#636e72;">USDT</span>
+                        </div>
+
+                        <div style="display:flex; gap:4px; margin-bottom:15px;">
+                            <button class="percent-btn" onclick="setPerpPercent(25)">25%</button>
+                            <button class="percent-btn" onclick="setPerpPercent(50)">50%</button>
+                            <button class="percent-btn" onclick="setPerpPercent(75)">75%</button>
+                            <button class="percent-btn" onclick="setPerpPercent(100)">100%</button>
+                        </div>
+
+                        <div style="font-size:10px; color:#b2bec3; margin-bottom:5px;">Balance: <span id="perpBalance">0.00</span> USDT</div>
+
+                        <button id="perpSubmitBtn" class="action-btn buy" style="width:100%; padding:12px; font-size:14px; margin-bottom:15px;" onclick="submitPerpetualOrder()">Buy (Go Long)</button>
+
+                        <div style="display:flex; gap:2px;">
+                             <button class="lev-btn" onclick="setLeverage(this, 10)">10x</button>
+                             <button class="lev-btn" onclick="setLeverage(this, 50)">50x</button>
+                             <button class="lev-btn active" onclick="setLeverage(this, 100)">100x</button>
+                         </div>
+                    </div>
+
+                    <div style="flex:0.8; font-size:11px;">
+                        <div style="display:flex; justify-content:space-between; color:#636e72; margin-bottom:4px;">
+                            <span>Price</span>
+                            <span>Amount</span>
+                        </div>
+                        
+                        <div id="orderbook-asks" style="margin-bottom:8px;">
+                            <div style="display:flex; justify-content:space-between;"><span style="color:#ff6b6b;">--</span><span style="color:#b2bec3;">--</span></div>
+                        </div>
+
+                        <div id="ob-current-price" style="font-size:16px; font-weight:bold; color:#00b894; text-align:center; margin:5px 0;">--</div>
+
+                        <div id="orderbook-bids">
+                            <div style="display:flex; justify-content:space-between;"><span style="color:#00b894;">--</span><span style="color:#b2bec3;">--</span></div>
+                        </div>
                     </div>
                  </div>
 
-                 <div class="form-group">
-                    <label style="font-size: 12px; color:#b2bec3;">Opening Amount (USDT)</label>
-                    <div class="qty-input-box" style="margin-bottom: 10px; background:#12121a;">
-                        <input type="number" id="perpAmount" placeholder="Min: 10 USDT" style="font-weight:bold;">
+                 <div style="background:#12121a; margin-top:10px; border-top:5px solid #0a0a0f;">
+                    <div style="display:flex; border-bottom:1px solid #2d3436;">
+                        <button class="perp-hist-tab active">Current Delegate</button>
+                        <button class="perp-hist-tab">Hold Position</button>
+                        <button class="perp-hist-tab">History</button>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:10px; color:#636e72; font-size:10px; text-align:center;">
+                        <span>Type</span>
+                        <span>Time</span>
+                        <span>Price</span>
+                        <span>Qty</span>
+                        <span>Action</span>
+                    </div>
+
+                    <div id="perp-delegate-list" style="padding:20px; text-align:center; color:#636e72;">
+                        <div style="font-size:24px; margin-bottom:5px;">📄</div>
+                        <div style="font-size:10px;">No Data</div>
                     </div>
                  </div>
 
-                 <div class="big-action-buttons" style="padding: 0; margin-top:20px;">
-                   <button class="action-btn buy" onclick="submitPerpetualOrder('buy')">Long / Buy</button>
-                   <button class="action-btn sell" onclick="submitPerpetualOrder('sell')">Short / Sell</button>
-                 </div>
-
-                 <div style="margin-top:20px; padding:15px; background:#1e1e2d; border-radius:8px;">
-                    <div style="font-size:12px; color:#b2bec3; margin-bottom:5px;">Perpetual Balance</div>
-                    <div style="font-size:18px; font-weight:bold; color:white;">0.0000 USDT</div>
-                 </div>
               </div>
 
           </div>
