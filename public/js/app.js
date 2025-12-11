@@ -110,6 +110,9 @@ function updateMainTradingUI(ticker) {
     changeEl.textContent = `${sign}${changePercent.toFixed(2)}%`;
     changeEl.style.color = changePercent >= 0 ? '#00b894' : '#ff6b6b';
   }
+
+  // TRIGGER ORDER BOOK UPDATE
+  updateOrderBookUI(price);
 }
 
 // Side Menu အတွက် Live Update Function
@@ -327,21 +330,21 @@ function renderCoinsGrid() {
     </div>
   `).join('');
 }
-// --- CHART INITIALIZATION (FIXED) ---
+// --- CHART & MENU LOGIC (MASTER) ---
+let currentChartInterval = '15'; // Default 15min
+
 function loadTradingViewChart(symbol) {
-  // Container မရှိရင် ဘာမှ မလုပ်ဘူး
   if (!document.getElementById('tv_chart_container')) return;
 
-  // TradingView Library ရှိ/မရှိ စစ်မယ် (HTML မှာ script link ထည့်ထားရမယ်)
   if (typeof TradingView !== 'undefined') {
       new TradingView.widget({
         "width": "100%",
         "height": 350,
         "symbol": `BINANCE:${symbol}USDT`,
-        "interval": "1", // 1 Minute Candle for Live Feel
+        "interval": currentChartInterval, 
         "timezone": "Etc/UTC",
         "theme": "dark",
-        "style": "1", // Candlestick Style
+        "style": "1",
         "locale": "en",
         "toolbar_bg": "#f1f3f6",
         "enable_publishing": false,
@@ -351,26 +354,55 @@ function loadTradingViewChart(symbol) {
         "backgroundColor": "#12121a"
       });
   } else {
-      // Library မရောက်သေးရင် 0.5 စက္ကန့်နေမှ ပြန်စမ်းမယ်
       setTimeout(() => loadTradingViewChart(symbol), 500);
   }
+}
+
+function setChartTime(interval) {
+    currentChartInterval = interval;
+    // Update Active Button UI
+    document.querySelectorAll('.time-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if(btn.textContent.includes(interval) || (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${interval}'`))) {
+            btn.classList.add('active');
+        }
+    });
+    // Reload Chart
+    loadTradingViewChart(activeSymbol);
 }
 
 function initChart() {
     loadTradingViewChart(activeSymbol);
 }
 
+// Unified Function for Side Menu & Direct Calls
 function showCoinDetail(symbol) {
   activeSymbol = symbol;
-  showPage('trading');
   
-  // Update Header Name
+  // 1. Close Menu if open
+  const drawer = document.getElementById('sideMenuDrawer');
+  if(drawer && drawer.classList.contains('open')) toggleSideMenu();
+
+  // 2. Update Header Name (Header ပြောင်းမယ့်နေရာ)
   const nameEl = document.getElementById('currentSymbolName');
   if(nameEl) nameEl.textContent = `${symbol}/USDT`;
 
-  // Reload Chart
+  // 3. Reload Chart with new symbol
   loadTradingViewChart(symbol);
+
+  // 4. Show Trading Page
+  showPage('trading');
+  
+  // 5. Reset Price Color
+  const priceEl = document.getElementById('mainPrice');
+  if(priceEl) priceEl.style.color = 'white';
 }
+
+// Redirect old function call to new logic
+function selectSideMenuCoin(symbol) {
+  showCoinDetail(symbol);
+}
+
 function updateTradingDisplay() {
   const select = document.getElementById('tradingPair');
   if (!select) return;
@@ -646,10 +678,7 @@ function renderSideMenuCoins() {
   `).join('');
 }
 
-function selectSideMenuCoin(symbol) {
-  showCoinDetail(symbol);
-  toggleSideMenu();
-}
+
 
 // 5. History Tabs & Rendering
 // History Tab Switch with Loading Effect
@@ -798,10 +827,93 @@ function submitDeliveryOrder(type) {
   }, 2000); 
 }
 
-function submitPerpetualOrder(type) {
-  const amount = document.getElementById('perpAmount').value;
-  if(!amount) { alert('Enter amount'); return; }
-  alert(`PERPETUAL ${type.toUpperCase()} Order Placed!\nAmount: ${amount}`);
+// --- PERPETUAL UI LOGIC (NEW) ---
+let perpSide = 'buy'; // 'buy' or 'sell'
+
+function switchPerpSide(side) {
+    perpSide = side;
+    
+    // Update Tabs
+    const buyBtn = document.getElementById('btn-perp-buy');
+    const sellBtn = document.getElementById('btn-perp-sell');
+    if(buyBtn) buyBtn.className = side === 'buy' ? 'perp-side-btn buy active' : 'perp-side-btn buy';
+    if(sellBtn) sellBtn.className = side === 'sell' ? 'perp-side-btn sell active' : 'perp-side-btn sell';
+    
+    // Update Main Submit Button Style
+    const btn = document.getElementById('perpSubmitBtn');
+    if(btn) {
+        if(side === 'buy') {
+            btn.textContent = 'Buy (Go Long)';
+            btn.className = 'action-btn buy';
+            btn.style.background = '#00b894';
+        } else {
+            btn.textContent = 'Sell (Go Short)';
+            btn.className = 'action-btn sell';
+            btn.style.background = '#ff6b6b';
+        }
+    }
+}
+
+function toggleLimitInput() {
+    const type = document.getElementById('perpOrderType').value;
+    const limitBox = document.getElementById('perpLimitInputBox');
+    if(limitBox) limitBox.style.display = type === 'limit' ? 'block' : 'none';
+}
+
+function setPerpPercent(percent) {
+    // Simulate Balance Calculation
+    const balance = 10000; 
+    const amount = (balance * percent / 100).toFixed(2);
+    const input = document.getElementById('perpAmount');
+    if(input) input.value = amount;
+}
+
+function submitPerpetualOrder() {
+    const amount = document.getElementById('perpAmount')?.value;
+    const type = document.getElementById('perpOrderType')?.value;
+    
+    if(!amount) { alert('Please enter an amount'); return; }
+    
+    // Alert Confirmation like Screenshot
+    let msg = `${perpSide.toUpperCase()} Order Placed!\n`;
+    msg += `Symbol: ${activeSymbol}\n`;
+    msg += `Amount: ${amount} USDT\n`;
+    msg += `Type: ${type.toUpperCase()}`;
+    
+    alert(msg);
+}
+
+// --- ORDER BOOK SIMULATION ---
+function updateOrderBookUI(currentPrice) {
+    const asksContainer = document.getElementById('orderbook-asks');
+    const bidsContainer = document.getElementById('orderbook-bids');
+    const priceDisplay = document.getElementById('ob-current-price');
+    
+    if(!asksContainer || !bidsContainer) return;
+
+    // Update Middle Price
+    if(priceDisplay) {
+        priceDisplay.textContent = currentPrice.toFixed(2);
+        priceDisplay.style.color = perpSide === 'buy' ? '#00b894' : '#ff6b6b';
+    }
+
+    // Generate Fake Asks (Red)
+    let asksHtml = '';
+    for(let i=5; i>0; i--) {
+        const p = currentPrice + (Math.random() * 2 * i);
+        const q = (Math.random() * 5).toFixed(4);
+        asksHtml += `<div class="ob-row"><span style="color:#ff6b6b;">${p.toFixed(2)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    }
+    asksContainer.innerHTML = asksHtml;
+
+    // Generate Fake Bids (Green)
+    let bidsHtml = '';
+    for(let i=1; i<=5; i++) {
+        const p = currentPrice - (Math.random() * 2 * i);
+        const q = (Math.random() * 5).toFixed(4);
+        bidsHtml += `<div class="ob-row"><span style="color:#00b894;">${p.toFixed(2)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    }
+    bidsContainer.innerHTML = bidsHtml;
 }
 
 function setLeverage(btn, value) {
@@ -1831,67 +1943,7 @@ function closeModal() {
   document.getElementById('universalModal').classList.remove('show');
 }
 
-// --- STEP 1: TRADINGVIEW CHART ---
-let tvWidget = null;
 
-function loadTradingViewChart(symbol) {
-  // သင်္ကေတ ပြောင်းပေးခြင်း (ဥပမာ - BTC -> BINANCE:BTCUSDT)
-  const tvSymbol = `BINANCE:${symbol}USDT`;
-
-  if (tvWidget) {
-    // Chart ရှိပြီးသားဆိုရင် အသစ်မဆောက်ဘဲ ကုမ္ပဏီပဲ ပြောင်းမယ် (Reload မဖြစ်အောင်)
-    // Note: Free version widget doesn't support dynamic symbol change easily without reload, 
-    // so we will re-render for stability.
-  }
-
-  new TradingView.widget({
-    "width": "100%",
-    "height": 350,
-    "symbol": tvSymbol,
-    "interval": "D",
-    "timezone": "Etc/UTC",
-    "theme": "dark",
-    "style": "1", // 1 = Candlestick
-    "locale": "en",
-    "toolbar_bg": "#f1f3f6",
-    "enable_publishing": false,
-    "hide_top_toolbar": true,   // ရှင်းအောင် Toolbar ဖျောက်ထားမယ်
-    "hide_side_toolbar": true,
-    "allow_symbol_change": false,
-    "container_id": "tv_chart_container",
-    "backgroundColor": "#12121a" // App အရောင်နဲ့ တစ်သားတည်းဖြစ်အောင်
-  });
-}
-
-// showCoinDetail function ကို ပြင်မယ် (Chart ပါ ပေါ်အောင်လို့)
-// အရင် showCoinDetail အဟောင်းကို ရှာပြီး ဒီအသစ်နဲ့ အစားထိုးပါ
-function showCoinDetail(symbol) {
-  showPage('trading');
-  const select = document.getElementById('tradingPair');
-  if (select) {
-    select.value = symbol;
-    // Select box မှာ မရှိတဲ့ Coin ဆိုရင် ထည့်ပေးမယ်
-    if (select.value !== symbol) {
-       let opt = document.createElement('option');
-       opt.value = symbol;
-       opt.innerHTML = `${symbol}/USDT`;
-       select.appendChild(opt);
-       select.value = symbol;
-    }
-  }
-  updateTradingDisplay();
-  
-  // Chart ကို လှမ်းခေါ်မယ်
-  loadTradingViewChart(symbol);
-}
-
-// Trading Pair ပြောင်းရင် Chart ပါ လိုက်ပြောင်းမယ်
-// updateTradingPair function အဟောင်းကို ရှာပြီး အစားထိုးပါ
-function updateTradingPair() {
-  updateTradingDisplay();
-  const symbol = document.getElementById('tradingPair').value;
-  loadTradingViewChart(symbol);
-}
 
 // --- STEP 2: PAPER TRADING SYSTEM ---
 
