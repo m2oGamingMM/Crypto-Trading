@@ -3257,9 +3257,12 @@ function renderDerivMenu() {
     const container = document.getElementById('derivMenuList');
     
     // Expanded List with Logos (User Preferred Version)
+    // Fixed Logos (New Stable Source)
     const markets = [
-        { sym: 'XAU', name: 'Gold', img: 'https://assets.coingecko.com/coins/images/32298/large/PAXG_Token_Icon_Color.png' },
-        { sym: 'XAG', name: 'Silver', img: 'https://assets.coingecko.com/coins/images/12693/large/silver.png' },
+        // Gold (Using Tether Gold icon which looks like a Gold Coin)
+        { sym: 'XAU', name: 'Gold', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/4023.png' }, 
+        // Silver (Using Kinesis Silver icon which looks like Silver)
+        { sym: 'XAG', name: 'Silver', img: 'https://s2.coinmarketcap.com/static/img/coins/64x64/6335.png' },
         { sym: 'WTI', name: 'Crude Oil', img: 'https://cdn-icons-png.flaticon.com/512/2103/2103383.png' },
         { sym: 'EUR', name: 'Euro/USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1200px-Flag_of_Europe.svg.png' },
         { sym: 'GBP', name: 'GBP/USD', img: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/1200px-Flag_of_the_United_Kingdom.svg.png' },
@@ -3495,4 +3498,47 @@ function setStdPercent(percent, btn) {
     const parent = btn.parentNode;
     parent.querySelectorAll('.percent-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+}
+
+// --- STANDARD MODE LOGIC (NEW) ---
+
+// 1. Percent Calculation for Manual Input
+function setStdPercent(percent) {
+    const balance = 10000; // Simulated Balance
+    const amount = (balance * percent / 100).toFixed(2);
+    const input = document.getElementById('stdAmount');
+    if(input) input.value = amount;
+}
+
+// 2. Graphic Order Book Generation
+function updateStdOrderBook(currentPrice) {
+    const asksContainer = document.getElementById('deriv-asks');
+    const bidsContainer = document.getElementById('deriv-bids');
+    const priceDisplay = document.getElementById('deriv-ob-price');
+    
+    if(!asksContainer || !bidsContainer) return;
+
+    if(priceDisplay) {
+        priceDisplay.textContent = currentPrice.toFixed(activeDerivSymbol === 'XAU' ? 2 : 4);
+    }
+
+    // Generate Asks (Red) - With Graphic Bars
+    let asksHtml = '';
+    for(let i=5; i>0; i--) {
+        const p = currentPrice + (Math.random() * (activeDerivSymbol === 'XAU' ? 0.5 : 0.0005) * i);
+        const q = (Math.random() * 10).toFixed(4);
+        const width = Math.min((q / 10) * 100, 100);
+        asksHtml += `<div class="ob-row ask" style="--width: ${width}%"><span style="color:#ff6b6b;">${p.toFixed(activeDerivSymbol === 'XAU'?2:4)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    }
+    asksContainer.innerHTML = asksHtml;
+
+    // Generate Bids (Green) - With Graphic Bars
+    let bidsHtml = '';
+    for(let i=1; i<=5; i++) {
+        const p = currentPrice - (Math.random() * (activeDerivSymbol === 'XAU' ? 0.5 : 0.0005) * i);
+        const q = (Math.random() * 10).toFixed(4);
+        const width = Math.min((q / 10) * 100, 100);
+        bidsHtml += `<div class="ob-row bid" style="--width: ${width}%"><span style="color:#00b894;">${p.toFixed(activeDerivSymbol === 'XAU'?2:4)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    }
+    bidsContainer.innerHTML = bidsHtml;
 }
