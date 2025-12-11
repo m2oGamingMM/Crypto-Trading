@@ -69,6 +69,10 @@ function startLivePrices() {
 
     // 2. Update Side Menu (Hamburger)
     updateSideMenuLive(tickers);
+
+    // 3. SYNTHETIC DATA GENERATOR (For Gold/Forex)
+    // Binance stream မှာ XAU/EUR မပါရင် ဖန်တီးပေးဖို့
+    generateSyntheticData();
   };
   
   socket.onclose = () => setTimeout(startLivePrices, 3000); // Auto Reconnect
@@ -1052,7 +1056,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // New Initializations
     startLivePrices();
     renderSideMenuCoins();
-    initChart(); // Chart will load immediately
+    initChart(); 
+    selectDerivAsset('XAU'); // Initialize Derivatives Tab with Gold
 });
 
 // --- ASSETS TAB SWITCHING ---
@@ -3176,3 +3181,132 @@ function tradeDerivative(symbol, type) {
     switchTradeType(type); // type = 'buy' or 'sell'
   }, 100);
 }
+
+// --- DERIVATIVES TAB LOGIC (NEW) ---
+let activeDerivSymbol = 'XAU'; // Default Gold
+let derivMode = 'time'; // 'time' or 'std'
+
+// 1. Synthetic Data Generator (Simulates Live Market)
+// ရွှေနဲ့ Forex စျေးကွက် လှုပ်ရှားနေသယောင် ဖန်တီးခြင်း
+const syntheticPrices = {
+    'XAU': { price: 2034.50, trend: 0 },
+    'EUR': { price: 1.0845, trend: 0 },
+    'GBP': { price: 1.2650, trend: 0 },
+    'WTI': { price: 74.20, trend: 0 }
+};
+
+function generateSyntheticData() {
+    // Only run if Derivatives page is active
+    if (document.getElementById('page-derivatives').classList.contains('active')) {
+        
+        const data = syntheticPrices[activeDerivSymbol];
+        if(!data) return;
+
+        // Random walk logic
+        const move = (Math.random() - 0.5) * (activeDerivSymbol === 'XAU' ? 0.5 : 0.0001);
+        data.price += move;
+        
+        // Update UI
+        const priceEl = document.getElementById('derivMainPrice');
+        const askBtn = document.getElementById('btn-ask-price');
+        const bidBtn = document.getElementById('btn-bid-price');
+        
+        if(priceEl) {
+            priceEl.textContent = data.price.toFixed(activeDerivSymbol === 'XAU' ? 2 : 5);
+            priceEl.style.color = move >= 0 ? '#00b894' : '#ff6b6b';
+        }
+        
+        // Update Buttons for Standard Mode
+        if(askBtn) askBtn.textContent = (data.price + (activeDerivSymbol === 'XAU' ? 0.1 : 0.0002)).toFixed(activeDerivSymbol === 'XAU' ? 2 : 5);
+        if(bidBtn) bidBtn.textContent = (data.price - (activeDerivSymbol === 'XAU' ? 0.1 : 0.0002)).toFixed(activeDerivSymbol === 'XAU' ? 2 : 5);
+    }
+}
+
+// 2. Switch Modes (Time vs Standard)
+function switchDerivMode(mode) {
+    derivMode = mode;
+    
+    // Tabs Style
+    document.getElementById('d-tab-time').className = mode === 'time' ? 'c-tab active' : 'c-tab';
+    document.getElementById('d-tab-std').className = mode === 'std' ? 'c-tab active' : 'c-tab';
+    
+    // View Toggle
+    document.getElementById('deriv-view-time').style.display = mode === 'time' ? 'block' : 'none';
+    document.getElementById('deriv-view-std').style.display = mode === 'std' ? 'block' : 'none';
+}
+
+// 3. Derivatives Menu Logic
+function toggleDerivMenu() {
+    const backdrop = document.getElementById('derivMenuBackdrop');
+    const drawer = document.getElementById('derivMenuDrawer');
+    
+    if (drawer.classList.contains('open')) {
+        drawer.classList.remove('open');
+        setTimeout(() => { backdrop.style.display = 'none'; }, 300);
+    } else {
+        backdrop.style.display = 'block';
+        setTimeout(() => { drawer.classList.add('open'); }, 10);
+        renderDerivMenu();
+    }
+}
+
+function renderDerivMenu() {
+    const container = document.getElementById('derivMenuList');
+    const markets = [
+        { sym: 'XAU', name: 'Gold' },
+        { sym: 'EUR', name: 'Euro' },
+        { sym: 'GBP', name: 'British Pound' },
+        { sym: 'WTI', name: 'Crude Oil' }
+    ];
+    
+    container.innerHTML = markets.map(m => `
+        <div class="side-coin-item" onclick="selectDerivAsset('${m.sym}')" style="padding:15px; border-bottom:1px solid #1e1e2d; display:flex; justify-content:space-between;">
+            <div>
+                <span style="color:white; font-weight:bold;">${m.sym}/USDT</span>
+                <div style="font-size:11px; color:#636e72;">${m.name}</div>
+            </div>
+            <div style="color:white;">Trade ›</div>
+        </div>
+    `).join('');
+}
+
+function selectDerivAsset(symbol) {
+    activeDerivSymbol = symbol;
+    toggleDerivMenu();
+    
+    // Update Header
+    document.getElementById('derivSymbolName').textContent = `${symbol}/USDT`;
+    
+    // Reload Chart (Using TradingView with different symbol mapping)
+    // Note: XAU mapping to OANDA:XAUUSD for chart data
+    const tvSymbol = symbol === 'XAU' ? 'OANDA:XAUUSD' : (symbol === 'WTI' ? 'TVC:USOIL' : `FX:${symbol}USD`);
+    
+    if (typeof TradingView !== 'undefined') {
+      new TradingView.widget({
+        "width": "100%", "height": 350,
+        "symbol": tvSymbol,
+        "interval": "15", "theme": "dark", "style": "1",
+        "toolbar_bg": "#f1f3f6", "enable_publishing": false,
+        "hide_top_toolbar": true, "hide_side_toolbar": true,
+        "container_id": "deriv_chart_container",
+        "backgroundColor": "#12121a"
+      });
+    }
+}
+
+// 4. Standard Mode Helpers
+function adjLot(val) {
+    const input = document.getElementById('stdLotInput');
+    let newVal = parseFloat(input.value) + val;
+    if(newVal < 0.01) newVal = 0.01;
+    input.value = newVal.toFixed(2);
+}
+
+function submitStdOrder(type) {
+    const lots = document.getElementById('stdLotInput').value;
+    alert(`Standard Order Placed!\nAsset: ${activeDerivSymbol}/USDT\nType: ${type.toUpperCase()}\nLots: ${lots}`);
+}
+
+// Initialize Derivatives on Load
+// (Call this manually or add to DOMContentLoaded if you want it ready)
+selectDerivAsset('XAU');
