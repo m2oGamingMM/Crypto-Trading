@@ -2185,3 +2185,91 @@ body.light-mode .modal-input {
 }
 .side-coin-item.flash-up { background-color: rgba(0, 184, 148, 0.1); }
 .side-coin-item.flash-down { background-color: rgba(255, 107, 107, 0.1); }
+/* --- NEW TRADING STYLES --- */
+
+/* Chart Time Bar */
+.chart-time-bar {
+    display: flex;
+    overflow-x: auto;
+    background: #12121a;
+    padding: 5px 10px;
+    gap: 15px;
+    border-bottom: 1px solid #1e1e2d;
+}
+.time-btn {
+    background: none;
+    border: none;
+    color: #636e72;
+    font-size: 12px;
+    white-space: nowrap;
+    padding: 4px 0;
+    cursor: pointer;
+}
+.time-btn.active {
+    color: white;
+    font-weight: bold;
+    border-bottom: 2px solid #0984e3;
+}
+
+/* Perpetual Side Buttons */
+.perp-side-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: #2d3436;
+    color: #b2bec3;
+    font-size: 13px;
+    cursor: pointer;
+}
+.perp-side-btn.buy.active { background: #00b894; color: white; }
+.perp-side-btn.sell.active { background: #ff6b6b; color: white; }
+
+/* Percent Buttons */
+.percent-btn {
+    flex: 1;
+    background: #1e1e2d;
+    border: 1px solid #2d3436;
+    color: #b2bec3;
+    font-size: 10px;
+    padding: 4px;
+    border-radius: 2px;
+}
+
+/* Leverage Buttons Small */
+.lev-btn {
+    flex: 1;
+    background: #1e1e2d;
+    border: 1px solid #2d3436;
+    color: #b2bec3;
+    font-size: 10px;
+    padding: 6px;
+    border-radius: 2px;
+}
+.lev-btn.active {
+    border-color: #00b894;
+    color: #00b894;
+    background: rgba(0, 184, 148, 0.1);
+}
+
+/* Perpetual History Tabs */
+.perp-hist-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 12px;
+    color: #636e72;
+    font-size: 12px;
+    cursor: pointer;
+}
+.perp-hist-tab.active {
+    color: white;
+    font-weight: bold;
+    border-bottom: 2px solid #0984e3;
+}
+
+/* Order Book Rows */
+.ob-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
