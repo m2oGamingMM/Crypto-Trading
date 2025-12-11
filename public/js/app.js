@@ -39,82 +39,102 @@ function showPage(pageName) {
 
 }
 
-// --- 1. WebSocket for Trading Page (Real-time) ---
+// --- 1. ROBUST LIVE DATA ENGINE (Binance Ticker) ---
 let socket = null;
-let isSocketRunning = false;
+let activeSymbol = 'BTC'; // Default symbol
 
 function startLivePrices() {
-  if (isSocketRunning) return; 
-
-  const statusEl = document.getElementById('connectionStatus');
-  const tradeBtn = document.getElementById('tradeSubmitBtn');
+  if (socket) socket.close();
   
-  // Binance Stream (BTC, ETH, XRP, SOL, DOGE)
-  socket = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade/xrpusdt@trade/solusdt@trade/dogeusdt@trade');
+  // Connect to Binance All Mini Tickers Stream (For High/Low/Vol Data)
+  socket = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
 
   socket.onopen = () => {
-    isSocketRunning = true;
+    console.log('🔥 Live Market Data Connected');
+    const statusEl = document.getElementById('connectionStatus');
     if (statusEl) {
-      statusEl.innerHTML = '🟢 Live Market';
+      statusEl.innerHTML = '🟢 Live';
       statusEl.style.color = '#00b894';
     }
-    if (tradeBtn) tradeBtn.disabled = false;
-    console.log('Trading System: Online');
   };
 
   socket.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    const symbol = data.s.replace('USDT', ''); 
-    const price = parseFloat(data.p);
+    const tickers = JSON.parse(event.data);
     
-    // 1. Trading Page Update
-    updateTradingUI(symbol, price);
-
-    // 2. Derivatives Page Update (အသစ်ထည့်ထားသော အပိုင်း)
-    updateDerivativesUI(symbol, price);
-  };
-
-// အောက်ဆုံးမှာ ဒီ Function အသစ်ကို ထည့်ပေးပါ
-function updateDerivativesUI(symbol, price) {
-  // Derivatives Tab မှာ ID တွေ မရှိသေးရင် HTML မှာ လိုက်ထည့်ရပါမယ်
-  // ဥပမာ - id="deriv-price-BTC"
-  const priceEl = document.getElementById(`deriv-price-${symbol}`);
-  if (priceEl) {
-    priceEl.textContent = `$${price.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-    // အရောင်ပြောင်း Effect (Optional)
-    priceEl.style.color = '#white';
-    setTimeout(() => { priceEl.style.color = '#00b894'; }, 100);
-  }
-}
-
-  socket.onclose = () => {
-    isSocketRunning = false;
-    if (statusEl) {
-      statusEl.innerHTML = '🔴 Connecting...';
-      statusEl.style.color = '#ff6b6b';
+    // 1. Update Main Trading UI if current symbol is in the payload
+    const currentTicker = tickers.find(t => t.s === `${activeSymbol}USDT`);
+    if (currentTicker) {
+      updateMainTradingUI(currentTicker);
     }
-    setTimeout(startLivePrices, 3000);
+
+    // 2. Update Side Menu (Hamburger)
+    updateSideMenuLive(tickers);
   };
   
-  socket.onerror = (err) => {
-    console.log("WS Error", err);
-    socket.close();
-  };
+  socket.onclose = () => setTimeout(startLivePrices, 3000); // Auto Reconnect
 }
 
-function updateTradingUI(symbol, price) {
-  const select = document.getElementById('tradingPair');
-  if (!select) return; 
+// Update the big price, high, low, vol on Trading Page
+function updateMainTradingUI(ticker) {
+  const price = parseFloat(ticker.c); // Current Price
+  const high = parseFloat(ticker.h);  // High Price
+  const low = parseFloat(ticker.l);   // Low Price
+  const vol = parseFloat(ticker.q);   // Quote Volume (USDT traded)
+  const open = parseFloat(ticker.o);  // Open Price
+  
+  // Calculate Change % manually to be precise
+  const changePercent = ((price - open) / open) * 100;
 
-  if (select.value === symbol) {
-    const display = document.querySelector('#tradingPriceDisplay .current-price');
-    if (display) {
-      const oldPrice = parseFloat(display.textContent.replace('$', '').replace(',', ''));
-      const color = price > oldPrice ? '#00b894' : (price < oldPrice ? '#ff6b6b' : 'white');
-      display.style.color = color;
-      display.textContent = `$${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  // Update Elements
+  const priceEl = document.getElementById('mainPrice');
+  const highEl = document.getElementById('highPrice');
+  const lowEl = document.getElementById('lowPrice');
+  const volEl = document.getElementById('vol24h');
+  const changeEl = document.getElementById('currentSymbolChange');
+  
+  if (priceEl) {
+    const oldPrice = parseFloat(priceEl.textContent.replace(/,/g, '')) || 0;
+    priceEl.textContent = price.toLocaleString('en-US', { minimumFractionDigits: 2 });
+    // Flash Color Effect
+    if(price !== oldPrice) {
+        priceEl.style.color = price >= oldPrice ? '#00b894' : '#ff6b6b';
     }
   }
+
+  if (highEl) highEl.textContent = high.toLocaleString();
+  if (lowEl) lowEl.textContent = low.toLocaleString();
+  if (volEl) volEl.textContent = (vol / 1000000).toFixed(2) + 'M';
+  
+  if (changeEl) {
+    const sign = changePercent >= 0 ? '+' : '';
+    changeEl.textContent = `${sign}${changePercent.toFixed(2)}%`;
+    changeEl.style.color = changePercent >= 0 ? '#00b894' : '#ff6b6b';
+  }
+}
+
+// Side Menu အတွက် Live Update Function
+function updateSideMenuLive(tickers) {
+  const drawer = document.getElementById('sideMenuDrawer');
+  // Performance ကောင်းအောင် Side menu ဖွင့်ထားမှ အလုပ်လုပ်မယ်
+  if (!drawer || !drawer.classList.contains('open')) return;
+
+  tickers.forEach(t => {
+    if (!t.s.endsWith('USDT')) return; // USDT pair ပဲယူမယ်
+    
+    const symbol = t.s.replace('USDT', '');
+    const priceEl = document.getElementById(`side-price-${symbol}`);
+    const changeEl = document.getElementById(`side-change-${symbol}`);
+    
+    if (priceEl && changeEl) {
+      const price = parseFloat(t.c);
+      const open = parseFloat(t.o);
+      const change = ((price - open) / open) * 100;
+      
+      priceEl.textContent = price.toLocaleString();
+      changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+      changeEl.style.color = change >= 0 ? '#00b894' : '#ff6b6b';
+    }
+  });
 }
 
 // --- 2. Robust API Fetcher (Never Returns Null) ---
@@ -307,20 +327,21 @@ function renderCoinsGrid() {
     </div>
   `).join('');
 }
-function showCoinDetail(symbol)
-{
+// Chart Always Load Function
+function initChart() {
+    loadTradingViewChart(activeSymbol);
+}
+
+function showCoinDetail(symbol) {
+  activeSymbol = symbol;
   showPage('trading');
-  const select = document.getElementById('tradingPair');
-  if (select) {
-    const options = select.options;
-    for (let i = 0; i < options.length; i++) {
-      if (options[i].value === symbol) {
-        select.selectedIndex = i;
-        break;
-      }
-    }
-  }
-  updateTradingDisplay();
+  
+  // Update Header Name
+  const nameEl = document.getElementById('currentSymbolName');
+  if(nameEl) nameEl.textContent = `${symbol}/USDT`;
+
+  // Reload Chart
+  loadTradingViewChart(symbol);
 }
 function updateTradingDisplay() {
   const select = document.getElementById('tradingPair');
@@ -554,83 +575,105 @@ function toggleSideMenu() {
 
 function renderSideMenuCoins() {
   const container = document.getElementById('sideMenuCoinList');
-  if (!container) return;
-  if (typeof allPrices === 'undefined' || !allPrices || allPrices.length === 0) {
-    container.innerHTML = '<div style="padding:16px;">Loading market data...</div>';
-    return;
-  }
-  container.innerHTML = allPrices.map(coin => `
-    <div class="side-coin-item" onclick="selectSideMenuCoin('${coin.symbol}')" style="display:flex; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #1e1e2d; cursor:pointer;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <img src="${coin.image}" style="width:24px; height:24px; border-radius:50%;">
-        <div>
-           <div style="font-weight:bold; font-size:14px; color:white;">${coin.symbol}</div>
-           <div style="font-size:10px; color:#636e72;">Perpetual</div>
-        </div>
-      </div>
+  // Popular coins list for menu (You can add more)
+  const coins = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'BNB', 'LTC', 'ADA', 'TRX', 'MATIC']; 
+  
+  container.innerHTML = coins.map(sym => `
+    <div class="side-coin-item" onclick="selectSideMenuCoin('${sym}')" 
+         style="display:flex; justify-content:space-between; padding:15px 16px; border-bottom:1px solid #1e1e2d; cursor:pointer;">
+      <div style="color:white; font-weight:bold; font-size:15px;">${sym}<span style="font-size:12px; color:#636e72; margin-left:4px;">/USDT</span></div>
       <div style="text-align:right;">
-        <div style="font-size:14px; color:white;">${coin.price.toLocaleString()}</div>
-        <div style="font-size:10px; color:${coin.change24h >= 0 ? '#00b894' : '#ff6b6b'};">${coin.change24h.toFixed(2)}%</div>
+        <div id="side-price-${sym}" style="color:white; font-weight:bold;">Loading...</div>
+        <div id="side-change-${sym}" style="font-size:11px; color:#636e72;">0.00%</div>
       </div>
     </div>
   `).join('');
 }
 
 function selectSideMenuCoin(symbol) {
-  if(typeof showCoinDetail === 'function') showCoinDetail(symbol); 
+  showCoinDetail(symbol);
   toggleSideMenu();
 }
 
 // 5. History Tabs & Rendering
+// History Tab Switch with Loading Effect
 function switchHistoryTab(tab) {
-  const btns = document.querySelectorAll('.h-tab-btn');
-  const transView = document.getElementById('hist-content-transaction');
-  const closedView = document.getElementById('hist-content-closed');
+  // Update Tab Styling
+  document.querySelectorAll('.h-tab-link').forEach(btn => {
+    btn.classList.remove('active');
+    if(btn.textContent.toLowerCase().includes(tab.replace('transaction','in transaction').replace('closed', 'position closed'))) {
+        btn.classList.add('active');
+    }
+  });
 
-  btns.forEach(b => b.classList.remove('active'));
-  
-  if(tab === 'transaction') {
-     if(btns[0]) btns[0].classList.add('active');
-     if(transView) transView.style.display = 'block';
-     if(closedView) closedView.style.display = 'none';
+  const transContent = document.getElementById('hist-content-transaction');
+  const closedContent = document.getElementById('hist-content-closed');
+
+  if (tab === 'transaction') {
+    transContent.style.display = 'block';
+    closedContent.style.display = 'none';
   } else {
-     if(btns[1]) btns[1].classList.add('active');
-     if(transView) transView.style.display = 'none';
-     if(closedView) closedView.style.display = 'block';
-     renderClosedPositions();
+    transContent.style.display = 'none';
+    closedContent.style.display = 'block';
+    
+    // FAKE LOADING (အရေးကြီးသော အပိုင်း)
+    closedContent.innerHTML = '<div class="history-loading"><div class="loading-spinner"></div><br>Loading history records...</div>';
+    
+    setTimeout(() => {
+        renderFakeHistoryData(closedContent);
+    }, 1500); // 1.5 Seconds Loading
   }
 }
 
-function renderClosedPositions() {
-  const container = document.getElementById('hist-content-closed');
-  if(!container) return;
+// Generate Fake Data like Screenshot
+function renderFakeHistoryData(container) {
+  let html = '';
+  const now = new Date();
   
-  if(closedPositions.length === 0) {
-      container.innerHTML = '<div style="padding:40px; text-align:center; color:#636e72;">No records</div>';
-      return;
-  }
+  // Random Data Generation
+  for(let i=0; i<10; i++) {
+     const isWin = Math.random() > 0.5;
+     const profit = (Math.random() * 200).toFixed(4);
+     const amount = [100, 500, 1000, 5000][Math.floor(Math.random()*4)];
+     const time = new Date(now - i * 60000 * 5); // 5 mins gap
+     
+     // Screenshot Style CSS
+     html += `
+        <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
+           <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+              <span style="color:#b2bec3;">Position closed</span>
+              <span style="color:white; font-weight:bold;">${activeSymbol}/USDT 60 second</span>
+           </div>
+           
+           <div style="display:grid; grid-template-columns: 1fr 1.5fr 1.5fr 1fr; gap:5px; margin-bottom:8px;">
+              <div>
+                  <div style="font-size:10px; color:#636e72;">quantity</div>
+                  <div style="color:white; font-size:13px;">${amount}</div>
+              </div>
+              <div>
+                  <div style="font-size:10px; color:#636e72;">Purchase price</div>
+                  <div style="color:white; font-size:13px;">${(Math.random()*4000+2000).toFixed(6)}</div>
+              </div>
+              <div>
+                  <div style="font-size:10px; color:#636e72;">Transaction price</div>
+                  <div style="color:white; font-size:13px;">${(Math.random()*4000+2000).toFixed(6)}</div>
+              </div>
+              <div style="text-align:right;">
+                  <div style="font-size:10px; color:#636e72;">Profit and loss</div>
+                  <div style="color:${isWin ? '#00b894' : '#ff6b6b'}; font-size:13px;">${isWin?'+':''}${profit}</div>
+              </div>
+           </div>
 
-  container.innerHTML = closedPositions.map(pos => `
-    <div class="closed-item" style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
-       <div class="closed-header" style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:10px;">
-          <span style="color:#b2bec3;">Position closed</span>
-          <span style="color:white; font-weight:bold;">${pos.symbol} ${pos.time} second</span>
-       </div>
-       <div class="closed-grid" style="display:grid; grid-template-columns:1fr 1.5fr 1.5fr 1fr; gap:4px; margin-bottom:8px;">
-          <div><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">quantity</div><div class="grid-val" style="font-size:13px; color:white;">${pos.qty}</div></div>
-          <div><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">Purchase price</div><div class="grid-val" style="font-size:13px; color:white;">${pos.buyPrice.toFixed(2)}</div></div>
-          <div><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">Transaction price</div><div class="grid-val" style="font-size:13px; color:white;">${pos.closePrice.toFixed(2)}</div></div>
-          <div style="text-align:right;">
-             <div class="grid-lbl" style="font-size:11px; color:#b2bec3;">Profit and loss</div>
-             <div class="grid-val ${pos.isWin ? 'up' : 'down'}" style="font-size:13px; color:${pos.isWin ? '#00b894' : '#ff6b6b'};">${pos.isWin ? '+' : ''}${pos.pnl.toFixed(4)}</div>
-          </div>
-       </div>
-       <div class="closed-footer" style="display:flex; justify-content:space-between; border-top:1px dashed #2d3436; padding-top:8px;">
-          <div><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">position opening time</div><div class="grid-val sm" style="font-size:11px; color:#b2bec3;">${pos.openTime}</div></div>
-          <div style="text-align:right;"><div class="grid-lbl" style="font-size:11px; color:#b2bec3;">Close time</div><div class="grid-val sm" style="font-size:11px; color:#b2bec3;">${pos.closeTime}</div></div>
-       </div>
-    </div>
-  `).join('');
+           <div style="display:flex; justify-content:space-between; padding-top:6px; border-top:1px dashed #2d3436;">
+              <div>
+                  <div style="font-size:10px; color:#636e72;">position opening time</div>
+                  <div style="font-size:11px; color:#b2bec3;">${time.toLocaleString()}</div>
+              </div>
+           </div>
+        </div>
+     `;
+  }
+  container.innerHTML = html;
 }
 
 // 6. Order Submission
@@ -748,6 +791,10 @@ updateTradingUI = function(symbol, price) {
 document.addEventListener('DOMContentLoaded', () => {
     initDummyHistory();
     selectTransMode('USDT');
+    // New Initializations
+    startLivePrices();
+    renderSideMenuCoins();
+    initChart(); // Chart will load immediately
 });
 
 // --- ASSETS TAB SWITCHING ---
@@ -2931,4 +2978,3 @@ function tradeDerivative(symbol, type) {
     switchTradeType(type); // type = 'buy' or 'sell'
   }, 100);
 }
-
