@@ -3549,7 +3549,7 @@ function submitDerivTimeOrder(type) {
     alert(`${type === 'call' ? 'Call/Buy' : 'Put/Sell'} Order Successful!\nAmount: ${amount} USDT`);
     
     // Refresh History Manually
-    renderFakeHistoryData();
+    if(typeof renderFakeHistoryData === 'function') renderFakeHistoryData();
 }
 
 // 2. Standard Mode Order Logic
@@ -3578,7 +3578,7 @@ function submitDerivOrder(side) {
     alert(`${side.toUpperCase()} Order Placed Successfully!`);
 }
 
-// 3. RENDER FUNCTIONS (ဒါတွေမရှိလို့ Loading လည်နေတာပါ)
+// 3. RENDER FUNCTIONS
 
 // Function for Time Option History
 function renderFakeHistoryData() {
@@ -3616,7 +3616,6 @@ function renderFakeHistoryData() {
 
 // Function for Standard Mode History
 function renderDerivPositions() {
-    // Try two possible IDs just in case HTML wasn't updated perfectly
     const container = document.getElementById('perp-list-container') || document.getElementById('deriv-positions-list');
     
     if(!container) return;
@@ -3643,11 +3642,10 @@ function renderDerivPositions() {
 
 // SAFE Auto-Load (Won't crash if page changes)
 document.addEventListener('click', function(e) {
-    // If user clicked the Derivatives tab logic
     if(e.target && e.target.onclick && e.target.onclick.toString().includes('showPage(\'derivatives\')')) {
         setTimeout(() => {
-            renderFakeHistoryData();
-            renderDerivPositions();
+            if(typeof renderFakeHistoryData === 'function') renderFakeHistoryData();
+            if(typeof renderDerivPositions === 'function') renderDerivPositions();
         }, 500);
     }
 });
