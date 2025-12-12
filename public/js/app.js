@@ -3427,3 +3427,125 @@ function updateDerivOrderBook(currentPrice) {
         bidsContainer.innerHTML = bidsHtml;
     }
 }
+
+// --- LIVE HISTORY DATA ENGINE ---
+
+// 1. Delivery (Time Options) History Generator
+function renderFakeHistoryData(container) {
+    if(!container) container = document.getElementById('hist-content-closed');
+    if(!container) return;
+
+    let html = '';
+    // Generate 5 fake records based on current price
+    const currentPrice = parseFloat(document.getElementById('derivSmallPrice')?.textContent || "1.08450");
+    const now = new Date();
+
+    for(let i=0; i<5; i++) {
+        const isWin = Math.random() > 0.4;
+        const type = Math.random() > 0.5 ? 'Buy' : 'Sell';
+        const amount = [100, 500, 1000][Math.floor(Math.random()*3)];
+        const profit = isWin ? (amount * 0.15).toFixed(4) : (-amount).toFixed(4);
+        const openTime = new Date(now - (i*60000*5));
+        const closeTime = new Date(now - (i*60000*5) + 30000);
+        
+        const openPrice = (currentPrice + (Math.random()*0.0050)).toFixed(5);
+        const closePrice = (currentPrice + (Math.random()*0.0050)).toFixed(5);
+
+        html += `
+        <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
+           <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+              <span style="color:#b2bec3;">Position closed</span>
+              <span style="color:white; font-weight:bold;">${activeDerivAsset}/USDT 30 second</span>
+           </div>
+           
+           <div style="display:grid; grid-template-columns: 1fr 1.5fr 1.5fr 1fr; gap:5px; margin-bottom:8px;">
+              <div>
+                  <div style="font-size:10px; color:#636e72;">quantity</div>
+                  <div style="color:white; font-size:13px;">${amount}</div>
+              </div>
+              <div>
+                  <div style="font-size:10px; color:#636e72;">Purchase price</div>
+                  <div style="color:white; font-size:13px;">${openPrice}</div>
+              </div>
+              <div>
+                  <div style="font-size:10px; color:#636e72;">Transaction price</div>
+                  <div style="color:white; font-size:13px;">${closePrice}</div>
+              </div>
+              <div style="text-align:right;">
+                  <div style="font-size:10px; color:#636e72;">Profit/Loss</div>
+                  <div style="color:${isWin ? '#00b894' : '#ff6b6b'}; font-size:13px;">${isWin?'+':''}${profit}</div>
+              </div>
+           </div>
+
+           <div style="display:flex; justify-content:space-between; padding-top:6px; border-top:1px dashed #2d3436;">
+              <div>
+                  <div style="font-size:10px; color:#636e72;">position opening time</div>
+                  <div style="font-size:11px; color:#b2bec3;">${openTime.toLocaleString()}</div>
+              </div>
+              <div style="text-align:right;">
+                  <div style="font-size:10px; color:#636e72;">Close time</div>
+                  <div style="font-size:11px; color:#b2bec3;">${closeTime.toLocaleString()}</div>
+              </div>
+           </div>
+        </div>`;
+    }
+    container.innerHTML = html;
+}
+
+// 2. Standard (Derivatives) History Logic
+let derivPositions = [];
+
+function submitDerivOrder(side) {
+    const amount = document.getElementById('derivStdAmount').value;
+    if(!amount) { alert('Please enter amount'); return; }
+    
+    // Create Fake Position
+    const price = document.getElementById('derivSmallPrice').textContent;
+    const newPos = {
+        type: side === 'buy' ? 'Long' : 'Short',
+        amount: amount,
+        price: price,
+        time: new Date().toLocaleTimeString(),
+        pnl: (Math.random() * 10 - 5).toFixed(2)
+    };
+    
+    derivPositions.unshift(newPos);
+    renderDerivPositions();
+    alert(`${side.toUpperCase()} Order Placed Successfully! Check History.`);
+}
+
+function renderDerivPositions() {
+    const container = document.getElementById('deriv-positions-list');
+    if(!container) return;
+    
+    if(derivPositions.length === 0) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:#636e72;"><div style="font-size:24px; margin-bottom:5px;">📄</div><div style="font-size:10px;">No Data</div></div>`;
+        return;
+    }
+
+    let html = '';
+    derivPositions.forEach(pos => {
+        const isWin = parseFloat(pos.pnl) >= 0;
+        html += `
+        <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:12px 10px; border-bottom:1px solid #2d3436; color:white; font-size:11px; align-items:center;">
+            <span style="color:${pos.type==='Long'?'#00b894':'#ff6b6b'}; font-weight:bold;">${pos.type}</span>
+            <span>${pos.time}</span>
+            <span>${pos.price}</span>
+            <span>${pos.amount}</span>
+            <span style="color:${isWin?'#00b894':'#ff6b6b'};">${isWin?'+':''}${pos.pnl}</span>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+// Auto-Load History when Derivatives Page is opened
+const originalShowPage = showPage;
+showPage = function(pageName) {
+    originalShowPage(pageName);
+    if(pageName === 'derivatives') {
+        setTimeout(() => {
+            renderFakeHistoryData(); // Load Time Option History
+            renderDerivPositions();  // Load Standard History
+        }, 500);
+    }
+}
