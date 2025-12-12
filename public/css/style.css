@@ -19,10 +19,16 @@ body {
 }
 
 .page {
-  display: none;
+  display: none !important;
 }
 .page.active {
-  display: block;
+  display: block !important;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .header {
