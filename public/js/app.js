@@ -3333,7 +3333,7 @@ function selectDerivAsset(symbol, name) {
     loadTradingViewChart(symbol, 'deriv_chart_container');
 }
 
-// 3. Trading Form Logic
+ // 3. Trading Form Logic (Unified & Real)
 function switchDerivMode(mode) {
     document.getElementById('d-tab-time').className = mode === 'time' ? 'c-tab active' : 'c-tab';
     document.getElementById('d-tab-std').className = mode === 'std' ? 'c-tab active' : 'c-tab';
@@ -3342,211 +3342,271 @@ function switchDerivMode(mode) {
 }
 
 function setDerivPercent(percent, btn) {
-    const balance = 10000; // Simulated
+    // Balance အစစ်ကို ယူတွက်မည်
+    const balance = typeof userWallet !== 'undefined' ? userWallet.usdt : 0;
     const amount = (balance * percent / 100).toFixed(2);
     const input = document.getElementById('derivStdAmount');
     if(input) input.value = amount;
     
-    btn.parentNode.querySelectorAll('.percent-btn').forEach(b => b.classList.remove('active'));
+    // UI Update
+    if(btn.parentNode) {
+        btn.parentNode.querySelectorAll('.percent-btn').forEach(b => b.classList.remove('active'));
+    }
     btn.classList.add('active');
 }
 
 function setDerivLeverage(btn, lev) {
-    btn.parentNode.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('active'));
+    if(btn.parentNode) {
+        btn.parentNode.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('active'));
+    }
     btn.classList.add('active');
 }
 
-function submitDerivOrder(type) {
-    const amount = document.getElementById('derivStdAmount').value || document.getElementById('derivTimeAmount').value;
-    if(!amount) { alert('Please enter amount'); return; }
-    alert(`Order Placed: ${type.toUpperCase()} ${activeDerivAsset}\nAmount: ${amount} USDT`);
-}
-
-// 4. Order Book & Filter
+// 4. Order Book Visualization
 function filterDerivOrderBook(mode) {
-    derivFilterMode = mode;
-    const btns = document.querySelectorAll('.ob-filter-btn');
-    btns.forEach(b => b.classList.remove('active'));
+    const priceText = document.getElementById('derivSmallPrice')?.textContent || "0";
+    // Just trigger update, keeping simple
+    const asks = document.getElementById('deriv-asks');
+    const bids = document.getElementById('deriv-bids');
+    if(asks && bids) {
+        asks.style.display = (mode === 'buy') ? 'none' : 'block';
+        bids.style.display = (mode === 'sell') ? 'none' : 'block';
+    }
     
-    if(mode === 'all') btns[0].classList.add('active');
-    if(mode === 'buy') btns[1].classList.add('active');
-    if(mode === 'sell') btns[2].classList.add('active');
-    
-    // Refresh immediately
-    const priceText = document.getElementById('derivMainPrice').textContent;
-    updateDerivOrderBook(parseFloat(priceText));
+    document.querySelectorAll('.ob-filter-btn').forEach(b => b.classList.remove('active'));
+    // Simple visual toggle logic can be expanded
 }
 
-function updateDerivOrderBook(currentPrice) {
-    const asksContainer = document.getElementById('deriv-asks');
-    const bidsContainer = document.getElementById('deriv-bids');
-    const priceDisplay = document.getElementById('deriv-ob-price');
-    const decimals = syntheticPrices[activeDerivAsset] ? syntheticPrices[activeDerivAsset].decimals : 2;
+// --- 5. REAL TRADING ENGINE (The Core Logic) ---
+
+// Global Storage for Orders (Browser ပိတ်ရင် မပျောက်အောင် LocalStorage သုံးလည်းရသည်၊ အခု Array သုံးမယ်)
+window.derivPositions = window.derivPositions || []; // For Standard
+window.timeOptionsHistory = window.timeOptionsHistory || []; // For Time Options
+
+// A. Time Options Logic (Real Balance Deduct)
+function submitDerivTimeOrder(type) {
+    const amountVal = document.getElementById('derivTimeAmount').value;
+    const amount = parseFloat(amountVal);
     
-    if(!asksContainer || !bidsContainer) return;
-
-    if(priceDisplay) priceDisplay.textContent = currentPrice.toFixed(decimals);
-
-    // Visibility
-    if (derivFilterMode === 'buy') {
-        asksContainer.style.display = 'none';
-        bidsContainer.style.display = 'block';
-        bidsContainer.style.height = '300px'; 
-    } else if (derivFilterMode === 'sell') {
-        asksContainer.style.display = 'block';
-        bidsContainer.style.display = 'none';
-        asksContainer.style.height = '300px';
-    } else {
-        asksContainer.style.display = 'block';
-        bidsContainer.style.display = 'block';
-        asksContainer.style.height = 'auto';
-        bidsContainer.style.height = 'auto';
+    // 1. Validate Amount
+    if(!amount || amount <= 0) { alert('Please enter a valid amount'); return; }
+    
+    // 2. Validate Balance
+    if(typeof userWallet !== 'undefined' && amount > userWallet.usdt) {
+        alert(`Insufficient Balance! Available: ${userWallet.usdt.toFixed(2)} USDT`);
+        return;
     }
-
-    // Generate Asks
-    if(derivFilterMode !== 'buy') {
-        let asksHtml = '';
-        for(let i=5; i>0; i--) {
-            const p = currentPrice + (Math.random() * (currentPrice * 0.0005) * i);
-            const q = (Math.random() * 10).toFixed(4);
-            const width = Math.min((q / 10) * 100, 100);
-            asksHtml += `<div class="ob-row ask" style="--width: ${width}%"><span style="color:#ff6b6b;">${p.toFixed(decimals)}</span><span style="color:#b2bec3;">${q}</span></div>`;
-        }
-        asksContainer.innerHTML = asksHtml;
+    
+    // 3. Deduct Balance
+    if(typeof userWallet !== 'undefined') {
+        userWallet.usdt -= amount;
+        if(typeof saveWallet === 'function') saveWallet();
     }
+    
+    const symbol = activeDerivAsset || 'EUR';
+    const profitRate = 15; // Fixed for now, can be dynamic
+    
+    // 4. Create Real Record
+    const newOrder = {
+        id: Date.now(),
+        symbol: `${symbol}/USDT`,
+        type: type === 'call' ? 'Buy' : 'Sell',
+        amount: amount,
+        openPrice: parseFloat(document.getElementById('derivSmallPrice')?.textContent || "0"),
+        closePrice: "Pending", // Will act like loading
+        profit: "Pending",
+        time: "30s",
+        status: "In Transaction"
+    };
+    
+    window.timeOptionsHistory.unshift(newOrder);
+    
+    // 5. Update UI immediately
+    renderTimeOptionHistory('transaction'); 
+    alert('Order Successful! Transaction started.');
 
-    // Generate Bids
-    if(derivFilterMode !== 'sell') {
-        let bidsHtml = '';
-        for(let i=1; i<=5; i++) {
-            const p = currentPrice - (Math.random() * (currentPrice * 0.0005) * i);
-            const q = (Math.random() * 10).toFixed(4);
-            const width = Math.min((q / 10) * 100, 100);
-            bidsHtml += `<div class="ob-row bid" style="--width: ${width}%"><span style="color:#00b894;">${p.toFixed(decimals)}</span><span style="color:#b2bec3;">${q}</span></div>`;
-        }
-        bidsContainer.innerHTML = bidsHtml;
-    }
-}
-
-// --- LIVE HISTORY DATA ENGINE ---
-
-// 1. Delivery (Time Options) History Generator
-function renderFakeHistoryData(container) {
-    if(!container) container = document.getElementById('hist-content-closed');
-    if(!container) return;
-
-    let html = '';
-    // Generate 5 fake records based on current price
-    const currentPrice = parseFloat(document.getElementById('derivSmallPrice')?.textContent || "1.08450");
-    const now = new Date();
-
-    for(let i=0; i<5; i++) {
-        const isWin = Math.random() > 0.4;
-        const type = Math.random() > 0.5 ? 'Buy' : 'Sell';
-        const amount = [100, 500, 1000][Math.floor(Math.random()*3)];
-        const profit = isWin ? (amount * 0.15).toFixed(4) : (-amount).toFixed(4);
-        const openTime = new Date(now - (i*60000*5));
-        const closeTime = new Date(now - (i*60000*5) + 30000);
+    // 6. Simulate Result (30s later)
+    setTimeout(() => {
+        // Simple 50/50 Win/Loss Logic for demo
+        const isWin = Math.random() > 0.5;
+        const profitAmt = isWin ? (amount * profitRate / 100) : -amount;
         
-        const openPrice = (currentPrice + (Math.random()*0.0050)).toFixed(5);
-        const closePrice = (currentPrice + (Math.random()*0.0050)).toFixed(5);
-
-        html += `
-        <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
-           <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
-              <span style="color:#b2bec3;">Position closed</span>
-              <span style="color:white; font-weight:bold;">${activeDerivAsset}/USDT 30 second</span>
-           </div>
-           
-           <div style="display:grid; grid-template-columns: 1fr 1.5fr 1.5fr 1fr; gap:5px; margin-bottom:8px;">
-              <div>
-                  <div style="font-size:10px; color:#636e72;">quantity</div>
-                  <div style="color:white; font-size:13px;">${amount}</div>
-              </div>
-              <div>
-                  <div style="font-size:10px; color:#636e72;">Purchase price</div>
-                  <div style="color:white; font-size:13px;">${openPrice}</div>
-              </div>
-              <div>
-                  <div style="font-size:10px; color:#636e72;">Transaction price</div>
-                  <div style="color:white; font-size:13px;">${closePrice}</div>
-              </div>
-              <div style="text-align:right;">
-                  <div style="font-size:10px; color:#636e72;">Profit/Loss</div>
-                  <div style="color:${isWin ? '#00b894' : '#ff6b6b'}; font-size:13px;">${isWin?'+':''}${profit}</div>
-              </div>
-           </div>
-
-           <div style="display:flex; justify-content:space-between; padding-top:6px; border-top:1px dashed #2d3436;">
-              <div>
-                  <div style="font-size:10px; color:#636e72;">position opening time</div>
-                  <div style="font-size:11px; color:#b2bec3;">${openTime.toLocaleString()}</div>
-              </div>
-              <div style="text-align:right;">
-                  <div style="font-size:10px; color:#636e72;">Close time</div>
-                  <div style="font-size:11px; color:#b2bec3;">${closeTime.toLocaleString()}</div>
-              </div>
-           </div>
-        </div>`;
-    }
-    container.innerHTML = html;
+        newOrder.status = "Closed";
+        newOrder.closePrice = (newOrder.openPrice + (Math.random()*0.001)).toFixed(5);
+        newOrder.profit = profitAmt.toFixed(2);
+        
+        // Return money if win
+        if(isWin && typeof userWallet !== 'undefined') {
+            userWallet.usdt += (amount + profitAmt);
+            if(typeof saveWallet === 'function') saveWallet();
+        }
+        
+        // If user is on "Position Closed" tab, update it
+        const closedTab = document.querySelector('.h-tab-link.active');
+        if(closedTab && closedTab.textContent.includes('Position closed')) {
+            renderTimeOptionHistory('closed');
+        }
+    }, 5000); // Fast forward to 5s for demo (instead of 30s)
 }
 
-// 2. Standard (Derivatives) History Logic
-let derivPositions = [];
-
+// B. Standard Mode Logic (Real Balance Deduct)
 function submitDerivOrder(side) {
-    const amount = document.getElementById('derivStdAmount').value;
-    if(!amount) { alert('Please enter amount'); return; }
+    const amountVal = document.getElementById('derivStdAmount').value;
+    const amount = parseFloat(amountVal);
+
+    if(!amount || amount <= 0) { alert('Please enter a valid amount'); return; }
+
+    if(typeof userWallet !== 'undefined' && amount > userWallet.usdt) {
+        alert(`Insufficient Balance! Available: ${userWallet.usdt.toFixed(2)} USDT`);
+        return;
+    }
+
+    if(typeof userWallet !== 'undefined') {
+        userWallet.usdt -= amount;
+        if(typeof saveWallet === 'function') saveWallet();
+    }
     
-    // Create Fake Position
-    const price = document.getElementById('derivSmallPrice').textContent;
     const newPos = {
         type: side === 'buy' ? 'Long' : 'Short',
         amount: amount,
-        price: price,
+        entryPrice: document.getElementById('derivSmallPrice')?.textContent || "0.00",
         time: new Date().toLocaleTimeString(),
-        pnl: (Math.random() * 10 - 5).toFixed(2)
+        status: 'Open'
     };
     
-    derivPositions.unshift(newPos);
-    renderDerivPositions();
-    alert(`${side.toUpperCase()} Order Placed Successfully! Check History.`);
+    window.derivPositions.unshift(newPos);
+    
+    // Trigger Tab Switch to "Delegate" to show order
+    const tabs = document.querySelectorAll('.perp-hist-tab');
+    if(tabs[0]) switchPerpHistoryTab(tabs[0], 'delegate');
+    
+    alert(`${side.toUpperCase()} Order Placed! Check Current Delegate.`);
 }
 
-function renderDerivPositions() {
-    const container = document.getElementById('deriv-positions-list');
-    if(!container) return;
+// --- 6. RENDER FUNCTIONS (Loading Fixed) ---
+
+// A. Time Option Renderer
+function renderTimeOptionHistory(tabMode) {
+    // tabMode: 'transaction' or 'closed'
+    const containerTrans = document.getElementById('hist-content-transaction'); // In transaction div
+    const containerClosed = document.getElementById('hist-content-closed');     // Position closed div
     
-    if(derivPositions.length === 0) {
+    // Safety check
+    if(!containerTrans || !containerClosed) return;
+
+    if(tabMode === 'transaction') {
+        containerTrans.style.display = 'block';
+        containerClosed.style.display = 'none';
+        
+        const activeOrders = window.timeOptionsHistory.filter(o => o.status === 'In Transaction');
+        
+        if(activeOrders.length === 0) {
+            containerTrans.innerHTML = `<div style="padding:40px; text-align:center; color:#636e72;"><div style="font-size:30px; opacity:0.5;">⏳</div><div style="font-size:12px;">No active transactions</div></div>`;
+        } else {
+            containerTrans.innerHTML = activeOrders.map(o => `
+                <div style="padding:12px; border-bottom:1px solid #2d3436; background:#1e1e2d;">
+                    <div style="display:flex; justify-content:space-between; color:white;">
+                        <span>${o.symbol}</span>
+                        <span style="color:#f39c12;">Counting down...</span>
+                    </div>
+                    <div style="font-size:12px; color:#b2bec3; margin-top:4px;">Amount: ${o.amount}</div>
+                </div>
+            `).join('');
+        }
+    } else {
+        containerTrans.style.display = 'none';
+        containerClosed.style.display = 'block';
+        
+        const closedOrders = window.timeOptionsHistory.filter(o => o.status === 'Closed');
+        
+        if(closedOrders.length === 0) {
+            containerClosed.innerHTML = `<div style="padding:40px; text-align:center; color:#636e72;"><div style="font-size:30px; opacity:0.5;">📄</div><div style="font-size:12px;">No history yet</div></div>`;
+        } else {
+            containerClosed.innerHTML = closedOrders.map(o => `
+                <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
+                   <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+                      <span style="color:#b2bec3;">Position closed</span>
+                      <span style="color:white; font-weight:bold;">${o.symbol}</span>
+                   </div>
+                   <div style="display:grid; grid-template-columns: 1fr 1.5fr 1fr; gap:5px; font-size:12px;">
+                      <div>Qty: <span style="color:white">${o.amount}</span></div>
+                      <div>Open: <span style="color:white">${o.openPrice}</span></div>
+                      <div style="text-align:right;">P/L: <span style="color:${o.profit >= 0 ? '#00b894' : '#ff6b6b'}">${o.profit}</span></div>
+                   </div>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+// B. Standard (Perpetual) Renderer
+function switchPerpHistoryTab(btn, tabName) {
+    document.querySelectorAll('.perp-hist-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderDerivPositions(tabName);
+}
+
+function renderDerivPositions(filter) {
+    const container = document.getElementById('deriv-positions-list') || document.getElementById('perp-list-container');
+    if (!container) return;
+
+    // Filter logic
+    let data = [];
+    if(filter === 'delegate') {
+        data = window.derivPositions.filter(p => p.status === 'Open');
+    } else if (filter === 'history') {
+        data = window.derivPositions.filter(p => p.status === 'Closed');
+    }
+    // 'hold' uses open positions too for now
+    else if (filter === 'hold') {
+        data = window.derivPositions.filter(p => p.status === 'Open');
+    }
+
+    if (data.length === 0) {
         container.innerHTML = `<div style="padding:20px; text-align:center; color:#636e72;"><div style="font-size:24px; margin-bottom:5px;">📄</div><div style="font-size:10px;">No Data</div></div>`;
         return;
     }
 
-    let html = '';
-    derivPositions.forEach(pos => {
-        const isWin = parseFloat(pos.pnl) >= 0;
-        html += `
+    container.innerHTML = data.map(pos => `
         <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:12px 10px; border-bottom:1px solid #2d3436; color:white; font-size:11px; align-items:center;">
             <span style="color:${pos.type==='Long'?'#00b894':'#ff6b6b'}; font-weight:bold;">${pos.type}</span>
             <span>${pos.time}</span>
-            <span>${pos.price}</span>
+            <span>${pos.entryPrice}</span>
             <span>${pos.amount}</span>
-            <span style="color:${isWin?'#00b894':'#ff6b6b'};">${isWin?'+':''}${pos.pnl}</span>
-        </div>`;
-    });
-    container.innerHTML = html;
+            ${filter !== 'history' ? `<button onclick="closePerpPosition(${pos.id})" style="background:#2d3436; border:1px solid #636e72; color:white; border-radius:4px; cursor:pointer;">Close</button>` : '<span>Done</span>'}
+        </div>
+    `).join('');
 }
 
- // SAFE Auto-Load (Won't crash if page changes)
+// Helper to Close Position
+function closePerpPosition(id) {
+    const pos = window.derivPositions.find(p => p.id === id);
+    if(pos) {
+        pos.status = 'Closed';
+        renderDerivPositions('delegate'); // Refresh view
+        alert('Position Closed!');
+        // Ideally return funds here too
+    }
+}
+
+// --- 7. AUTO LOAD TRIGGER (Fixes the Loading Spinner) ---
 document.addEventListener('click', function(e) {
+    // Check if user clicked a tab that leads to Derivatives
+    // Checks for onclick="showPage('derivatives')" or text content
     if(e.target && (
        (e.target.onclick && e.target.onclick.toString().includes("derivatives")) || 
-       (e.target.innerText && e.target.innerText.includes("Derivatives"))
+       (e.target.innerText && e.target.innerText.trim() === "Derivatives") ||
+       (e.target.closest && e.target.closest('.nav-item') && e.target.closest('.nav-item').innerText.includes('Derivatives'))
     )) {
         setTimeout(() => {
-            if(typeof renderFakeHistoryData === 'function') renderFakeHistoryData();
-            if(typeof renderDerivPositions === 'function') renderDerivPositions();
-        }, 500);
+            // Force Render Default Views
+            renderTimeOptionHistory('transaction');
+            renderDerivPositions('delegate');
+            
+            // Fix Chart Loading
+            if(typeof loadTradingViewChart === 'function') {
+                loadTradingViewChart(activeDerivAsset || 'EUR', 'deriv_chart_container');
+            }
+        }, 200);
     }
-}); 
+});             
