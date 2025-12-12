@@ -3509,45 +3509,75 @@ function setStdPercent(percent, btn) {
     btn.classList.add('active');
 }
 
-// --- STANDARD MODE LOGIC (NEW) ---
+// --- STANDARD MODE LOGIC (UPDATED WITH FILTER) ---
 
-// 1. Percent Calculation for Manual Input
-function setStdPercent(percent) {
-    const balance = 10000; // Simulated Balance
-    const amount = (balance * percent / 100).toFixed(2);
-    const input = document.getElementById('stdAmount');
-    if(input) input.value = amount;
+// Filter Switcher
+function filterOrderBook(mode) {
+    obFilterMode = mode;
+    // UI Active Update
+    const btns = document.querySelectorAll('.ob-filter-btn');
+    // Using index assumption: 0=All, 1=Buy, 2=Sell based on HTML order
+    if(btns.length >= 3) {
+        btns.forEach(b => b.classList.remove('active'));
+        if(mode === 'all') btns[0].classList.add('active');
+        if(mode === 'buy') btns[1].classList.add('active');
+        if(mode === 'sell') btns[2].classList.add('active');
+    }
+    // Force Refresh
+    const data = syntheticPrices[activeDerivSymbol];
+    if(data) updateStdOrderBook(data.price);
 }
 
-// 2. Graphic Order Book Generation
+// Graphic Order Book Generation
 function updateStdOrderBook(currentPrice) {
     const asksContainer = document.getElementById('deriv-asks');
     const bidsContainer = document.getElementById('deriv-bids');
     const priceDisplay = document.getElementById('deriv-ob-price');
+    const decimals = syntheticPrices[activeDerivSymbol] ? syntheticPrices[activeDerivSymbol].decimals : 2;
     
     if(!asksContainer || !bidsContainer) return;
 
     if(priceDisplay) {
-        priceDisplay.textContent = currentPrice.toFixed(activeDerivSymbol === 'XAU' ? 2 : 4);
+        priceDisplay.textContent = currentPrice.toFixed(decimals);
     }
 
-    // Generate Asks (Red) - With Graphic Bars
-    let asksHtml = '';
-    for(let i=5; i>0; i--) {
-        const p = currentPrice + (Math.random() * (activeDerivSymbol === 'XAU' ? 0.5 : 0.0005) * i);
-        const q = (Math.random() * 10).toFixed(4);
-        const width = Math.min((q / 10) * 100, 100);
-        asksHtml += `<div class="ob-row ask" style="--width: ${width}%"><span style="color:#ff6b6b;">${p.toFixed(activeDerivSymbol === 'XAU'?2:4)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    // Filter Visibility Logic
+    if (obFilterMode === 'buy') {
+        asksContainer.style.display = 'none';
+        bidsContainer.style.display = 'block';
+        bidsContainer.style.height = '300px'; 
+    } else if (obFilterMode === 'sell') {
+        asksContainer.style.display = 'block';
+        bidsContainer.style.display = 'none';
+        asksContainer.style.height = '300px';
+    } else {
+        asksContainer.style.display = 'block';
+        bidsContainer.style.display = 'block';
+        asksContainer.style.height = 'auto';
+        bidsContainer.style.height = 'auto';
     }
-    asksContainer.innerHTML = asksHtml;
 
-    // Generate Bids (Green) - With Graphic Bars
-    let bidsHtml = '';
-    for(let i=1; i<=5; i++) {
-        const p = currentPrice - (Math.random() * (activeDerivSymbol === 'XAU' ? 0.5 : 0.0005) * i);
-        const q = (Math.random() * 10).toFixed(4);
-        const width = Math.min((q / 10) * 100, 100);
-        bidsHtml += `<div class="ob-row bid" style="--width: ${width}%"><span style="color:#00b894;">${p.toFixed(activeDerivSymbol === 'XAU'?2:4)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+    // Generate Asks (Red)
+    if(obFilterMode !== 'buy') {
+        let asksHtml = '';
+        for(let i=5; i>0; i--) {
+            const p = currentPrice + (Math.random() * (currentPrice * 0.0005) * i);
+            const q = (Math.random() * 10).toFixed(4);
+            const width = Math.min((q / 10) * 100, 100);
+            asksHtml += `<div class="ob-row ask" style="--width: ${width}%"><span style="color:#ff6b6b;">${p.toFixed(decimals)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+        }
+        asksContainer.innerHTML = asksHtml;
     }
-    bidsContainer.innerHTML = bidsHtml;
+
+    // Generate Bids (Green)
+    if(obFilterMode !== 'sell') {
+        let bidsHtml = '';
+        for(let i=1; i<=5; i++) {
+            const p = currentPrice - (Math.random() * (currentPrice * 0.0005) * i);
+            const q = (Math.random() * 10).toFixed(4);
+            const width = Math.min((q / 10) * 100, 100);
+            bidsHtml += `<div class="ob-row bid" style="--width: ${width}%"><span style="color:#00b894;">${p.toFixed(decimals)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+        }
+        bidsContainer.innerHTML = bidsHtml;
+    }
 }
