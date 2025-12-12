@@ -3549,19 +3549,18 @@ showPage = function(pageName) {
         }, 500);
     }
 }
-// --- DERIVATIVES FUNCTIONALITY ---
+// --- DERIVATIVES FUNCTIONALITY (SAFE VERSION) ---
 
 // 1. Time Options Order Logic
 function submitDerivTimeOrder(type) {
     const amount = document.getElementById('derivTimeAmount').value;
     if(!amount || amount <= 0) { alert('Please enter amount'); return; }
     
+    // Show success message
     alert(`${type === 'call' ? 'Call/Buy' : 'Put/Sell'} Order Successful!\nAmount: ${amount} USDT`);
     
-    // Auto Refresh History
-    setTimeout(() => {
-        renderFakeHistoryData();
-    }, 500);
+    // Refresh History Data manually
+    renderFakeHistoryData(); 
 }
 
 // 2. Standard Mode Order Logic
@@ -3571,8 +3570,8 @@ function submitDerivOrder(side) {
     const amount = document.getElementById('derivStdAmount').value;
     if(!amount || amount <= 0) { alert('Please enter amount'); return; }
     
-    // Create Fake Position
-    const price = document.getElementById('derivSmallPrice').textContent;
+    // Create Fake Position Data
+    const price = document.getElementById('derivSmallPrice')?.textContent || "0.00";
     const newPos = {
         type: side === 'buy' ? 'Long' : 'Short',
         amount: amount,
@@ -3586,15 +3585,15 @@ function submitDerivOrder(side) {
     alert(`${side.toUpperCase()} Order Placed Successfully!`);
 }
 
-// 3. Render Functions (For History)
-function renderFakeHistoryData(container) {
-    if(!container) container = document.getElementById('hist-content-closed');
+// 3. Render Functions (For History Display)
+function renderFakeHistoryData() {
+    const container = document.getElementById('hist-content-closed');
     if(!container) return;
 
     let html = '';
     const currentPrice = parseFloat(document.getElementById('derivSmallPrice')?.textContent || "1.08450");
-    const now = new Date();
 
+    // Generate 5 dummy records
     for(let i=0; i<5; i++) {
         const isWin = Math.random() > 0.4;
         const amount = [100, 500, 1000][Math.floor(Math.random()*3)];
@@ -3643,16 +3642,4 @@ function renderDerivPositions() {
         </div>`;
     });
     container.innerHTML = html;
-}
-
-// Auto-Load History Trigger
-const originalShowPage2 = window.showPage || function(){};
-window.showPage = function(pageName) {
-    if(originalShowPage2) originalShowPage2(pageName);
-    if(pageName === 'derivatives') {
-        setTimeout(() => {
-            renderFakeHistoryData();
-            renderDerivPositions();
-        }, 500);
-    }
-}
+}            
