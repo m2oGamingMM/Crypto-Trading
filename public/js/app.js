@@ -3549,51 +3549,38 @@ showPage = function(pageName) {
         }, 500);
     }
 }
-// --- DERIVATIVES FUNCTIONALITY (SAFE VERSION) ---
 
-// 1. Time Options Order Logic
+// --- DERIVATIVES PAGE LOGIC (FIXED) ---
+
+// 1. Time Options Order (Call/Put)
 function submitDerivTimeOrder(type) {
     const amount = document.getElementById('derivTimeAmount').value;
     if(!amount || amount <= 0) { alert('Please enter amount'); return; }
     
-    // Show success message
+    // Show Success
     alert(`${type === 'call' ? 'Call/Buy' : 'Put/Sell'} Order Successful!\nAmount: ${amount} USDT`);
     
-    // Refresh History Data manually
-    renderFakeHistoryData(); 
+    // Auto-refresh History
+    const historyTab = document.querySelector('.h-tab-link.active');
+    if(historyTab && historyTab.textContent.includes('Position closed')) {
+        renderFakeHistoryData();
+    } else {
+        // If not on history tab, switch to it automatically (optional)
+        // document.querySelectorAll('.h-tab-link')[1].click();
+    }
 }
 
-// 2. Standard Mode Order Logic
-let derivPositions = [];
-
-function submitDerivOrder(side) {
-    const amount = document.getElementById('derivStdAmount').value;
-    if(!amount || amount <= 0) { alert('Please enter amount'); return; }
-    
-    // Create Fake Position Data
-    const price = document.getElementById('derivSmallPrice')?.textContent || "0.00";
-    const newPos = {
-        type: side === 'buy' ? 'Long' : 'Short',
-        amount: amount,
-        price: price,
-        time: new Date().toLocaleTimeString(),
-        pnl: (Math.random() * 10 - 5).toFixed(2)
-    };
-    
-    derivPositions.unshift(newPos);
-    renderDerivPositions();
-    alert(`${side.toUpperCase()} Order Placed Successfully!`);
-}
-
-// 3. Render Functions (For History Display)
+// 2. Render Time Options History
 function renderFakeHistoryData() {
     const container = document.getElementById('hist-content-closed');
     if(!container) return;
 
     let html = '';
-    const currentPrice = parseFloat(document.getElementById('derivSmallPrice')?.textContent || "1.08450");
+    // Get Price from HTML or Default
+    const priceEl = document.getElementById('derivSmallPrice');
+    const currentPrice = parseFloat(priceEl ? priceEl.textContent : "1.08450");
 
-    // Generate 5 dummy records
+    // Generate 5 fake records
     for(let i=0; i<5; i++) {
         const isWin = Math.random() > 0.4;
         const amount = [100, 500, 1000][Math.floor(Math.random()*3)];
@@ -3601,12 +3588,13 @@ function renderFakeHistoryData() {
         
         const openPrice = (currentPrice + (Math.random()*0.0050)).toFixed(5);
         const closePrice = (currentPrice + (Math.random()*0.0050)).toFixed(5);
-
+        
+        // HTML Structure matching Screenshot
         html += `
         <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
               <span style="color:#b2bec3;">Position closed</span>
-              <span style="color:white; font-weight:bold;">${activeDerivAsset}/USDT 30s</span>
+              <span style="color:white; font-weight:bold;">${activeDerivAsset || 'EUR'}/USDT 30s</span>
            </div>
            
            <div style="display:grid; grid-template-columns: 1fr 1.5fr 1.5fr 1fr; gap:5px; margin-bottom:8px;">
@@ -3620,11 +3608,37 @@ function renderFakeHistoryData() {
     container.innerHTML = html;
 }
 
+// 3. Standard (CFD) Order Logic
+let derivPositions = []; // Store positions in memory
+
+function submitDerivOrder(side) {
+    const amount = document.getElementById('derivStdAmount').value;
+    if(!amount || amount <= 0) { alert('Please enter amount'); return; }
+    
+    // Create Position Data
+    const priceEl = document.getElementById('derivSmallPrice');
+    const price = priceEl ? priceEl.textContent : "0.0000";
+    
+    const newPos = {
+        type: side === 'buy' ? 'Long' : 'Short',
+        amount: amount,
+        price: price,
+        time: new Date().toLocaleTimeString(),
+        pnl: (Math.random() * 10 - 5).toFixed(2)
+    };
+    
+    derivPositions.unshift(newPos); // Add to top
+    renderDerivPositions(); // Update UI
+    alert(`${side.toUpperCase()} Order Placed Successfully!`);
+}
+
+// 4. Render Standard Positions (This was MISSING!)
 function renderDerivPositions() {
-    const container = document.getElementById('deriv-positions-list');
+    const container = document.getElementById('perp-list-container');
     if(!container) return;
     
     if(derivPositions.length === 0) {
+        // Show Empty State if no orders
         container.innerHTML = `<div style="padding:20px; text-align:center; color:#636e72;"><div style="font-size:24px; margin-bottom:5px;">📄</div><div style="font-size:10px;">No Data</div></div>`;
         return;
     }
@@ -3642,4 +3656,4 @@ function renderDerivPositions() {
         </div>`;
     });
     container.innerHTML = html;
-}            
+}
