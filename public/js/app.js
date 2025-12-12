@@ -343,21 +343,23 @@ function renderCoinsGrid() {
   `).join('');
 }
 // --- CHART & MENU LOGIC (MASTER) ---
-let currentChartInterval = '1'; // Default 1 Minute (Live Feel)
+let currentChartInterval = '1'; // Default 1 Minute
 
-function loadTradingViewChart(symbol) {
-  // Check containers for both Trading and Derivatives pages
-  // Trading Page က Chart လား၊ Derivatives Page က Chart လား ခွဲခြားမယ်
-  const containerId = currentPage === 'derivatives' ? 'deriv_chart_container' : 'tv_chart_container';
+function loadTradingViewChart(symbol, containerIdOverride = null) {
+  // Determine container
+  let containerId = containerIdOverride;
+  if (!containerId) {
+      containerId = currentPage === 'derivatives' ? 'deriv_chart_container' : 'tv_chart_container';
+  }
   
   if (!document.getElementById(containerId)) return;
 
-  // Symbol Mapping for Chart
+  // Symbol Mapping
   let tvSymbol = `BINANCE:${symbol}USDT`;
-  if(symbol === 'XAU') tvSymbol = 'BINANCE:PAXGUSDT'; // Use PAXG chart for Real Gold Data
+  if(symbol === 'XAU') tvSymbol = 'BINANCE:PAXGUSDT'; // Real Gold Data
   
-  // Derivatives Chart Mapping (Forex & Commodities)
-  if(currentPage === 'derivatives') {
+  // Derivatives Specific Mapping
+  if (['EUR','GBP','JPY','AUD','CAD','XAG','WTI','BRENT','US30','NAS100'].includes(symbol)) {
       if(symbol === 'EUR') tvSymbol = 'FX:EURUSD';
       if(symbol === 'GBP') tvSymbol = 'FX:GBPUSD';
       if(symbol === 'JPY') tvSymbol = 'FX:USDJPY';
@@ -373,7 +375,7 @@ function loadTradingViewChart(symbol) {
   if (typeof TradingView !== 'undefined') {
       new TradingView.widget({
         "width": "100%",
-        "height": currentPage === 'derivatives' ? 450 : 350,
+        "height": containerId === 'deriv_chart_container' ? 450 : 350,
         "symbol": tvSymbol,
         "interval": currentChartInterval, 
         "timezone": "Etc/UTC",
@@ -389,26 +391,25 @@ function loadTradingViewChart(symbol) {
         "allow_symbol_change": false,
         "save_image": false
       });
-  } else {
-      setTimeout(() => loadTradingViewChart(symbol), 500);
   }
 }
 
 function setChartTime(interval) {
     currentChartInterval = interval;
-    // Update Active Button UI
-    document.querySelectorAll('.time-btn').forEach(btn => {
+    document.querySelectorAll('#page-trading .time-btn').forEach(btn => {
         btn.classList.remove('active');
-        if(btn.textContent.includes(interval) || (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${interval}'`))) {
-            btn.classList.add('active');
-        }
+        if(btn.getAttribute('onclick').includes(`'${interval}'`)) btn.classList.add('active');
     });
-    // Reload Chart
-    loadTradingViewChart(activeSymbol);
+    loadTradingViewChart(activeSymbol, 'tv_chart_container');
 }
 
-function initChart() {
-    loadTradingViewChart(activeSymbol);
+function setDerivChartTime(interval) {
+    currentChartInterval = interval;
+    document.querySelectorAll('#page-derivatives .time-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if(btn.getAttribute('onclick').includes(`'${interval}'`)) btn.classList.add('active');
+    });
+    loadTradingViewChart(activeDerivAsset, 'deriv_chart_container');
 }
 
 // Unified Function for Side Menu & Direct Calls
@@ -1086,20 +1087,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Start Real Data Engine
     startLivePrices();
     
-    // 2. Preload Charts (To make them instant)
-    initChart(); 
+    // 2. PRELOAD BOTH CHARTS (Instant Load Logic)
+    // Trading Tab Chart (Gold by Default)
+    loadTradingViewChart('XAU', 'tv_chart_container'); 
+    
+    // Derivatives Tab Chart (Euro by Default)
+    // Delay slightly to allow library to init
+    setTimeout(() => {
+        loadTradingViewChart('EUR', 'deriv_chart_container');
+    }, 500);
     
     // 3. Initialize Asset Tabs
     if(typeof selectTransMode === 'function') selectTransMode('USDT');
     
-    // 4. Set Default Header Name
+    // 4. Default Header Setup
     const nameEl = document.getElementById('currentSymbolName');
     if(nameEl) nameEl.textContent = 'XAU/USDT';
     
-    // 5. Force Home Page First (Black Screen Fix)
+    // 5. Hide Black Screen (Force correct tab)
     showPage('home'); 
     
-    // 6. Restore Theme/Lang
+    // 6. Theme Restore
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') document.body.classList.add('light-mode');
 });
@@ -3214,22 +3222,50 @@ function showToast(message) {
   }, 2000);
 }
 
-// --- DERIVATIVES TRADING LOGIC ---
-function tradeDerivative(symbol, type) {
-  // 1. Trading Page ကို အရင်သွားမယ်
-  showCoinDetail(symbol);
-  
-  // 2. Buy/Sell Tab ကို ချက်ချင်း ပြောင်းပေးမယ်
-  // (0.1 စက္ကန့် စောင့်ပြီးမှ ပြောင်းတာက Page Load ပြီးမှ လုပ်စေချင်လို့ပါ)
-  setTimeout(() => {
-    switchTradeType(type); // type = 'buy' or 'sell'
-  }, 100);
-}
-
 // --- DERIVATIVES LOGIC (GLOBAL MARKETS - CLEAN) ---
 
 let activeDerivAsset = 'EUR'; // Default
+let derivFilterMode = 'all';
 
+// 1. Synthetic Data Generator (Keeps Standard UI alive)
+const syntheticPrices = {
+    'EUR': { price: 1.0845, decimals: 5 },
+    'GBP': { price: 1.2650, decimals: 5 },
+    'JPY': { price: 152.00, decimals: 3 },
+    'XAG': { price: 31.50, decimals: 3 },
+    'WTI': { price: 68.50, decimals: 2 },
+    'US30': { price: 43200.00, decimals: 1 }
+};
+
+function generateSyntheticData() {
+    if (document.getElementById('page-derivatives').classList.contains('active')) {
+        let price = 100.00;
+        let decimals = 2;
+        
+        // Use synthetic base if available, else default
+        if(syntheticPrices[activeDerivAsset]) {
+            price = syntheticPrices[activeDerivAsset].price;
+            decimals = syntheticPrices[activeDerivAsset].decimals;
+        }
+        
+        // Random Movement
+        const move = (Math.random() - 0.5) * (price * 0.0002);
+        price += move;
+        if(syntheticPrices[activeDerivAsset]) syntheticPrices[activeDerivAsset].price = price;
+
+        // Update Header Price
+        const priceEl = document.getElementById('derivMainPrice');
+        if(priceEl) {
+            priceEl.textContent = price.toFixed(decimals);
+            priceEl.className = move >= 0 ? 'big-price up' : 'big-price down';
+        }
+        
+        // Update Order Book Graphics
+        updateDerivOrderBook(price);
+    }
+}
+
+// 2. Menu Logic with Fixed Logos
 function toggleDerivMenu() {
     const backdrop = document.getElementById('derivMenuBackdrop');
     const drawer = document.getElementById('derivMenuDrawer');
@@ -3247,7 +3283,7 @@ function toggleDerivMenu() {
 function renderDerivMenu() {
     const container = document.getElementById('derivMenuList');
     
-    // Professional Global Market List
+    // Fixed CAD Logo & Proper Groups
     const markets = [
         { type: 'Forex', items: [
             { sym: 'EUR', name: 'Euro / USD', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1200px-Flag_of_Europe.svg.png' },
@@ -3293,17 +3329,101 @@ function selectDerivAsset(symbol, name) {
     toggleDerivMenu();
     document.getElementById('derivSymbolName').textContent = symbol;
     
-    // Reload Chart Immediately
-    loadTradingViewChart(symbol);
+    // Load Chart Immediately
+    loadTradingViewChart(symbol, 'deriv_chart_container');
+}
+
+// 3. Trading Form Logic
+function switchDerivMode(mode) {
+    document.getElementById('d-tab-time').className = mode === 'time' ? 'c-tab active' : 'c-tab';
+    document.getElementById('d-tab-std').className = mode === 'std' ? 'c-tab active' : 'c-tab';
+    document.getElementById('deriv-view-time').style.display = mode === 'time' ? 'block' : 'none';
+    document.getElementById('deriv-view-std').style.display = mode === 'std' ? 'block' : 'none';
+}
+
+function setDerivPercent(percent, btn) {
+    const balance = 10000; // Simulated
+    const amount = (balance * percent / 100).toFixed(2);
+    const input = document.getElementById('derivStdAmount');
+    if(input) input.value = amount;
+    
+    btn.parentNode.querySelectorAll('.percent-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 }
 
 function setDerivLeverage(btn, lev) {
-    document.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('active'));
+    btn.parentNode.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 }
 
 function submitDerivOrder(type) {
-    const amount = document.getElementById('derivAmount').value;
+    const amount = document.getElementById('derivStdAmount').value || document.getElementById('derivTimeAmount').value;
     if(!amount) { alert('Please enter amount'); return; }
     alert(`Order Placed: ${type.toUpperCase()} ${activeDerivAsset}\nAmount: ${amount} USDT`);
+}
+
+// 4. Order Book & Filter
+function filterDerivOrderBook(mode) {
+    derivFilterMode = mode;
+    const btns = document.querySelectorAll('.ob-filter-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    
+    if(mode === 'all') btns[0].classList.add('active');
+    if(mode === 'buy') btns[1].classList.add('active');
+    if(mode === 'sell') btns[2].classList.add('active');
+    
+    // Refresh immediately
+    const priceText = document.getElementById('derivMainPrice').textContent;
+    updateDerivOrderBook(parseFloat(priceText));
+}
+
+function updateDerivOrderBook(currentPrice) {
+    const asksContainer = document.getElementById('deriv-asks');
+    const bidsContainer = document.getElementById('deriv-bids');
+    const priceDisplay = document.getElementById('deriv-ob-price');
+    const decimals = syntheticPrices[activeDerivAsset] ? syntheticPrices[activeDerivAsset].decimals : 2;
+    
+    if(!asksContainer || !bidsContainer) return;
+
+    if(priceDisplay) priceDisplay.textContent = currentPrice.toFixed(decimals);
+
+    // Visibility
+    if (derivFilterMode === 'buy') {
+        asksContainer.style.display = 'none';
+        bidsContainer.style.display = 'block';
+        bidsContainer.style.height = '300px'; 
+    } else if (derivFilterMode === 'sell') {
+        asksContainer.style.display = 'block';
+        bidsContainer.style.display = 'none';
+        asksContainer.style.height = '300px';
+    } else {
+        asksContainer.style.display = 'block';
+        bidsContainer.style.display = 'block';
+        asksContainer.style.height = 'auto';
+        bidsContainer.style.height = 'auto';
+    }
+
+    // Generate Asks
+    if(derivFilterMode !== 'buy') {
+        let asksHtml = '';
+        for(let i=5; i>0; i--) {
+            const p = currentPrice + (Math.random() * (currentPrice * 0.0005) * i);
+            const q = (Math.random() * 10).toFixed(4);
+            const width = Math.min((q / 10) * 100, 100);
+            asksHtml += `<div class="ob-row ask" style="--width: ${width}%"><span style="color:#ff6b6b;">${p.toFixed(decimals)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+        }
+        asksContainer.innerHTML = asksHtml;
+    }
+
+    // Generate Bids
+    if(derivFilterMode !== 'sell') {
+        let bidsHtml = '';
+        for(let i=1; i<=5; i++) {
+            const p = currentPrice - (Math.random() * (currentPrice * 0.0005) * i);
+            const q = (Math.random() * 10).toFixed(4);
+            const width = Math.min((q / 10) * 100, 100);
+            bidsHtml += `<div class="ob-row bid" style="--width: ${width}%"><span style="color:#00b894;">${p.toFixed(decimals)}</span><span style="color:#b2bec3;">${q}</span></div>`;
+        }
+        bidsContainer.innerHTML = bidsHtml;
+    }
 }
