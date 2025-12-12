@@ -3285,6 +3285,7 @@ function renderDerivMenu() {
     `).join('');
 }
 
+// 2. Select Asset (Fixing Chart Symbols & Initial Price)
 function selectDerivAsset(symbol) {
     activeDerivSymbol = symbol;
     
@@ -3292,16 +3293,24 @@ function selectDerivAsset(symbol) {
     const drawer = document.getElementById('derivMenuDrawer');
     if(drawer && drawer.classList.contains('open')) toggleDerivMenu();
     
-    // Update Header
+    // Update Header Text immediately
     document.getElementById('derivSymbolName').textContent = `${symbol}/USDT`;
     
-    // --- CHART MAPPING FIX ---
+    // Reset Header Price immediately (မစောင့်ဘဲ ချက်ချင်းပြောင်းပေးမယ်)
+    const data = syntheticPrices[symbol];
+    if(data) {
+        document.getElementById('derivMainPrice').textContent = data.price.toFixed(data.decimals);
+    }
+    
+    // --- CHART MAPPING FIX (Fixed JPY & US30) ---
     let tvSymbol;
     if (symbol === 'XAU') tvSymbol = 'OANDA:XAUUSD';
-    else if (symbol === 'XAG') tvSymbol = 'OANDA:XAGUSD'; // Fixed Silver Chart
+    else if (symbol === 'XAG') tvSymbol = 'OANDA:XAGUSD'; 
     else if (symbol === 'WTI') tvSymbol = 'TVC:USOIL';
     else if (symbol === 'BTC') tvSymbol = 'BINANCE:BTCUSDT';
-    else tvSymbol = `FX:${symbol}USD`; // Default for Forex
+    else if (symbol === 'JPY') tvSymbol = 'FX:USDJPY'; // Fixed JPY
+    else if (symbol === 'US30') tvSymbol = 'TVC:DJI';  // Fixed Dow Jones
+    else tvSymbol = `FX:${symbol}USD`; // Default Forex (EUR, GBP)
     
     if (typeof TradingView !== 'undefined') {
       new TradingView.widget({
