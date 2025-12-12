@@ -3538,49 +3538,56 @@ function renderDerivPositions() {
     container.innerHTML = html;
 }
 
-// Auto-Load History when Derivatives Page is opened
-const originalShowPage = showPage;
-showPage = function(pageName) {
-    originalShowPage(pageName);
-    if(pageName === 'derivatives') {
-        setTimeout(() => {
-            renderFakeHistoryData(); // Load Time Option History
-            renderDerivPositions();  // Load Standard History
-        }, 500);
-    }
-}
+// --- DERIVATIVES FUNCTIONALITY (FINAL FIXED VERSION) ---
 
-// --- DERIVATIVES PAGE LOGIC (FIXED) ---
-
-// 1. Time Options Order (Call/Put)
+// 1. Time Options Order Logic
 function submitDerivTimeOrder(type) {
     const amount = document.getElementById('derivTimeAmount').value;
     if(!amount || amount <= 0) { alert('Please enter amount'); return; }
     
-    // Show Success
+    // Show success
     alert(`${type === 'call' ? 'Call/Buy' : 'Put/Sell'} Order Successful!\nAmount: ${amount} USDT`);
     
-    // Auto-refresh History
-    const historyTab = document.querySelector('.h-tab-link.active');
-    if(historyTab && historyTab.textContent.includes('Position closed')) {
-        renderFakeHistoryData();
-    } else {
-        // If not on history tab, switch to it automatically (optional)
-        // document.querySelectorAll('.h-tab-link')[1].click();
-    }
+    // Refresh History Manually
+    renderFakeHistoryData();
 }
 
-// 2. Render Time Options History
+// 2. Standard Mode Order Logic
+// Global variable for positions
+if (typeof derivPositions === 'undefined') {
+    var derivPositions = []; 
+}
+
+function submitDerivOrder(side) {
+    const amount = document.getElementById('derivStdAmount').value;
+    if(!amount || amount <= 0) { alert('Please enter amount'); return; }
+    
+    const priceEl = document.getElementById('derivSmallPrice');
+    const price = priceEl ? priceEl.textContent : "0.0000";
+    
+    const newPos = {
+        type: side === 'buy' ? 'Long' : 'Short',
+        amount: amount,
+        price: price,
+        time: new Date().toLocaleTimeString(),
+        pnl: (Math.random() * 10 - 5).toFixed(2)
+    };
+    
+    derivPositions.unshift(newPos);
+    renderDerivPositions();
+    alert(`${side.toUpperCase()} Order Placed Successfully!`);
+}
+
+// 3. RENDER FUNCTIONS (ဒါတွေမရှိလို့ Loading လည်နေတာပါ)
+
+// Function for Time Option History
 function renderFakeHistoryData() {
     const container = document.getElementById('hist-content-closed');
     if(!container) return;
 
     let html = '';
-    // Get Price from HTML or Default
-    const priceEl = document.getElementById('derivSmallPrice');
-    const currentPrice = parseFloat(priceEl ? priceEl.textContent : "1.08450");
+    const currentPrice = parseFloat(document.getElementById('derivSmallPrice')?.textContent || "1.08450");
 
-    // Generate 5 fake records
     for(let i=0; i<5; i++) {
         const isWin = Math.random() > 0.4;
         const amount = [100, 500, 1000][Math.floor(Math.random()*3)];
@@ -3588,8 +3595,7 @@ function renderFakeHistoryData() {
         
         const openPrice = (currentPrice + (Math.random()*0.0050)).toFixed(5);
         const closePrice = (currentPrice + (Math.random()*0.0050)).toFixed(5);
-        
-        // HTML Structure matching Screenshot
+
         html += `
         <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
@@ -3608,37 +3614,14 @@ function renderFakeHistoryData() {
     container.innerHTML = html;
 }
 
-// 3. Standard (CFD) Order Logic
-let derivPositions = []; // Store positions in memory
-
-function submitDerivOrder(side) {
-    const amount = document.getElementById('derivStdAmount').value;
-    if(!amount || amount <= 0) { alert('Please enter amount'); return; }
-    
-    // Create Position Data
-    const priceEl = document.getElementById('derivSmallPrice');
-    const price = priceEl ? priceEl.textContent : "0.0000";
-    
-    const newPos = {
-        type: side === 'buy' ? 'Long' : 'Short',
-        amount: amount,
-        price: price,
-        time: new Date().toLocaleTimeString(),
-        pnl: (Math.random() * 10 - 5).toFixed(2)
-    };
-    
-    derivPositions.unshift(newPos); // Add to top
-    renderDerivPositions(); // Update UI
-    alert(`${side.toUpperCase()} Order Placed Successfully!`);
-}
-
-// 4. Render Standard Positions (This was MISSING!)
+// Function for Standard Mode History
 function renderDerivPositions() {
-    const container = document.getElementById('perp-list-container');
+    // Try two possible IDs just in case HTML wasn't updated perfectly
+    const container = document.getElementById('perp-list-container') || document.getElementById('deriv-positions-list');
+    
     if(!container) return;
     
     if(derivPositions.length === 0) {
-        // Show Empty State if no orders
         container.innerHTML = `<div style="padding:20px; text-align:center; color:#636e72;"><div style="font-size:24px; margin-bottom:5px;">📄</div><div style="font-size:10px;">No Data</div></div>`;
         return;
     }
@@ -3657,3 +3640,14 @@ function renderDerivPositions() {
     });
     container.innerHTML = html;
 }
+
+// SAFE Auto-Load (Won't crash if page changes)
+document.addEventListener('click', function(e) {
+    // If user clicked the Derivatives tab logic
+    if(e.target && e.target.onclick && e.target.onclick.toString().includes('showPage(\'derivatives\')')) {
+        setTimeout(() => {
+            renderFakeHistoryData();
+            renderDerivPositions();
+        }, 500);
+    }
+});
