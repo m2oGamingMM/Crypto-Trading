@@ -343,160 +343,61 @@
       <div id="page-derivatives" class="page">
       
       <div class="trading-fixed-top">
-          <div class="contract-header" style="padding: 10px 16px; background:#0a0a0f;">
-            <div style="background:#1e1e2d; border-radius:20px; display:flex; padding:2px; width:100%;">
-                <div class="c-tab active" onclick="switchDerivMode('time')" id="d-tab-time" style="border-radius:18px;">Time Options</div>
-                <div class="c-tab" onclick="switchDerivMode('std')" id="d-tab-std" style="border-radius:18px;">Standard (CFD)</div>
-            </div>
+          <div class="contract-header" style="padding: 15px 16px; background:#0a0a0f; border-bottom: 1px solid #1e1e2d;">
+            <h2 style="font-size:16px; color:white; margin:0;">Global Markets</h2>
           </div>
 
-          <div class="trade-info-header" style="justify-content: space-between; padding: 5px 16px;">
+          <div class="trade-info-header" style="justify-content: space-between; padding: 10px 16px; background:#12121a;">
             <div style="display:flex; align-items:center; gap:10px;">
               <button class="menu-trigger" onclick="toggleDerivMenu()" style="font-size: 24px; color:#b2bec3;">☰</button>
-              <div class="symbol-info" style="display:flex; align-items:baseline; gap:8px;">
-                <span id="derivSymbolName" style="font-weight:bold; font-size:18px; color:white;">XAU/USDT</span>
-                <span id="derivSymbolChange" style="font-size:12px; color:#00b894; font-weight:bold;">+0.05%</span>
+              <div class="symbol-info" style="display:flex; flex-direction:column;">
+                <span id="derivSymbolName" style="font-weight:bold; font-size:18px; color:white;">EUR/USD</span>
+                <span style="font-size:11px; color:#636e72;">Forex Market</span>
               </div>
             </div>
-          </div>
+            </div>
       </div>
 
       <div class="trading-scrollable-area">
           
-          <div class="main-price-display" style="padding: 10px 16px; align-items:flex-end;">
-            <span id="derivMainPrice" class="big-price" style="font-size: 32px; line-height:1;">2034.50</span>
-            <div class="price-details" style="font-size: 11px; color:#636e72; text-align:right;">
-              <div style="margin-bottom:2px;">high <span style="color:white; margin-left:5px;">2040.10</span></div>
-              <div style="margin-bottom:2px;">low <span style="color:white; margin-left:5px;">2028.90</span></div>
-            </div>
-          </div>
+          <div id="deriv_chart_container" style="height: 450px; background:#12121a; border-bottom: 1px solid #2d3436;"></div>
 
-          <div class="chart-time-bar">
-             <button class="time-btn" onclick="setChartTime('1')">1min</button>
-             <button class="time-btn" onclick="setChartTime('5')">5min</button>
-             <button class="time-btn active" onclick="setChartTime('15')">15min</button>
-             <button class="time-btn" onclick="setChartTime('30')">30min</button>
-             <button class="time-btn" onclick="setChartTime('60')">1hour</button>
-             <button class="time-btn" onclick="setChartTime('D')">1day</button>
-          </div>
-          
-          <div id="deriv_chart_container" style="height: 350px; background:#12121a; margin-bottom: 10px;"></div>
-
-          <div style="padding: 0 10px;">
+          <div style="padding: 20px 16px;">
               
-              <div id="deriv-view-time" style="display:block;">
-                <div class="time-grid-container" style="margin-bottom: 16px;">
-                  <div class="time-box active" onclick="selectTime(30, 15, this)"><div class="t-sec">30 second</div><div class="t-rate">profit rate 15%</div></div>
-                  <div class="time-box" onclick="selectTime(60, 20, this)"><div class="t-sec">60 second</div><div class="t-rate">profit rate 20%</div></div>
-                  <div class="time-box" onclick="selectTime(120, 30, this)"><div class="t-sec">120 second</div><div class="t-rate">profit rate 30%</div></div>
-                  <div class="time-box" onclick="selectTime(180, 50, this)"><div class="t-sec">180 second</div><div class="t-rate">profit rate 50%</div></div>
-                  <div class="time-box" onclick="selectTime(300, 70, this)"><div class="t-sec">300 second</div><div class="t-rate">profit rate 70%</div></div>
-                  <div class="time-box" onclick="selectTime(360, 75, this)"><div class="t-sec">360 second</div><div class="t-rate">profit rate 75%</div></div>
-                </div>
-
-                <div class="qty-input-box" style="margin-bottom: 15px; background:#1e1e2d; border:1px solid #2d3436;">
-                    <input type="number" id="derivTimeAmount" placeholder="Order Amount (USDT)" style="font-weight:bold;">
-                </div>
-
-                <div class="big-action-buttons" style="padding: 0; margin-bottom:20px;">
-                  <button class="action-btn buy" onclick="alert('Call/Buy Order Submitted')">Call / Buy</button>
-                  <button class="action-btn sell" onclick="alert('Put/Sell Order Submitted')">Put / Sell</button>
-                </div>
-
-                <div class="history-tabs-container">
-                    <div class="history-tabs-header">
-                       <button class="h-tab-link active" onclick="switchDerivHistoryTab('transaction')">In transaction</button>
-                       <button class="h-tab-link" onclick="switchDerivHistoryTab('closed')">Position closed</button>
-                    </div>
-                    <div class="history-content-area" style="padding:40px; text-align:center; min-height: 150px;">
-                       <div style="font-size:30px; opacity:0.5;">📄</div>
-                       <div style="color:#636e72; font-size:12px; margin-top:10px;">No transaction data</div>
-                    </div>
-                </div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                  <span style="color:#b2bec3; font-size:14px;">Trade Amount</span>
+                  <span style="color:#f39c12; font-size:12px;">Fee: 0.05%</span>
               </div>
 
-              <div id="deriv-view-std" style="display:none;">
-                 
-                 <div style="display:flex; gap:10px; margin-bottom:20px;">
-                    
-                    <div style="flex:1.2;">
-                        <div style="display:flex; gap:10px; margin-bottom:10px;">
-                           <select class="modal-input" style="flex:2; margin:0; font-size:12px; padding:8px;">
-                               <option>Market Price</option>
-                               <option>Limit Price</option>
-                           </select>
-                        </div>
-
-                        <div class="qty-input-box" style="margin-bottom:10px; background:#1e1e2d; border:1px solid #2d3436; padding:8px; display:flex; justify-content:space-between; align-items:center;">
-                            <input type="number" id="stdAmount" placeholder="Amount (USDT)" style="width:70%; background:none; border:none; color:white; font-size:13px; font-weight:bold;">
-                            <span style="font-size:10px; color:#f39c12;">Fee: 0.1%</span>
-                        </div>
-
-                        <div style="display:flex; gap:4px; margin-bottom:15px;">
-                            <button class="percent-btn" onclick="setStdPercent(25)">25%</button>
-                            <button class="percent-btn" onclick="setStdPercent(50)">50%</button>
-                            <button class="percent-btn" onclick="setStdPercent(75)">75%</button>
-                            <button class="percent-btn" onclick="setStdPercent(100)">100%</button>
-                        </div>
-
-                        <div style="margin-bottom:15px;">
-                            <label style="font-size:11px; color:#b2bec3; display:block; margin-bottom:5px;">Leverage</label>
-                            <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:4px;">
-                                 <button class="lev-btn" onclick="setLeverage(this, 1)">1x</button>
-                                 <button class="lev-btn" onclick="setLeverage(this, 5)">5x</button>
-                                 <button class="lev-btn" onclick="setLeverage(this, 10)">10x</button>
-                                 <button class="lev-btn" onclick="setLeverage(this, 25)">25x</button>
-                                 <button class="lev-btn" onclick="setLeverage(this, 50)">50x</button>
-                                 <button class="lev-btn active" onclick="setLeverage(this, 100)">100x</button>
-                            </div>
-                        </div>
-
-                        <div style="display:flex; gap:10px;">
-                            <button class="action-btn buy" style="flex:1; padding:10px; font-size:13px;" onclick="submitStdOrder('buy')">Buy (Long)</button>
-                            <button class="action-btn sell" style="flex:1; padding:10px; font-size:13px;" onclick="submitStdOrder('sell')">Sell (Short)</button>
-                        </div>
-                    </div>
-
-                    <div style="flex:0.8; font-size:11px; display:flex; flex-direction:column;">
-                        <div style="display:flex; justify-content:space-between; color:#636e72; margin-bottom:4px;">
-                            <span>Price</span>
-                            <span>Amt</span>
-                        </div>
-                        <div id="deriv-asks" style="flex:1; overflow:hidden;"></div>
-                        <div id="deriv-ob-price" style="font-size:16px; font-weight:bold; color:#00b894; text-align:center; margin:8px 0;">--</div>
-                        <div id="deriv-bids" style="flex:1; overflow:hidden;"></div>
-                    </div>
-                 </div>
-
-                 <div style="background:#12121a; margin-top:10px; border-top:5px solid #0a0a0f;">
-                    <div style="display:flex; border-bottom:1px solid #2d3436;">
-                        <button class="perp-hist-tab active" onclick="switchPerpHistoryTab(this, 'delegate')">Current Delegate</button>
-                        <button class="perp-hist-tab" onclick="switchPerpHistoryTab(this, 'hold')">Hold Position</button>
-                        <button class="perp-hist-tab" onclick="switchPerpHistoryTab(this, 'history')">History</button>
-                    </div>
-                    
-                    <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:10px; color:#636e72; font-size:10px; text-align:center;">
-                        <span>Type</span>
-                        <span>Time</span>
-                        <span>Price</span>
-                        <span>Qty</span>
-                        <span>Action</span>
-                    </div>
-
-                    <div id="std-history-container" style="min-height: 150px;">
-                        <div style="padding:40px; text-align:center; color:#636e72;">
-                            <div style="font-size:24px; margin-bottom:5px;">📄</div>
-                            <div style="font-size:10px;">No Data</div>
-                        </div>
-                    </div>
-                 </div>
-
+              <div class="qty-input-box" style="margin-bottom: 20px; background:#1e1e2d; border:1px solid #2d3436; padding:15px;">
+                  <input type="number" id="derivAmount" placeholder="Input Amount (USDT)" style="font-size:16px; font-weight:bold; width:100%; background:none; border:none; color:white;">
               </div>
+
+              <div style="margin-bottom:20px;">
+                  <label style="font-size:12px; color:#636e72; margin-bottom:8px; display:block;">Leverage</label>
+                  <div style="display:flex; gap:10px;">
+                      <button class="lev-btn active" onclick="setDerivLeverage(this, 100)">100x</button>
+                      <button class="lev-btn" onclick="setDerivLeverage(this, 200)">200x</button>
+                      <button class="lev-btn" onclick="setDerivLeverage(this, 500)">500x</button>
+                  </div>
+              </div>
+
+              <div style="display:flex; gap:15px;">
+                  <button class="action-btn buy" onclick="submitDerivOrder('buy')" style="padding:16px; font-size:16px;">
+                      Buy / Long
+                  </button>
+                  <button class="action-btn sell" onclick="submitDerivOrder('sell')" style="padding:16px; font-size:16px;">
+                      Sell / Short
+                  </button>
+              </div>
+
+          </div>
+      </div>
 
       <div class="side-menu-backdrop" id="derivMenuBackdrop" onclick="toggleDerivMenu()"></div>
-      <div class="side-menu-drawer" id="derivMenuDrawer" style="width:70%; background:#12121a;">
-        <div class="side-menu-header" style="background:#0a0a0f;">
-            <h3 style="color:#f39c12; margin:0;">Global Markets</h3>
+      <div class="side-menu-drawer" id="derivMenuDrawer" style="width:75%; background:#12121a;">
+        <div class="side-menu-header" style="background:#0a0a0f; padding:20px;">
+            <h3 style="color:#f39c12; margin:0;">Select Asset</h3>
         </div>
         <div class="side-coin-list" id="derivMenuList">
             </div>
