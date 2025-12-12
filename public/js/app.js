@@ -3649,3 +3649,47 @@ document.addEventListener('click', function(e) {
         }, 500);
     }
 });
+// --- CRITICAL FIX: NAVIGATION TRIGGER ---
+// Paste this at the VERY BOTTOM of app.js
+
+// This overrides the main navigation to ensure Derivatives data loads
+window.showPage = function(pageName) {
+  // 1. Standard Tab Switching Logic
+  document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  
+  const targetPage = document.getElementById(`page-${pageName}`);
+  if (targetPage) targetPage.classList.add('active');
+  
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    if (item.textContent.toLowerCase().includes(pageName)) item.classList.add('active');
+  });
+  
+  currentPage = pageName;
+  
+  // 2. Page Specific Data Loading
+  if (pageName === 'quotes') {
+    if(typeof renderQuotesList === 'function') renderQuotesList();
+  } else if (pageName === 'coins') {
+    if(typeof renderCoinsGrid === 'function') renderCoinsGrid();
+  } else if (pageName === 'trading') {
+    if(typeof updateTradingDisplay === 'function') updateTradingDisplay();
+  } 
+  
+  // 3. THIS IS THE FIX FOR LOADING ISSUE
+  else if (pageName === 'derivatives') {
+    setTimeout(() => {
+        // Trigger the functions you just added
+        if(typeof renderFakeHistoryData === 'function') renderFakeHistoryData();
+        if(typeof renderDerivPositions === 'function') renderDerivPositions();
+        
+        // Also ensure Chart is visible
+        if(typeof loadTradingViewChart === 'function') {
+            loadTradingViewChart(activeDerivAsset || 'EUR', 'deriv_chart_container');
+        }
+    }, 100);
+  }
+  
+  window.scrollTo(0, 0);
+}
