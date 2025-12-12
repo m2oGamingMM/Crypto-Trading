@@ -374,7 +374,9 @@
           
           <div id="deriv_chart_container" style="height: 350px; background:#12121a; margin-bottom: 10px; width: 100%;"></div>
 
-          <div style="padding: 0 10px 80px 10px;"> <div id="deriv-view-time" style="display:block;">
+          <div style="padding: 0 10px 80px 10px;"> 
+              
+              <div id="deriv-view-time" style="display:block;">
                 <div class="time-grid-container" style="margin-bottom: 16px;">
                   <div class="time-box active" onclick="selectTime(30, 15, this)"><div class="t-sec">30 s</div><div class="t-rate">15%</div></div>
                   <div class="time-box" onclick="selectTime(60, 30, this)"><div class="t-sec">60 s</div><div class="t-rate">30%</div></div>
@@ -389,22 +391,21 @@
                 </div>
 
                 <div class="big-action-buttons" style="padding: 0; margin-bottom:20px;">
-                  <button class="action-btn buy" style="background:#00b894;" onclick="alert('Call/Buy Order Submitted')">Call / Buy</button>
-                  <button class="action-btn sell" style="background:#ff6b6b;" onclick="alert('Put/Sell Order Submitted')">Put / Sell</button>
+                  <button class="action-btn buy" style="background:#00b894;" onclick="submitDerivTimeOrder('call')">Call / Buy</button>
+                  <button class="action-btn sell" style="background:#ff6b6b;" onclick="submitDerivTimeOrder('put')">Put / Sell</button>
                 </div>
 
                 <div class="history-tabs-container" style="border-top: 8px solid #0a0a0f; background: #12121a; margin: 0 -10px;">
                     <div class="history-tabs-header" style="padding: 12px 16px; border-bottom: 1px solid #1e1e2d;">
                        <button class="h-tab-link" onclick="document.getElementById('hist-content-closed').style.display='none'; this.classList.add('active');">In transaction</button>
-                       <button class="h-tab-link active" onclick="document.getElementById('hist-content-closed').style.display='block'; this.parentNode.querySelectorAll('.h-tab-link')[0].classList.remove('active');" style="margin-left: 20px;">Position closed</button>
+                       <button class="h-tab-link active" onclick="document.getElementById('hist-content-closed').style.display='block'; this.parentNode.querySelectorAll('.h-tab-link')[0].classList.remove('active'); renderFakeHistoryData();" style="margin-left: 20px;">Position closed</button>
                     </div>
                     
                     <div id="hist-content-closed" style="min-height:200px;">
                        <div style="padding:40px; text-align:center; color:#636e72;">Loading history...</div>
                     </div>
                 </div>
-
-              <div id="deriv-view-std" style="display:none;">
+              </div> <div id="deriv-view-std" style="display:none;">
                  
                  <div style="display:flex; margin-bottom:10px; background:#12121a; border-radius:4px; overflow:hidden;">
                     <button class="perp-side-btn active buy" onclick="switchPerpSide('buy')" id="btn-deriv-buy">Buy</button>
@@ -440,7 +441,10 @@
                     </div>
                  </div>
 
-                 <button class="action-btn buy" style="width:100%;" onclick="submitDerivOrder('buy')">Open Long</button>
+                 <div style="display:flex; gap:5px; margin-bottom:15px;">
+                    <button class="action-btn buy" style="flex:1;" onclick="submitDerivOrder('buy')">Buy (Long)</button>
+                    <button class="action-btn sell" style="flex:1;" onclick="submitDerivOrder('sell')">Sell (Short)</button>
+                 </div>
 
                  <div style="background:#12121a; margin-top:20px; border-top:8px solid #0a0a0f; margin-left:-10px; margin-right:-10px;">
                     <div style="display:flex; border-bottom:1px solid #2d3436;">
@@ -464,12 +468,8 @@
                         </div>
                     </div>
                  </div>
-              </div>
 
-          </div>
-      </div>
-
-      <div class="side-menu-backdrop" id="derivMenuBackdrop" onclick="toggleDerivMenu()"></div>
+              </div> </div> </div> <div class="side-menu-backdrop" id="derivMenuBackdrop" onclick="toggleDerivMenu()"></div>
       <div class="side-menu-drawer" id="derivMenuDrawer" style="width:75%; background:#12121a;">
         <div class="side-menu-header" style="background:#0a0a0f; padding:20px;">
             <h3 style="color:#f39c12; margin:0;">Global Markets</h3>
