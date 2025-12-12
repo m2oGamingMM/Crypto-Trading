@@ -3538,4 +3538,15 @@ function renderDerivPositions() {
     container.innerHTML = html;
 }
 
-  
+ // SAFE Auto-Load (Won't crash if page changes)
+document.addEventListener('click', function(e) {
+    if(e.target && (
+       (e.target.onclick && e.target.onclick.toString().includes("derivatives")) || 
+       (e.target.innerText && e.target.innerText.includes("Derivatives"))
+    )) {
+        setTimeout(() => {
+            if(typeof renderFakeHistoryData === 'function') renderFakeHistoryData();
+            if(typeof renderDerivPositions === 'function') renderDerivPositions();
+        }, 500);
+    }
+}); 
