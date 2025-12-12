@@ -613,13 +613,15 @@ function showTransferModal() {
   alert('Transfer feature - Coming soon!');
 }
 
-// --- DELIVERY & PERPETUAL LOGIC (FINAL CLEAN VERSION) ---
+// --- DELIVERY & PERPETUAL LOGIC (FINAL REAL VERSION) ---
 let isSideMenuOpen = false;
 let currentDuration = 30;
 let currentProfitRate = 15;
 let currentContractMode = 'delivery'; 
 let currentCurrency = 'USDT';
-let closedPositions = [];
+
+// Storage for Real Delivery Orders
+let deliveryOrders = JSON.parse(localStorage.getItem('deliveryOrders')) || [];
 
 // 1. Transaction Mode (USDT / USDC)
 function selectTransMode(currency) {
@@ -637,18 +639,14 @@ function selectTransMode(currency) {
 }
 
 // 2. Tab Switching
-// --- TAB SWITCHING (FINAL CLEAN VERSION) ---
 function switchContractTab(mode) {
   currentContractMode = mode;
   
-  // 1. Tabs Design Update
   const delTab = document.getElementById('tab-delivery');
   const perpTab = document.getElementById('tab-perpetual');
   if(delTab) delTab.className = mode === 'delivery' ? 'c-tab active' : 'c-tab';
   if(perpTab) perpTab.className = mode === 'perpetual' ? 'c-tab active' : 'c-tab';
 
-  // 2. View Container Toggle
-  // (History က view-delivery ထဲမှာ ရှိပြီးသားမို့ သူ့အလိုလို ပျောက်သွားပါလိမ့်မယ်)
   const delView = document.getElementById('view-delivery');
   const perpView = document.getElementById('view-perpetual');
 
@@ -656,7 +654,7 @@ function switchContractTab(mode) {
   if(perpView) perpView.style.display = mode === 'perpetual' ? 'block' : 'none';
 }
 
-// 3. Time Selection (8 Buttons Support)
+// 3. Time Selection
 function selectTime(seconds, rate, element) {
   currentDuration = seconds;
   currentProfitRate = rate;
@@ -680,37 +678,21 @@ function toggleSideMenu() {
   }
 }
 
-// --- SIDE MENU WITH LOGOS ---
 function renderSideMenuCoins() {
   const container = document.getElementById('sideMenuCoinList');
   if (!container) return;
 
-  // API Data ရှိရင်သုံးမယ်၊ မရှိရင် Default စာရင်းသုံးမယ်
-  let displayList = [];
-  if (typeof allPrices !== 'undefined' && allPrices.length > 0) {
-      displayList = allPrices;
-  } else {
-      const defaults = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'BNB', 'LTC', 'ADA', 'TRX', 'MATIC'];
-      displayList = defaults.map(sym => ({
-          symbol: sym,
-          image: `https://assets.coingecko.com/coins/images/1/large/${sym.toLowerCase()}.png`,
-          price: 0,
-          change24h: 0
-      }));
-  }
-
+  let displayList = typeof allPrices !== 'undefined' && allPrices.length > 0 ? allPrices : [];
+  
   container.innerHTML = displayList.map(coin => `
     <div class="side-coin-item" onclick="selectSideMenuCoin('${coin.symbol}')" 
          style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #1e1e2d; cursor:pointer;">
-      
       <div style="display:flex; align-items:center; gap:10px;">
         <img src="${coin.image}" onerror="this.src='https://via.placeholder.com/30'" style="width:28px; height:28px; border-radius:50%; background:white; padding:2px;">
-        
         <div style="display:flex; flex-direction:column;">
            <span style="color:white; font-weight:bold; font-size:14px;">${coin.symbol} <span style="font-size:11px; color:#636e72;">/USDT</span></span>
         </div>
       </div>
-
       <div style="text-align:right;">
         <div id="side-price-${coin.symbol}" style="color:white; font-weight:bold; font-size:14px;">${coin.price > 0 ? coin.price.toLocaleString() : 'Loading...'}</div>
         <div id="side-change-${coin.symbol}" style="font-size:11px; color:#636e72;">0.00%</div>
@@ -719,153 +701,167 @@ function renderSideMenuCoins() {
   `).join('');
 }
 
-
-
-// 5. History Tabs & Rendering
-// History Tab Switch with Loading Effect
-function switchHistoryTab(tab) {
-  // Update Tab Styling
-  document.querySelectorAll('.h-tab-link').forEach(btn => {
-    btn.classList.remove('active');
-    if(btn.textContent.toLowerCase().includes(tab.replace('transaction','in transaction').replace('closed', 'position closed'))) {
-        btn.classList.add('active');
-    }
-  });
-
-  const transContent = document.getElementById('hist-content-transaction');
-  const closedContent = document.getElementById('hist-content-closed');
-
-  if (tab === 'transaction') {
-    transContent.style.display = 'block';
-    closedContent.style.display = 'none';
+// 5. History Tabs & Rendering (REAL DATA - NO SPINNER)
+function switchHistoryTab(tabName) {
+  const tabs = document.querySelectorAll('.h-tab-link');
+  tabs.forEach(t => t.classList.remove('active'));
+  
+  if(tabName === 'transaction') {
+      if(tabs[0]) tabs[0].classList.add('active');
+      document.getElementById('hist-content-transaction').style.display = 'block';
+      document.getElementById('hist-content-closed').style.display = 'none';
+      renderDeliveryList('transaction');
   } else {
-    transContent.style.display = 'none';
-    closedContent.style.display = 'block';
-    
-    // FAKE LOADING (အရေးကြီးသော အပိုင်း)
-    closedContent.innerHTML = '<div class="history-loading"><div class="loading-spinner"></div><br>Loading history records...</div>';
-    
-    setTimeout(() => {
-        renderFakeHistoryData(closedContent);
-    }, 1500); // 1.5 Seconds Loading
+      if(tabs[1]) tabs[1].classList.add('active');
+      document.getElementById('hist-content-transaction').style.display = 'none';
+      document.getElementById('hist-content-closed').style.display = 'block';
+      renderDeliveryList('closed');
   }
 }
 
-// Generate Fake Data like Screenshot
-function renderFakeHistoryData(container) {
-  let html = '';
-  const now = new Date();
-  
-  // Random Data Generation
-  for(let i=0; i<10; i++) {
-     const isWin = Math.random() > 0.5;
-     const profit = (Math.random() * 200).toFixed(4);
-     const amount = [100, 500, 1000, 5000][Math.floor(Math.random()*4)];
-     const time = new Date(now - i * 60000 * 5); // 5 mins gap
-     
-     // Screenshot Style CSS
-     html += `
-        <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a;">
+// 6. Render List Function
+function renderDeliveryList(status) {
+    const container = status === 'transaction' 
+        ? document.getElementById('hist-content-transaction') 
+        : document.getElementById('hist-content-closed');
+        
+    if (!container) return;
+
+    // Filter by status (Pending = Transaction, Closed = Closed)
+    const orders = deliveryOrders.filter(o => o.status === (status === 'transaction' ? 'Pending' : 'Closed'));
+    orders.sort((a, b) => new Date(b.openTime) - new Date(a.openTime));
+
+    if (orders.length === 0) {
+        container.innerHTML = `
+            <div style="padding:40px; text-align:center; color:#636e72;">
+               <div style="font-size:30px; opacity:0.5;">📄</div>
+               <div style="color:#636e72; font-size:12px; margin-top:10px;">No ${status} records</div>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = orders.map(o => {
+        const isWin = o.result === 'Win';
+        const pnlColor = isWin ? '#00b894' : (o.result === 'Loss' ? '#ff6b6b' : '#b2bec3');
+        const pnlText = o.status === 'Pending' ? 'Running' : (isWin ? `+${o.profit}` : `-${o.amount}`);
+        const closeP = o.closePrice ? parseFloat(o.closePrice).toFixed(2) : '-';
+
+        return `
+        <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a; margin-bottom:2px;">
            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
-              <span style="color:#b2bec3;">Position closed</span>
-              <span style="color:white; font-weight:bold;">${activeSymbol}/USDT 60 second</span>
+              <span style="color:${o.type === 'Buy' ? '#00b894' : '#ff6b6b'}; font-weight:bold;">${o.type} ${o.symbol}</span>
+              <span style="color:white; font-weight:bold;">${o.duration}s</span>
            </div>
            
            <div style="display:grid; grid-template-columns: 1fr 1.5fr 1.5fr 1fr; gap:5px; margin-bottom:8px;">
               <div>
-                  <div style="font-size:10px; color:#636e72;">quantity</div>
-                  <div style="color:white; font-size:13px;">${amount}</div>
+                  <div style="font-size:10px; color:#636e72;">Amount</div>
+                  <div style="color:white; font-size:13px;">${o.amount}</div>
               </div>
               <div>
-                  <div style="font-size:10px; color:#636e72;">Purchase price</div>
-                  <div style="color:white; font-size:13px;">${(Math.random()*4000+2000).toFixed(6)}</div>
+                  <div style="font-size:10px; color:#636e72;">Entry</div>
+                  <div style="color:white; font-size:13px;">${o.entryPrice}</div>
               </div>
               <div>
-                  <div style="font-size:10px; color:#636e72;">Transaction price</div>
-                  <div style="color:white; font-size:13px;">${(Math.random()*4000+2000).toFixed(6)}</div>
+                  <div style="font-size:10px; color:#636e72;">Close</div>
+                  <div style="color:white; font-size:13px;">${closeP}</div>
               </div>
               <div style="text-align:right;">
-                  <div style="font-size:10px; color:#636e72;">Profit and loss</div>
-                  <div style="color:${isWin ? '#00b894' : '#ff6b6b'}; font-size:13px;">${isWin?'+':''}${profit}</div>
+                  <div style="font-size:10px; color:#636e72;">PnL</div>
+                  <div style="color:${pnlColor}; font-size:13px;">${pnlText}</div>
               </div>
            </div>
-
-           <div style="display:flex; justify-content:space-between; padding-top:6px; border-top:1px dashed #2d3436;">
-              <div>
-                  <div style="font-size:10px; color:#636e72;">position opening time</div>
-                  <div style="font-size:11px; color:#b2bec3;">${time.toLocaleString()}</div>
-              </div>
-           </div>
-        </div>
-     `;
-  }
-  container.innerHTML = html;
+           <div style="font-size:10px; color:#636e72; text-align:right;">${o.openTime}</div>
+        </div>`;
+    }).join('');
 }
 
-// 6. Order Submission
+// 7. Submit Order (REAL MONEY)
 function submitDeliveryOrder(type) {
-  const amountInput = document.getElementById('deliveryAmount');
-  const amount = parseFloat(amountInput ? amountInput.value : 0);
-  
-  if(!amount || amount <= 0) { alert('Please enter amount'); return; }
-  
-  if(typeof userWallet !== 'undefined' && amount > userWallet.usdt) { 
-      alert('Insufficient balance'); return; 
-  }
-  
-  // Deduct Balance
-  if(typeof userWallet !== 'undefined') {
-      userWallet.usdt -= amount;
-      if(typeof saveWallet === 'function') saveWallet();
-  }
-  
-  selectTransMode(currentCurrency); // Refresh UI
+    const input = document.getElementById('deliveryAmount');
+    const amount = parseFloat(input ? input.value : 0);
+    const symbolName = document.getElementById('currentSymbolName') ? document.getElementById('currentSymbolName').textContent : 'BTC/USDT';
+    const currentPriceText = document.getElementById('mainPrice') ? document.getElementById('mainPrice').textContent.replace(/,/g, '') : "0";
+    const currentPrice = parseFloat(currentPriceText);
 
-  alert(`Order Submitted!\nType: ${type.toUpperCase()}\nTime: ${currentDuration}s\nAmount: ${amount}`);
-  switchHistoryTab('transaction');
-  
-  // Simulate Result
-  setTimeout(() => {
-     const isWin = Math.random() > 0.4; // 60% win chance
-     const profit = amount * (currentProfitRate / 100);
-     const pnl = isWin ? profit : -amount;
-     
-     if(isWin && typeof userWallet !== 'undefined') {
-         userWallet.usdt += (amount + profit);
-         if(typeof saveWallet === 'function') saveWallet();
-         selectTransMode(currentCurrency);
-     }
+    if(!amount || amount <= 0) {
+        showCoolAlert("Input Error", "Please enter a valid amount.", false);
+        return;
+    }
+    if(amount > userWallet.usdt) {
+        showCoolAlert("Insufficient Balance", `Balance: ${userWallet.usdt.toFixed(2)} USDT`, false);
+        return;
+    }
 
-     const now = new Date();
-     const close = new Date(now.getTime() + currentDuration*1000);
-     const priceEl = document.getElementById('mainPrice');
-     const currentPrice = priceEl ? parseFloat(priceEl.textContent.replace(/,/g,'')) : 92000;
-     const symbolEl = document.getElementById('currentSymbolName');
-     const symbol = symbolEl ? symbolEl.textContent.split('/')[0] + '/USDT' : 'BTC/USDT';
-     
-     const newPos = {
-        symbol: symbol,
-        time: currentDuration,
-        qty: amount,
-        buyPrice: currentPrice,
-        closePrice: currentPrice + (isWin ? (Math.random()*10) : -(Math.random()*10)),
-        pnl: pnl,
-        openTime: now.toLocaleString(),
-        closeTime: close.toLocaleString(),
-        isWin: isWin
-     };
-     
-     closedPositions.unshift(newPos); 
-     
-     const closedTabBtn = document.querySelectorAll('.h-tab-btn')[1];
-     if(closedTabBtn && closedTabBtn.classList.contains('active')) {
-        renderClosedPositions();
-     } else {
-        switchHistoryTab('closed');
-     }
-     
-     alert(`Order Result: ${isWin ? 'WIN 🟢' : 'LOSS 🔴'}\nPnL: ${pnl.toFixed(2)}`);
-  }, 2000); 
+    // 1. Deduct Real Money
+    userWallet.usdt -= amount;
+    saveWallet(); 
+    selectTransMode('USDT'); // Update Balance Display
+
+    // 2. Create Order
+    const newOrder = {
+        id: 'DO-' + Date.now(),
+        symbol: symbolName,
+        type: type === 'buy' ? 'Buy' : 'Sell',
+        amount: amount,
+        duration: currentDuration,
+        profitRate: currentProfitRate,
+        entryPrice: currentPrice,
+        openTime: new Date().toLocaleString(),
+        status: 'Pending',
+        result: 'Pending',
+        profit: 0,
+        closePrice: null
+    };
+
+    deliveryOrders.unshift(newOrder);
+    localStorage.setItem('deliveryOrders', JSON.stringify(deliveryOrders));
+
+    // 3. UI Update
+    showCoolAlert("Order Placed", `${type.toUpperCase()} order for ${amount} USDT placed!`);
+    if(input) input.value = '';
+    switchHistoryTab('transaction');
+
+    // 4. Run Simulation
+    simulateOrderResult(newOrder);
+}
+
+// 8. Simulate Result
+function simulateOrderResult(order) {
+    setTimeout(() => {
+        const isWin = Math.random() > 0.4; // 60% Win Rate logic
+        
+        // Update Order
+        order.status = 'Closed';
+        order.closePrice = (parseFloat(order.entryPrice) + (isWin ? 50 : -50)).toFixed(2); // Fake close price deviation
+        
+        if (isWin) {
+            order.result = 'Win';
+            const profitAmt = order.amount * (order.profitRate / 100);
+            order.profit = profitAmt.toFixed(2);
+            
+            // Refund Capital + Profit
+            userWallet.usdt += (order.amount + profitAmt);
+            saveWallet();
+            selectTransMode('USDT');
+            
+            showCoolAlert("You Won! 🎉", `Profit: +${profitAmt.toFixed(2)} USDT`);
+        } else {
+            order.result = 'Loss';
+            order.profit = 0;
+            // No refund
+        }
+
+        localStorage.setItem('deliveryOrders', JSON.stringify(deliveryOrders));
+        
+        // Refresh Lists if user is still on that tab
+        const activeTabBtn = document.querySelector('.h-tab-link.active');
+        if(activeTabBtn) {
+            if(activeTabBtn.innerText.includes('transaction')) renderDeliveryList('transaction');
+            else renderDeliveryList('closed');
+        }
+
+    }, order.duration * 1000); 
 }
 
 // --- PERPETUAL UI LOGIC (UPDATED) ---
