@@ -407,16 +407,6 @@
                 </div>
               </div> <div id="deriv-view-std" style="display:none;">
                  
-                 <div style="display:flex; margin-bottom:10px; background:#12121a; border-radius:4px; overflow:hidden;">
-                    <button class="perp-side-btn active buy" onclick="switchPerpSide('buy')" id="btn-deriv-buy">Buy</button>
-                    <button class="perp-side-btn sell" onclick="switchPerpSide('sell')" id="btn-deriv-sell">Sell</button>
-                 </div>
-
-                 <select class="modal-input" style="width:100%; margin-bottom:10px; font-size:12px; padding:10px; background:#1e1e2d; border:1px solid #2d3436;">
-                     <option>Market Price</option>
-                     <option>Limit Price</option>
-                 </select>
-
                  <div class="qty-input-box" style="margin-bottom:10px; background:#1e1e2d; border:1px solid #2d3436; padding:12px; display:flex; justify-content:space-between; align-items:center;">
                     <input type="number" id="derivStdAmount" placeholder="Amount (USDT)" style="width:70%; background:none; border:none; color:white; font-size:14px; font-weight:bold;">
                     <span style="font-size:11px; color:#f39c12;">Fee: 0.1%</span>
@@ -448,9 +438,9 @@
 
                  <div style="background:#12121a; margin-top:20px; border-top:8px solid #0a0a0f; margin-left:-10px; margin-right:-10px;">
                     <div style="display:flex; border-bottom:1px solid #2d3436;">
-                        <button class="perp-hist-tab active">Current Delegate</button>
-                        <button class="perp-hist-tab">Hold Position</button>
-                        <button class="perp-hist-tab">History</button>
+                        <button class="perp-hist-tab active" onclick="switchStandardTab(this, 'delegate')">Current Delegate</button>
+                        <button class="perp-hist-tab" onclick="switchStandardTab(this, 'hold')">Hold Position</button>
+                        <button class="perp-hist-tab" onclick="switchStandardTab(this, 'history')">History</button>
                     </div>
                     
                     <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:10px; color:#636e72; font-size:10px; text-align:center;">
@@ -461,10 +451,10 @@
                         <span>Action</span>
                     </div>
 
-                    <div id="perp-list-container" style="min-height: 100px;">
+                    <div id="deriv-list-container" style="min-height: 100px;">
                         <div style="padding:20px; text-align:center; color:#636e72;">
                             <div style="font-size:24px; margin-bottom:5px;">📄</div>
-                            <div style="font-size:10px;">No Data</div>
+                            <div style="font-size:10px;">No Orders</div>
                         </div>
                     </div>
                  </div>
