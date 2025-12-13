@@ -3687,7 +3687,7 @@ function switchDerivTimeTab(tabName) {
     }
 }
 
-// 3. Render List (Derivatives Tab)
+// 3. Render List (Derivatives Tab - Fixed Spacing)
 function renderDerivTimeList(status) {
     const container = status === 'transaction' 
         ? document.getElementById('deriv-hist-transaction') 
@@ -3695,20 +3695,14 @@ function renderDerivTimeList(status) {
         
     if (!container) return;
 
-    // Filter orders specific to Derivatives Page (Standard assets like EUR, GBP etc)
-    // Note: In a real app, you might want to separate arrays, but filtering is fine here.
-    const isCrypto = ['BTC','ETH','XRP','SOL','DOGE'].includes(activeDerivAsset);
-    
-    // Show all orders or filter by asset type? Let's show ALL delivery orders here for simplicity
-    // matching the status
     const orders = deliveryOrders.filter(o => o.status === (status === 'transaction' ? 'Pending' : 'Closed'));
     orders.sort((a, b) => new Date(b.openTime) - new Date(a.openTime));
 
     if (orders.length === 0) {
         container.innerHTML = `
-            <div style="padding:40px; text-align:center; color:#636e72;">
-               <div style="font-size:30px; opacity:0.5;">${status === 'transaction' ? '📄' : '🕒'}</div>
-               <div style="color:#636e72; font-size:12px; margin-top:10px;">No ${status} records</div>
+            <div style="padding:60px 0; text-align:center; color:#636e72;">
+               <div style="font-size:40px; margin-bottom:10px; opacity:0.3;">📄</div>
+               <div style="font-size:12px;">No record yet</div>
             </div>`;
         return;
     }
@@ -3716,28 +3710,59 @@ function renderDerivTimeList(status) {
     container.innerHTML = orders.map(o => {
         const isWin = o.result === 'Win';
         const pnlColor = isWin ? '#00b894' : (o.result === 'Loss' ? '#ff6b6b' : '#b2bec3');
-        const pnlText = o.status === 'Pending' ? 'Running' : (isWin ? `+${o.profit}` : `-${o.amount}`);
+        const pnlSign = isWin ? '+' : (o.result === 'Loss' ? '-' : '');
+        const pnlVal = o.status === 'Pending' ? 'Running' : `${pnlSign}${Math.abs(o.profit).toFixed(4)}`;
+        
+        // Time Logic
+        let closeTimeDisplay = o.closeTime;
+        if ((!closeTimeDisplay || closeTimeDisplay === 'undefined') && o.status === 'Closed') {
+             try {
+                 const openDate = new Date(o.openTime);
+                 if(!isNaN(openDate)) {
+                    openDate.setSeconds(openDate.getSeconds() + parseInt(o.duration));
+                    closeTimeDisplay = openDate.toLocaleString();
+                 } else {
+                    closeTimeDisplay = '-';
+                 }
+             } catch(e) { closeTimeDisplay = '-'; }
+        } else if (o.status === 'Pending') {
+             closeTimeDisplay = '-';
+        }
 
+        const closeP = o.closePrice ? parseFloat(o.closePrice).toFixed(4) : '-';
+        const transPrice = o.status === 'Pending' ? '-' : closeP;
+
+        // INLINE STYLES FOR FORCED SPACING
         return `
-        <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a; margin-bottom:2px; text-align:left;">
-           <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
-              <span style="color:${o.type === 'Buy' ? '#00b894' : '#ff6b6b'}; font-weight:bold;">${o.type} ${o.symbol}</span>
-              <span style="color:white; font-weight:bold;">${o.duration}s</span>
+        <div style="padding:16px; border-bottom:1px solid #2d3436; background:#12121a; font-family:sans-serif;">
+           <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:13px; color:#b2bec3;">
+              <span>Position closed &nbsp; <span style="color:white; font-weight:bold;">${o.symbol}</span></span>
+              <span style="color:white; font-weight:bold;">${o.duration} second</span>
            </div>
-           
-           <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:8px;">
-              <div>
-                  <div style="font-size:10px; color:#636e72;">Amount</div>
-                  <div style="color:white; font-size:13px;">${o.amount}</div>
-              </div>
-              <div>
-                  <div style="font-size:10px; color:#636e72;">Entry</div>
-                  <div style="color:white; font-size:13px;">${o.entryPrice}</div>
-              </div>
-              <div style="text-align:right;">
-                  <div style="font-size:10px; color:#636e72;">PnL</div>
-                  <div style="color:${pnlColor}; font-size:13px;">${pnlText}</div>
-              </div>
+
+           <div style="display:flex; justify-content:space-between; margin-bottom:6px; text-align:left;">
+              <div style="width:20%; font-size:10px; color:#636e72;">quantity</div>
+              <div style="width:25%; font-size:10px; color:#636e72; text-align:center;">Purchase price</div>
+              <div style="width:25%; font-size:10px; color:#636e72; text-align:center;">Transaction price</div>
+              <div style="width:30%; font-size:10px; color:#636e72; text-align:right;">Profit and loss</div>
+           </div>
+
+           <div style="display:flex; justify-content:space-between; margin-bottom:12px; text-align:left;">
+              <div style="width:20%; font-size:13px; color:white;">${o.amount}</div>
+              <div style="width:25%; font-size:13px; color:white; text-align:center;">${parseFloat(o.entryPrice).toFixed(4)}</div>
+              <div style="width:25%; font-size:13px; color:white; text-align:center;">${transPrice}</div>
+              <div style="width:30%; font-size:13px; color:${pnlColor}; text-align:right; font-weight:bold;">${pnlVal}</div>
+           </div>
+
+           <div style="display:flex; justify-content:space-between; border-top:1px dashed #2d3436; padding-top:8px;">
+                <div>
+                    <div style="font-size:10px; color:#636e72; margin-bottom:2px;">position opening time</div>
+                    <div style="font-size:11px; color:#b2bec3;">${o.openTime}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:10px; color:#636e72; margin-bottom:2px;">Close time</div>
+                    <div style="font-size:11px; color:#b2bec3;">${closeTimeDisplay}</div>
+                </div>
            </div>
         </div>`;
     }).join('');
@@ -3756,47 +3781,121 @@ document.addEventListener('click', function(e) {
 });
 
 // --- REAL TABS LOGIC (NO LOADING) ---
+// --- REAL TABS LOGIC (FIXED STANDARD HISTORY) ---
 function switchStandardTab(btn, tabName) {
-    // UI Active State
+    // 1. UI Active State
     const container = btn.parentNode;
     container.querySelectorAll('.perp-hist-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
     const contentDiv = document.getElementById('deriv-list-container');
+    const headerRow = document.getElementById('std-table-header'); // HTML မှာ id ထည့်ခဲ့တဲ့ Header
+    
     if(!contentDiv) return;
+    contentDiv.innerHTML = '';
 
+    // 2. Logic per Tab
     if (tabName === 'delegate' || tabName === 'hold') {
-        // Show Open Orders
-        const openOrders = standardOrders.filter(o => o.status === 'Open');
-        if(openOrders.length === 0) {
-            contentDiv.innerHTML = `<div style="padding:40px; text-align:center; color:#636e72;"><div style="font-size:24px; margin-bottom:5px;">📄</div><div style="font-size:10px;">No Open Positions</div></div>`;
+        // Show Header
+        if(headerRow) headerRow.style.display = 'grid';
+        contentDiv.style.backgroundColor = 'transparent';
+
+        if (tabName === 'delegate') {
+            const pendingOrders = standardOrders.filter(o => o.status === 'Pending');
+            if(pendingOrders.length === 0) {
+                contentDiv.innerHTML = `
+                    <div style="padding:40px; text-align:center; color:#636e72;">
+                        <div style="font-size:24px; margin-bottom:5px;">📄</div>
+                        <div style="font-size:10px;">No Current Delegates</div>
+                    </div>`;
+            }
         } else {
-            contentDiv.innerHTML = openOrders.map(o => `
-                <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:12px 5px; border-bottom:1px solid #2d3436; color:white; font-size:11px; align-items:center; text-align:center;">
-                    <span style="color:${o.type==='Long'?'#00b894':'#ff6b6b'}; font-weight:bold;">${o.type}</span>
-                    <span style="font-size:9px;">${o.time.split(',')[1]}</span>
-                    <span>${o.entryPrice}</span>
-                    <span>${o.amount}</span>
-                    <button onclick="closePosition('${o.id}')" style="background:#2d3436; border:1px solid #ff6b6b; color:#ff6b6b; padding:4px 8px; border-radius:4px; font-size:9px;">Close</button>
-                </div>
-            `).join('');
+            // Hold Position
+            const openOrders = standardOrders.filter(o => o.status === 'Open');
+            if(openOrders.length === 0) {
+                contentDiv.innerHTML = `
+                    <div style="padding:40px; text-align:center; color:#636e72;">
+                        <div style="font-size:24px; margin-bottom:5px;">💼</div>
+                        <div style="font-size:10px;">No Hold Positions</div>
+                    </div>`;
+            } else {
+                contentDiv.innerHTML = openOrders.map(o => `
+                    <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:12px 5px; border-bottom:1px solid #2d3436; color:white; font-size:11px; align-items:center; text-align:center;">
+                        <span style="color:${o.type==='Long'?'#00b894':'#ff6b6b'}; font-weight:bold;">${o.type}</span>
+                        <span style="font-size:9px; color:#b2bec3;">${o.time.split(',')[1] || o.time}</span>
+                        <span>${o.entryPrice}</span>
+                        <span>${o.amount}</span>
+                        <button onclick="closePosition('${o.id}')" style="background:transparent; border:1px solid #ff6b6b; color:#ff6b6b; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Close</button>
+                    </div>
+                `).join('');
+            }
         }
+
     } else {
-        // Show History (Closed)
-        const closedOrders = standardOrders.filter(o => o.status === 'Closed');
-        if(closedOrders.length === 0) {
-            contentDiv.innerHTML = `<div style="padding:40px; text-align:center; color:#636e72;"><div style="font-size:24px; margin-bottom:5px;">🕒</div><div style="font-size:10px;">No History</div></div>`;
-        } else {
-            contentDiv.innerHTML = closedOrders.map(o => `
-                <div style="display:grid; grid-template-columns: 0.5fr 1.5fr 1fr 1fr 1fr; padding:12px 5px; border-bottom:1px solid #2d3436; color:#636e72; font-size:11px; align-items:center; text-align:center;">
-                    <span style="color:${o.type==='Long'?'#00b894':'#ff6b6b'}; font-weight:bold;">${o.type}</span>
-                    <span style="font-size:9px;">${o.time.split(',')[0]}</span>
-                    <span>${o.entryPrice}</span>
-                    <span>${o.amount}</span>
-                    <span style="color:${o.pnl >= 0 ? '#00b894' : '#ff6b6b'};">${o.pnl >= 0 ? '+' : ''}${o.pnl}</span>
+        // HISTORY TAB (SPECIAL LAYOUT)
+        // Hide Main Header
+        if(headerRow) headerRow.style.display = 'none';
+        
+        // White Background for History sub-section (as per screenshot style)
+        contentDiv.style.backgroundColor = '#ffffff'; 
+        contentDiv.style.minHeight = '300px';
+
+        // Render Sub-Tabs + Container
+        contentDiv.innerHTML = `
+            <div class="std-sub-tabs">
+                <button class="std-sub-tab active" onclick="renderStandardHistorySubTab('pending', this)">Pending order</button>
+                <button class="std-sub-tab" onclick="renderStandardHistorySubTab('transaction', this)">in transaction</button>
+                <button class="std-sub-tab" onclick="renderStandardHistorySubTab('closed', this)">Closed position</button>
+                <button class="std-sub-tab" onclick="renderStandardHistorySubTab('cancelled', this)">Order has been cancelled</button>
+            </div>
+            <div id="std-hist-content">
                 </div>
-            `).join('');
-        }
+        `;
+        
+        // Load Default (Pending or Closed based on preference, using Closed as it likely has data)
+        renderStandardHistorySubTab('closed', contentDiv.querySelector('.std-sub-tab:nth-child(3)'));
+    }
+}
+
+// Helper for History Sub-Tabs
+function renderStandardHistorySubTab(type, btn) {
+    // 1. Toggle Active Class
+    const parent = btn.parentNode;
+    parent.querySelectorAll('.std-sub-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const container = document.getElementById('std-hist-content');
+    if(!container) return;
+
+    // 2. Filter Data
+    let data = [];
+    if(type === 'pending') data = standardOrders.filter(o => o.status === 'Pending');
+    if(type === 'transaction') data = standardOrders.filter(o => o.status === 'Open');
+    if(type === 'closed') data = standardOrders.filter(o => o.status === 'Closed');
+    if(type === 'cancelled') data = standardOrders.filter(o => o.status === 'Cancelled');
+
+    // 3. Render Content or No Record
+    if(data.length === 0) {
+        container.innerHTML = `
+            <div class="no-record-box">
+                <div class="nr-icon" style="background:#b2bec3;">📄<span style="font-size:16px; margin-left:-10px; margin-top:20px;">!</span></div>
+                <div class="nr-text">No record yet</div>
+            </div>`;
+    } else {
+        // Simple list render for history items
+        container.innerHTML = data.map(o => `
+            <div style="padding:15px; border-bottom:1px solid #eee; color:#333;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="font-weight:bold; color:${o.type==='Long'?'#00b894':'#ff6b6b'};">${o.type} ${o.symbol}</span>
+                    <span style="font-size:12px; color:#636e72;">${o.time}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:12px;">
+                    <span>Price: ${o.entryPrice}</span>
+                    <span>Amt: ${o.amount}</span>
+                    <span style="font-weight:bold; color:${parseFloat(o.pnl)>=0?'#00b894':'#ff6b6b'};">PnL: ${o.pnl}</span>
+                </div>
+            </div>
+        `).join('');
     }
 }
 
