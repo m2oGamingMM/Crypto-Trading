@@ -3390,45 +3390,370 @@ function submitDerivOrder(side) {
     const input = document.getElementById('derivStdAmount');
     const amount = parseFloat(input ? input.value : 0);
     
-    // Validation
+    // 1. Validation
     if(!amount || amount <= 0) { 
         showCoolAlert("Invalid Amount", "Please enter a valid amount to trade.", false);
         return; 
     }
-    
     if(amount > userWallet.usdt) { 
         showCoolAlert("Insufficient Balance", `You only have ${userWallet.usdt.toFixed(2)} USDT available.`, false);
         return; 
     }
     
-    // Deduct Real Money
-    userWallet.usdt -= amount;
-    saveWallet(); // Update UI & Storage
+    // 2. Get Price (Synthetic or API)
+    let currentPrice = "0.00";
+    if(syntheticPrices && syntheticPrices[activeDerivAsset]) {
+        currentPrice = syntheticPrices[activeDerivAsset].price.toFixed(syntheticPrices[activeDerivAsset].decimals);
+    } else {
+        // Fallback for real coins
+        const coin = allPrices.find(c => c.symbol === activeDerivAsset);
+        currentPrice = coin ? coin.price.toString() : "0.00";
+    }
 
-    // Create Real Order
-    const priceText = document.getElementById('derivSmallPrice').textContent;
+    // 3. Deduct Real Money & Save
+    userWallet.usdt -= amount;
+    saveWallet(); 
+    
+    // 4. Create Real Order
     const order = {
-        id: 'ORD-' + Date.now().toString().slice(-6),
+        id: 'STD-' + Date.now().toString().slice(-6),
         symbol: activeDerivAsset,
-        type: side === 'buy' ? 'Long' : 'Short', // Real Type
+        type: side === 'buy' ? 'Long' : 'Short',
         amount: amount,
-        entryPrice: priceText,
+        entryPrice: currentPrice,
         time: new Date().toLocaleString(),
         status: 'Open',
-        pnl: 0 // In a full app, this would update live
+        pnl: 0 
     };
     
     standardOrders.unshift(order);
     localStorage.setItem('standardOrders', JSON.stringify(standardOrders));
     
-    // Success UI
+    // 5. Success UI
     input.value = '';
-    showCoolAlert("Order Successful", `Successfully opened ${side.toUpperCase()} position for ${amount} USDT on ${activeDerivAsset}.`);
+    showCoolAlert("Order Successful", `Opened ${side.toUpperCase()} position for ${amount} USDT on ${activeDerivAsset}`);
     
-    // Switch to Delegate Tab
-    const tabs = document.querySelectorAll('.perp-hist-tab');
+    // Switch to Delegate Tab and Render
+    const tabs = document.querySelectorAll('#deriv-view-std .perp-hist-tab');
     if(tabs[0]) switchStandardTab(tabs[0], 'delegate');
 }
+
+// --- NEW DERIVATIVES TIME OPTIONS LOGIC (REAL TRADE & MODAL) ---
+
+let activeDeliveryOrder = null;
+let deliveryTimer = null;
+
+// 1. Trigger Confirmation Modal
+function submitDerivTimeOrder(type) {
+    const input = document.getElementById('derivTimeAmount');
+    const amount = parseFloat(input ? input.value : 0);
+    
+    if(!amount || amount <= 0) {
+        showCoolAlert("Input Error", "Please enter a valid amount.", false);
+        return;
+    }
+    if(amount > userWallet.usdt) {
+        showCoolAlert("Insufficient Balance", `Balance: ${userWallet.usdt.toFixed(2)} USDT`, false);
+        return;
+    }
+
+    // Prepare temp order object
+    activeDeliveryOrder = {
+        type: type === 'call' ? 'Buy' : 'Sell',
+        amount: amount,
+        duration: currentDuration,
+        rate: currentProfitRate,
+        symbol: activeDerivAsset
+    };
+
+    // Show Confirm Modal (Step 1)
+    const overlay = document.getElementById('deliveryModalOverlay');
+    const content = document.getElementById('deliveryModalContent');
+    
+    content.innerHTML = `
+        <div class="dm-header">Confirm order <span class="dm-close" onclick="closeDeliveryModal()">x</span></div>
+        <div class="dm-body">
+            <div class="dm-row"><span class="dm-label">${activeDerivAsset}</span></div>
+            <div class="dm-row"><span class="dm-label">Type</span> <span class="dm-val ${activeDeliveryOrder.type === 'Buy' ? 'buy' : 'sell'}">${activeDeliveryOrder.type}</span></div>
+            <div class="dm-row"><span class="dm-label">Opening quantity</span> <span class="dm-val">${amount}</span></div>
+            <div class="dm-row"><span class="dm-label">second</span> <span class="dm-val">${currentDuration}</span></div>
+            <div class="dm-row"><span class="dm-label">profit rate</span> <span class="dm-val">${currentProfitRate}%</span></div>
+        </div>
+        <div class="dm-actions">
+            <button class="dm-btn cancel" onclick="closeDeliveryModal()">Cancel</button>
+            <button class="dm-btn confirm" onclick="startDeliveryTrade()">Confirm</button>
+        </div>
+    `;
+    overlay.style.display = 'flex';
+}
+
+// 2. Start Trade Logic
+function startDeliveryTrade() {
+    // Deduct Real Money
+    userWallet.usdt -= activeDeliveryOrder.amount;
+    saveWallet();
+    updateDerivBalance();
+    
+    // Set Start Details
+    let startPrice = 0;
+    if(syntheticPrices && syntheticPrices[activeDerivAsset]) {
+        startPrice = syntheticPrices[activeDerivAsset].price;
+    } else {
+        const coin = allPrices.find(c => c.symbol === activeDerivAsset);
+        startPrice = coin ? coin.price : 100.00;
+    }
+
+    activeDeliveryOrder.entryPrice = parseFloat(startPrice);
+    activeDeliveryOrder.startTime = new Date();
+    activeDeliveryOrder.timeLeft = activeDeliveryOrder.duration;
+
+    // Start UI Loop (Step 2: Countdown)
+    renderCountdownModal();
+    
+    deliveryTimer = setInterval(() => {
+        activeDeliveryOrder.timeLeft--;
+        
+        // Update Price (Simulate small movement if needed)
+        let currentP = activeDeliveryOrder.entryPrice;
+        if(syntheticPrices && syntheticPrices[activeDerivAsset]) {
+            currentP = syntheticPrices[activeDerivAsset].price;
+        }
+
+        if(activeDeliveryOrder.timeLeft <= 0) {
+            clearInterval(deliveryTimer);
+            showSettlingState();
+        } else {
+            updateCountdownUI(currentP);
+        }
+    }, 1000);
+}
+
+// 3. Render Countdown Modal (Step 2)
+function renderCountdownModal() {
+    const content = document.getElementById('deliveryModalContent');
+    content.innerHTML = `
+        <div class="dm-header">${activeDeliveryOrder.symbol} <span class="dm-close" onclick="closeDeliveryModal()">x</span></div>
+        <div class="dm-body">
+            <div class="dm-large-text" id="dmTime">${activeDeliveryOrder.timeLeft} second</div>
+            <div class="dm-row"><span class="dm-label">Trading direction</span> <span class="dm-val ${activeDeliveryOrder.type === 'Buy' ? 'buy' : 'sell'}">${activeDeliveryOrder.type}</span></div>
+            <div class="dm-row"><span class="dm-label">Number</span> <span class="dm-val">${activeDeliveryOrder.amount.toFixed(4)}</span></div>
+            <div class="dm-row"><span class="dm-label">Current price</span> <span class="dm-val" id="dmCurrPrice">${activeDeliveryOrder.entryPrice}</span></div>
+            <div class="dm-row"><span class="dm-label">Expected profit and loss</span> <span class="dm-val" id="dmExpPnL">0</span></div>
+        </div>
+    `;
+}
+
+// Update UI every second
+function updateCountdownUI(currentPrice) {
+    const timeEl = document.getElementById('dmTime');
+    const priceEl = document.getElementById('dmCurrPrice');
+    const pnlEl = document.getElementById('dmExpPnL');
+    
+    if(timeEl) timeEl.textContent = `${activeDeliveryOrder.timeLeft} second`;
+    if(priceEl) priceEl.textContent = currentPrice.toFixed(4);
+    
+    // Calculate Interim PnL Display
+    let isWin = false;
+    if(activeDeliveryOrder.type === 'Buy') isWin = currentPrice > activeDeliveryOrder.entryPrice;
+    else isWin = currentPrice < activeDeliveryOrder.entryPrice;
+
+    if(pnlEl) {
+        if(isWin) {
+            const profit = activeDeliveryOrder.amount * (activeDeliveryOrder.rate / 100);
+            pnlEl.textContent = `+${profit.toFixed(4)}`;
+            pnlEl.style.color = '#00b894';
+        } else {
+            pnlEl.textContent = `-${activeDeliveryOrder.amount.toFixed(4)}`;
+            pnlEl.style.color = '#ff6b6b';
+        }
+    }
+}
+
+// 4. Show Settling State (Step 3)
+function showSettlingState() {
+    const timeEl = document.getElementById('dmTime');
+    const pnlEl = document.getElementById('dmExpPnL');
+    if(timeEl) timeEl.textContent = "Settling";
+    if(pnlEl) pnlEl.textContent = "Settling";
+    
+    // Fake delay for settling
+    setTimeout(() => {
+        finalizeOrder();
+    }, 1500);
+}
+
+// 5. Finalize & Show Result (Step 4)
+function finalizeOrder() {
+    let closePrice = activeDeliveryOrder.entryPrice;
+    // Get final price
+    if(syntheticPrices && syntheticPrices[activeDerivAsset]) {
+        closePrice = syntheticPrices[activeDerivAsset].price;
+    }
+
+    // Determine Win/Loss
+    let isWin = false;
+    // Force a bit of luck for user experience or pure logic
+    if(activeDeliveryOrder.type === 'Buy') isWin = closePrice >= activeDeliveryOrder.entryPrice;
+    else isWin = closePrice <= activeDeliveryOrder.entryPrice;
+
+    let pnl = 0;
+    if(isWin) {
+        const profit = activeDeliveryOrder.amount * (activeDeliveryOrder.rate / 100);
+        pnl = profit;
+        // Refund Capital + Profit
+        userWallet.usdt += (activeDeliveryOrder.amount + profit);
+    } else {
+        pnl = -activeDeliveryOrder.amount;
+    }
+    saveWallet();
+    updateDerivBalance();
+
+    // Create History Record
+    const historyOrder = {
+        id: 'DT-' + Date.now(),
+        symbol: activeDeliveryOrder.symbol,
+        type: activeDeliveryOrder.type,
+        amount: activeDeliveryOrder.amount,
+        duration: activeDeliveryOrder.duration,
+        profitRate: activeDeliveryOrder.rate,
+        entryPrice: activeDeliveryOrder.entryPrice.toFixed(4),
+        closePrice: closePrice.toFixed(4),
+        openTime: activeDeliveryOrder.startTime.toLocaleString(),
+        closeTime: new Date().toLocaleString(),
+        status: 'Closed',
+        result: isWin ? 'Win' : 'Loss',
+        profit: isWin ? pnl.toFixed(4) : 0
+    };
+    
+    deliveryOrders.unshift(historyOrder);
+    localStorage.setItem('deliveryOrders', JSON.stringify(deliveryOrders));
+    switchDerivTimeTab('transaction'); // Refresh background list
+
+    // Render Result Modal
+    const content = document.getElementById('deliveryModalContent');
+    const pnlSign = isWin ? '+' : '';
+    const pnlClass = isWin ? 'win' : 'loss';
+    
+    content.innerHTML = `
+        <div class="dm-header">${activeDeliveryOrder.symbol} <span class="dm-close" onclick="closeDeliveryModal()">x</span></div>
+        <div class="dm-body">
+            <div class="dm-large-text ${pnlClass}">${pnlSign}${Math.abs(pnl).toFixed(4)}</div>
+            
+            <div class="dm-row"><span class="dm-label">Trading direction</span> <span class="dm-val ${activeDeliveryOrder.type === 'Buy' ? 'buy' : 'sell'}">${activeDeliveryOrder.type}</span></div>
+            <div class="dm-row"><span class="dm-label">Number</span> <span class="dm-val">${activeDeliveryOrder.amount.toFixed(4)}</span></div>
+            <div class="dm-row"><span class="dm-label">Opening price</span> <span class="dm-val">${activeDeliveryOrder.entryPrice.toFixed(6)}</span></div>
+            <div class="dm-row"><span class="dm-label">Closed Price</span> <span class="dm-val">${closePrice.toFixed(6)}</span></div>
+            <div class="dm-row"><span class="dm-label">second</span> <span class="dm-val">${activeDeliveryOrder.duration}</span></div>
+            <div class="dm-row"><span class="dm-label">profit rate</span> <span class="dm-val">${activeDeliveryOrder.rate}%</span></div>
+            <div class="dm-row"><span class="dm-label">P/L</span> <span class="dm-val ${pnlClass}">${pnlSign}${Math.abs(pnl).toFixed(4)}</span></div>
+            
+            <div style="margin-top:10px; border-top:1px dashed #eee; padding-top:10px;">
+                <div class="dm-row"><span class="dm-label">position opening time</span> <span class="dm-val" style="font-weight:400; font-size:11px;">${historyOrder.openTime}</span></div>
+                <div class="dm-row"><span class="dm-label">Close time</span> <span class="dm-val" style="font-weight:400; font-size:11px;">${historyOrder.closeTime}</span></div>
+            </div>
+        </div>
+    `;
+}
+
+function closeDeliveryModal() {
+    document.getElementById('deliveryModalOverlay').style.display = 'none';
+    if(deliveryTimer) clearInterval(deliveryTimer);
+    
+    // Clear Input
+    const input = document.getElementById('derivTimeAmount');
+    if(input) input.value = '';
+}
+
+// 2. Switch History Tabs (Derivatives Tab)
+function switchDerivTimeTab(tabName) {
+    const header = document.querySelector('#deriv-view-time .history-tabs-header');
+    const tabs = header.querySelectorAll('.h-tab-link');
+    
+    tabs.forEach(t => t.classList.remove('active'));
+
+    const transDiv = document.getElementById('deriv-hist-transaction');
+    const closedDiv = document.getElementById('deriv-hist-closed');
+
+    if(tabName === 'transaction') {
+        if(tabs[0]) tabs[0].classList.add('active');
+        transDiv.style.display = 'block';
+        closedDiv.style.display = 'none';
+        renderDerivTimeList('transaction');
+    } else {
+        if(tabs[1]) tabs[1].classList.add('active');
+        transDiv.style.display = 'none';
+        closedDiv.style.display = 'block';
+        renderDerivTimeList('closed');
+    }
+}
+
+// 3. Render List (Derivatives Tab)
+function renderDerivTimeList(status) {
+    const container = status === 'transaction' 
+        ? document.getElementById('deriv-hist-transaction') 
+        : document.getElementById('deriv-hist-closed');
+        
+    if (!container) return;
+
+    // Filter orders specific to Derivatives Page (Standard assets like EUR, GBP etc)
+    // Note: In a real app, you might want to separate arrays, but filtering is fine here.
+    const isCrypto = ['BTC','ETH','XRP','SOL','DOGE'].includes(activeDerivAsset);
+    
+    // Show all orders or filter by asset type? Let's show ALL delivery orders here for simplicity
+    // matching the status
+    const orders = deliveryOrders.filter(o => o.status === (status === 'transaction' ? 'Pending' : 'Closed'));
+    orders.sort((a, b) => new Date(b.openTime) - new Date(a.openTime));
+
+    if (orders.length === 0) {
+        container.innerHTML = `
+            <div style="padding:40px; text-align:center; color:#636e72;">
+               <div style="font-size:30px; opacity:0.5;">${status === 'transaction' ? '📄' : '🕒'}</div>
+               <div style="color:#636e72; font-size:12px; margin-top:10px;">No ${status} records</div>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = orders.map(o => {
+        const isWin = o.result === 'Win';
+        const pnlColor = isWin ? '#00b894' : (o.result === 'Loss' ? '#ff6b6b' : '#b2bec3');
+        const pnlText = o.status === 'Pending' ? 'Running' : (isWin ? `+${o.profit}` : `-${o.amount}`);
+
+        return `
+        <div style="padding:12px 16px; border-bottom:1px solid #2d3436; background:#12121a; margin-bottom:2px; text-align:left;">
+           <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+              <span style="color:${o.type === 'Buy' ? '#00b894' : '#ff6b6b'}; font-weight:bold;">${o.type} ${o.symbol}</span>
+              <span style="color:white; font-weight:bold;">${o.duration}s</span>
+           </div>
+           
+           <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:8px;">
+              <div>
+                  <div style="font-size:10px; color:#636e72;">Amount</div>
+                  <div style="color:white; font-size:13px;">${o.amount}</div>
+              </div>
+              <div>
+                  <div style="font-size:10px; color:#636e72;">Entry</div>
+                  <div style="color:white; font-size:13px;">${o.entryPrice}</div>
+              </div>
+              <div style="text-align:right;">
+                  <div style="font-size:10px; color:#636e72;">PnL</div>
+                  <div style="color:${pnlColor}; font-size:13px;">${pnlText}</div>
+              </div>
+           </div>
+        </div>`;
+    }).join('');
+}
+
+// Helper to update Balance on Derivatives Page
+function updateDerivBalance() {
+    const balEl = document.getElementById('derivBalance');
+    if(balEl) balEl.textContent = userWallet.usdt.toFixed(2) + ' USDT';
+}
+
+// Init Balance on Page Load
+document.addEventListener('click', function(e) {
+    // When clicking Derivatives Nav or Tab
+    setTimeout(updateDerivBalance, 500);
+});
 
 // --- REAL TABS LOGIC (NO LOADING) ---
 function switchStandardTab(btn, tabName) {
