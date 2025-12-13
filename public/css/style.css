@@ -2341,3 +2341,50 @@ body.light-mode .modal-input {
     background-color: #00b894;
     width: var(--width, 0%);
 }
+/* --- NEW DELIVERY MODAL STYLES (SCREENSHOT MATCH) --- */
+.dm-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 9999;
+    display: none; justify-content: center; align-items: center;
+}
+.dm-card {
+    background: #ffffff; width: 85%; max-width: 340px; border-radius: 12px;
+    padding: 0; overflow: hidden; animation: popIn 0.2s ease-out;
+    color: #333; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.dm-header {
+    padding: 15px; text-align: center; font-size: 16px; font-weight: 600;
+    border-bottom: 1px solid #eee; position: relative;
+}
+.dm-close {
+    position: absolute; right: 15px; top: 15px; color: #999; cursor: pointer; font-weight: normal;
+}
+.dm-body { padding: 20px 15px; }
+
+/* Large Text (Countdown / Result) */
+.dm-large-text {
+    text-align: center; font-size: 32px; font-weight: 500; margin-bottom: 20px;
+    color: #333;
+}
+.dm-large-text.win { color: #00b894; font-weight: bold; } /* Green */
+.dm-large-text.loss { color: #ff6b6b; font-weight: bold; } /* Red */
+
+/* Rows */
+.dm-row {
+    display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px;
+}
+.dm-label { color: #666; }
+.dm-val { font-weight: 600; color: #333; }
+.dm-val.buy { color: #00b894; } /* Green Text */
+.dm-val.sell { color: #ff6b6b; } /* Red Text */
+
+/* Buttons */
+.dm-actions {
+    display: flex; border-top: 1px solid #eee;
+}
+.dm-btn {
+    flex: 1; padding: 15px; border: none; background: #fff;
+    font-size: 14px; cursor: pointer; font-weight: 500;
+}
+.dm-btn.cancel { color: #666; border-right: 1px solid #eee; }
+.dm-btn.confirm { color: #2980b9; font-weight: 600; }
