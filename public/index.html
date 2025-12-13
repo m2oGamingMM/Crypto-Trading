@@ -388,6 +388,10 @@
                 <div class="qty-input-box" style="margin-bottom: 15px; background:#1e1e2d; border:1px solid #2d3436;">
                     <input type="number" id="derivTimeAmount" placeholder="Order Amount (USDT)" style="font-weight:bold;">
                 </div>
+                
+                <div style="text-align: right; font-size: 11px; margin-bottom: 10px; color:#b2bec3;">
+                   <span style="color:#f39c12;">💰</span> Available: <span id="derivBalance" style="color: white; font-weight:bold;">Checking...</span>
+                </div>
 
                 <div class="big-action-buttons" style="padding: 0; margin-bottom:20px;">
                   <button class="action-btn buy" style="background:#00b894;" onclick="submitDerivTimeOrder('call')">Call / Buy</button>
@@ -396,12 +400,20 @@
 
                 <div class="history-tabs-container" style="border-top: 8px solid #0a0a0f; background: #12121a; margin: 0 -10px;">
                     <div class="history-tabs-header" style="padding: 12px 16px; border-bottom: 1px solid #1e1e2d;">
-                       <button class="h-tab-link" onclick="document.getElementById('hist-content-closed').style.display='none'; this.classList.add('active');">In transaction</button>
-                       <button class="h-tab-link active" onclick="document.getElementById('hist-content-closed').style.display='block'; this.parentNode.querySelectorAll('.h-tab-link')[0].classList.remove('active'); renderFakeHistoryData();" style="margin-left: 20px;">Position closed</button>
+                       <button class="h-tab-link active" onclick="switchDerivTimeTab('transaction')">In transaction</button>
+                       <button class="h-tab-link" onclick="switchDerivTimeTab('closed')" style="margin-left: 20px;">Position closed</button>
                     </div>
                     
-                    <div id="hist-content-closed" style="min-height:200px;">
-                       <div style="padding:40px; text-align:center; color:#636e72;">Loading history...</div>
+                    <div class="history-content-area">
+                        <div id="deriv-hist-transaction" style="display:block; padding:40px; text-align:center;">
+                           <div style="font-size:30px; opacity:0.5;">📄</div>
+                           <div style="color:#636e72; font-size:12px; margin-top:10px;">No transaction data</div>
+                        </div>
+
+                        <div id="deriv-hist-closed" style="display:none; padding:40px; text-align:center;">
+                           <div style="font-size:30px; opacity:0.5;">🕒</div>
+                           <div style="color:#636e72; font-size:12px; margin-top:10px;">No closed positions</div>
+                        </div>
                     </div>
                 </div>
               </div> <div id="deriv-view-std" style="display:none;">
@@ -667,6 +679,11 @@
       <div id="modalBody">
         </div>
     </div>
+  </div>
+
+  <div id="deliveryModalOverlay" class="dm-overlay">
+    <div id="deliveryModalContent" class="dm-card">
+       </div>
   </div>
 
   <script src="js/app.js"></script>
